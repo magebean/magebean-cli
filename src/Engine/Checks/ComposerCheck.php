@@ -330,43 +330,58 @@ final class ComposerCheck
 
     public function coreAdvisoriesOffline(array $args): array
     {
-        // ---- 0) Resolve đường dẫn & guard cơ bản
-        $root     = $args['path'] ?? getcwd();
+        // ===== 0) Load composer.lock (giống yankedOffline) =====
         $lockPath = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
-        $vendor   = $args['vendor_dir'] ?? ($root . '/vendor');
-
         if (!is_file($lockPath)) {
-            return [null, "[UNKNOWN] composer.lock not found"];
+            return [null, "[UNKNOWN] composer.lock not found at {$lockPath}"];
         }
-        if (!is_dir($vendor)) {
-            return [null, "[UNKNOWN] vendor directory not found"];
-        }
-
-        // ---- 1) Đọc danh sách package từ composer.lock
-        $pkgs = $this->readLockPackages($lockPath);
-        if (!$pkgs || !is_array($pkgs)) {
+        $installed = $this->readLockPackages($lockPath);
+        if (!$installed || !is_array($installed)) {
             return [null, "[UNKNOWN] Unable to parse composer.lock"];
         }
 
-        // ---- 2) Xác định package "core" cần kiểm (mặc định: magento/*, adobe-commerce/*)
-        $patterns = $args['core_patterns'] ?? ['#^magento/#i', '#^adobe\-commerce/#i', '#^magento\/module\-#i'];
-        $isCore = static function (string $name, array $pats): bool {
+        // Map: package(lc) => version (bỏ tiền tố v/V)
+        $installedVers = [];
+        foreach ($installed as $name => $info) {
+            $v = $info['version'] ?? null;
+            if (is_string($v) && $v !== '') {
+                $installedVers[strtolower((string)$name)] = ltrim((string)$v, 'vV');
+            }
+        }
+        if (!$installedVers) {
+            return [true, "No packages in composer.lock (nothing to check); lock={$lockPath}"];
+        }
+
+        // ===== 1) Xác định root & vendor-dir =====
+        // Root tiêu chuẩn: thư mục chứa lock
+        $root = rtrim(str_replace('\\', '/', dirname($lockPath)), '/'); 
+        $composerJsonPath = $root . '/composer.json';
+        $vendorDirCfg = null;
+        if (is_file($composerJsonPath)) {
+            $composerJson = @json_decode((string)@file_get_contents($composerJsonPath), true) ?: [];
+            $vendorDirCfg = $composerJson['config']['vendor-dir'] ?? null;
+        }
+        $vendor = $vendorDirCfg ? ($root . '/' . ltrim((string)$vendorDirCfg, '/')) : ($root . '/vendor');
+        $vendor = rtrim($vendor, '/');
+        if (!is_dir($vendor)) {
+            // Theo yêu cầu: chỉ dựa lock + vendor ⇒ thiếu vendor thì UNKNOWN
+            return [null, "[UNKNOWN] vendor directory not found at {$vendor}; lock={$lockPath}"];
+        }
+
+        // ===== 2) Định nghĩa nhóm core =====
+        $patterns = $args['core_patterns'] ?? [
+            '#^magento/#i',
+            '#^adobe\-commerce/#i',
+            '#^magento\/module\-#i',
+        ];
+        $isCore = static function (string $pkg, array $pats): bool {
             foreach ($pats as $re) {
-                if (@preg_match($re, $name)) {
-                    if (preg_match($re, $name)) return true;
-                }
+                if (@preg_match($re, $pkg) && preg_match($re, $pkg)) return true;
             }
             return false;
         };
 
-        // ---- 3) Helper: từ tên package suy ra đường dẫn vendor/...
-        $packagePath = static function (string $vendorDir, string $package) {
-            // "magento/module-catalog" -> "vendor/magento/module-catalog"
-            $path = rtrim($vendorDir, '/') . '/' . $package;
-            return is_dir($path) ? $path : null;
-        };
-
-        // ---- 4) Helper: đọc file nhỏ an toàn, giới hạn kích thước
+        // ===== 3) Helpers =====
         $readFile = static function (string $fp, int $max = 256 * 1024) {
             if (!is_file($fp) || !is_readable($fp)) return null;
             $size = filesize($fp);
@@ -378,147 +393,99 @@ final class ComposerCheck
             @fclose($h);
             return is_string($data) ? $data : null;
         };
-
-        // ---- 5) Helper: tìm fixed version từ 1 dòng text (cơ bản)
+        $isSecurityLine = static function (string $line): bool {
+            return (bool)preg_match('/\b(cve|security|vulnerab|advisory|hotfix|patch|sec\-)\b/i', $line);
+        };
         $extractFixedFromLine = static function (string $line): ?string {
-            // bắt các mẫu thường gặp:
-            // "fixed in 2.4.7-p1", "≥ 2.4.6", ">= 2.4.6", "at least 2.4.6", "update to 2.4.5"
             $line = strtolower($line);
-            // ưu tiên >=, ≥
+            // ưu tiên >= / ≥
             if (preg_match('/(?:>=|≥)\s*v?([0-9][0-9a-z\.\-\+]*?)\b/i', $line, $m)) {
                 return ltrim($m[1], 'v');
             }
-            // "fixed in/at" / "update to" / "patch to"
+            // "fixed in / update to / patch to / use ..."
             if (preg_match('/(?:fixed\s+in|update\s+to|patch\s+to|use\s+)\s*v?([0-9][0-9a-z\.\-\+]*?)\b/i', $line, $m)) {
                 return ltrim($m[1], 'v');
             }
-            // ">=2.4.6" không có khoảng
+            // ">=2.4.6" (không khoảng)
             if (preg_match('/(?:>=|≥)v?([0-9][0-9a-z\.\-\+]*?)\b/i', $line, $m)) {
                 return ltrim($m[1], 'v');
             }
-            // "2.4.7-p1 or later"
+            // "2.4.7-p1 or later/and later/and above"
             if (preg_match('/\bv?([0-9][0-9a-z\.\-\+]*?)\b\s+(?:or\s+later|and\s+later|and\s+above)/i', $line, $m)) {
                 return ltrim($m[1], 'v');
             }
             return null;
         };
 
-        $isSecurityLine = static function (string $line): bool {
-            return (bool)preg_match('/\b(cve|security|vulnerab|advisory|hotfix|patch|sec\-)\b/i', $line);
-        };
-
-        // ---- 6) Đọc advisories từ bundle (nếu có)
-        // Kỳ vọng JSON: [{"package":"magento/module-catalog","fixed":"2.4.7-p1","id":"...","title":"...","notes":"..."}]
-        $bundle = $this->ctx->cveData !== '' ? $this->ctx->cveData : null;
-        $coreAdvisories = []; // package => [ [fixed,id,title,notes], ... ]
-        if (is_string($bundle) && preg_match('/\.zip$/i', $bundle) && is_file($bundle)) {
-            $za = new \ZipArchive();
-            if ($za->open($bundle) === true) {
-                $idx = $za->locateName('DATA/advisories-core.json', \ZipArchive::FL_NOCASE);
-                if ($idx !== false) {
-                    $raw = $za->getFromIndex($idx);
-                    $j = is_string($raw) ? json_decode($raw, true) : null;
-                    if (is_array($j)) {
-                        foreach ($j as $row) {
-                            if (!is_array($row)) continue;
-                            $pkg = $row['package'] ?? null;
-                            $fix = $row['fixed'] ?? null;
-                            if (!is_string($pkg) || $pkg === '' || !is_string($fix) || $fix === '') continue;
-                            $pkg = strtolower($pkg);
-                            $coreAdvisories[$pkg][] = [
-                                'fixed' => ltrim($fix, 'vV'),
-                                'id'    => $row['id'] ?? null,
-                                'title' => $row['title'] ?? null,
-                                'notes' => $row['notes'] ?? null,
-                            ];
-                        }
-                    }
-                }
-                $za->close();
-            }
-        }
-
-        // ---- 7) Dò từng package core
+        // ===== 4) Quét từng core package trong vendor =====
         $hits = [];
-        foreach ($pkgs as $name => $info) {
-            if (!is_string($name) || !$isCore($name, $patterns)) continue;
+        $coreCount = 0;
 
-            $installed = isset($info['version']) ? ltrim((string)$info['version'], 'vV') : null;
-            if (!$installed) continue;
+        foreach ($installedVers as $pkgLc => $installedVer) {
+            if (!$isCore($pkgLc, $patterns)) continue;
+            $coreCount++;
 
-            $pkgPath = $packagePath($vendor, $name);
-            $secLines = [];
-
-            // 7a) Quét local files trong vendor package
-            if ($pkgPath) {
-                $cands = [
-                    'SECURITY.md',
-                    'SECURITY.txt',
-                    'SECURITY.adoc',
-                    'SECURITY',
-                    'CHANGELOG.md',
-                    'CHANGELOG.txt',
-                    'CHANGELOG',
-                    'RELEASE_NOTES.md',
-                    'RELEASE_NOTES.txt',
-                    'README.md',
-                ];
-                foreach ($cands as $rel) {
-                    $fp = $pkgPath . '/' . $rel;
-                    $txt = $readFile($fp);
-                    if (!$txt) continue;
-                    foreach (preg_split('/\r?\n/', $txt) as $line) {
-                        if ($line === '') continue;
-                        if ($isSecurityLine($line)) {
-                            $secLines[] = $line;
-                        }
-                    }
-                }
+            $pkgPath = $vendor . '/' . $pkgLc; // composer cài theo dạng lowercase "vendor/name"
+            if (!is_dir($pkgPath)) {
+                // không có thư mục vendor tương ứng → không có dữ liệu changelog ⇒ bỏ qua
+                continue;
             }
 
-            // 7b) Từ secLines, cố lấy fixed version
+            // Tập fixed-version candidates từ các file nhỏ thông dụng
+            $cands = [
+                'SECURITY.md',
+                'SECURITY.txt',
+                'SECURITY.adoc',
+                'SECURITY',
+                'CHANGELOG.md',
+                'CHANGELOG.txt',
+                'CHANGELOG',
+                'RELEASE_NOTES.md',
+                'RELEASE_NOTES.txt',
+                'README.md',
+            ];
             $bestFixed = null;
-            foreach ($secLines as $line) {
-                $fixed = $extractFixedFromLine($line);
-                if (!$fixed) continue;
-                // chọn fixed nhỏ nhất nhưng >= installed (để tránh gợi ý quá cao)
-                if (version_compare($fixed, $installed, '<')) {
-                    // fixed < installed => không phải fix cho bản mình
-                    continue;
-                }
-                if ($bestFixed === null || version_compare($fixed, $bestFixed, '<')) {
-                    $bestFixed = $fixed;
-                }
-            }
 
-            // 7c) Gộp với bundle DATA/advisories-core.json (nếu có)
-            $lname = strtolower($name);
-            if (isset($coreAdvisories[$lname])) {
-                foreach ($coreAdvisories[$lname] as $adv) {
-                    $fx = $adv['fixed'] ?? null;
-                    if (!is_string($fx) || $fx === '') continue;
-                    $fx = ltrim($fx, 'vV');
-                    // chỉ quan tâm fixed >= installed
-                    if (version_compare($fx, $installed, '<')) continue;
+            foreach ($cands as $rel) {
+                $fp = $pkgPath . '/' . $rel;
+                $txt = $readFile($fp);
+                if (!$txt) continue;
 
+                foreach (preg_split('/\r?\n/', $txt) as $line) {
+                    if ($line === '' || !$isSecurityLine($line)) continue;
+                    $fx = $extractFixedFromLine($line);
+                    if (!$fx) continue;
+
+                    // chỉ xét fixed >= installed
+                    if (version_compare($fx, $installedVer, '<')) continue;
+
+                    // giữ fixed nhỏ nhất nhưng ≥ installed
                     if ($bestFixed === null || version_compare($fx, $bestFixed, '<')) {
                         $bestFixed = $fx;
                     }
                 }
             }
 
-            // 7d) Nếu tìm thấy fixed hợp lệ và installed < fixed thì flag
-            if ($bestFixed !== null && version_compare($installed, $bestFixed, '<')) {
-                $hits[] = sprintf('%s %s -> >= %s', $name, $installed, $bestFixed);
+            // Nếu tìm thấy fixed và installed < fixed ⇒ flag
+            if ($bestFixed !== null && version_compare($installedVer, $bestFixed, '<')) {
+                // tên hiển thị: ưu tiên tên gốc nếu còn
+                $disp = $pkgLc;
+                if (isset($installed[$pkgLc]['name']) && is_string($installed[$pkgLc]['name'])) {
+                    $disp = $installed[$pkgLc]['name'];
+                }
+                $hits[] = sprintf('%s %s -> >= %s', $disp, $installedVer, $bestFixed);
             }
         }
 
+        // ===== 5) Kết quả + evidence =====
         if ($hits) {
-            return [false, 'Core advisories flagged: ' . implode('; ', $hits)];
+            return [false, 'Core advisories flagged: ' . implode('; ', $hits)
+                . " — lock={$lockPath}; vendor={$vendor}; core_pkgs_scanned={$coreCount}"];
         }
 
-        return [true, 'No core advisories found (offline scan).'];
+        return [true, "No core advisories found (offline scan). lock={$lockPath}; vendor={$vendor}; core_pkgs_scanned={$coreCount}"];
     }
+
 
     public function fixVersion(array $args): array
     {

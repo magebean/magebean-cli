@@ -105,26 +105,6 @@ HELP;
         $urlOpt = (string) $this->autoDetectBaseUrl($requestedPath);
         
         $requestedUrl = $urlOpt !== '' ? $urlOpt : '';
-        if ($urlOpt !== '') {
-            // URL mode (ExternalMagentoAudit)
-            $url = trim($urlOpt);
-            // -------------------------
-            // Preflight: Magento 2 detect (fail-fast nếu không phải M2)
-            // -------------------------
-            $det = $this->detectMagento2ByUrl($url, 7000);
-            if (!$det['ok']) {
-                $out->writeln('<error>Target does not appear to be a Magento 2 storefront.</error>');
-                $out->writeln(sprintf('Confidence: <comment>%d%%</comment>', (int)$det['confidence']));
-                if (!empty($det['signals'])) {
-                    $out->writeln('Signals:');
-                    foreach ($det['signals'] as $sig) {
-                        $out->writeln('  - ' . $sig);
-                    }
-                }
-                $out->writeln('<comment>Aborting.</comment> If this is a Magento site behind CDN/WAF that strips headers, try scanning the canonical store domain or whitelist our User-Agent.');
-                return Command::FAILURE;
-            }
-        }
 
         // Nếu path không trỏ tới Magento root, thử leo lên tối đa 4 cấp
         if (!self::isMagentoRoot($requestedPath)) {
@@ -618,95 +598,6 @@ HTML;
             $dir = $parent;
         }
         return null;
-    }
-
-    private function detectMagento2ByUrl(string $url, int $timeoutMs = 6000): array
-    {
-        [$ok, $err, $resp] = $this->httpFetch($url, $timeoutMs);
-        $signals = [];
-        if (!$ok) {
-            return ['ok' => false, 'confidence' => 0, 'signals' => ["Fetch error: {$err}"]];
-        }
-        $headers = array_change_key_case((array)($resp['headers'] ?? []), CASE_LOWER);
-        $body    = (string)($resp['body'] ?? '');
-        $conf    = 0;
-
-        // 1) Headers đặc trưng Magento 2
-        $hasMagentoHdr = false;
-        foreach (['x-magento-tags', 'x-magento-cache-debug', 'x-magento-advanced'] as $hk) {
-            if (array_key_exists($hk, $headers)) {
-                $hasMagentoHdr = true;
-                break;
-            }
-        }
-        if ($hasMagentoHdr) {
-            $conf += 60;
-            $signals[] = 'Header: X-Magento-* present';
-        } else {
-            $signals[] = 'Header: X-Magento-* NOT present';
-        }
-
-        // 2) Token phổ biến trong HTML/JS của M2
-        $bodyLc = strtolower($body);
-        $hitBody = false;
-        // data-mage-init (UI components), mage-cache-storage (LS), /static/version (asset), /static/frontend/ (theme assets)
-        $patterns = [
-            '~data-mage-init~i',
-            '~mage-cache-storage~i',
-            '~/static/version~i',
-            '~/static/frontend/~i',         // theme assets
-            '~/static/_cache/merged/~i',    // merged/bundled static
-            '~window\\.checkoutConfig~i',
-            '~Magento~i'
-        ];
-        foreach ($patterns as $rx) {
-            if (preg_match($rx, $bodyLc) === 1) {
-                $hitBody = true;
-                break;
-            }
-        }
-        if ($hitBody) {
-            $conf += 40;
-            $signals[] = 'HTML token(s): Magento UI/asset markers found';
-        } else {
-            $signals[] = 'HTML token(s): no typical Magento markers';
-        }
-
-        // 3) URL canonical/asset gợi ý
-        $assetHits = [];
-        if (preg_match('~/static/version\\d+/~i', $bodyLc))         $assetHits[] = '/static/version';
-        if (preg_match('~/pub/static/~i', $bodyLc))                 $assetHits[] = '/pub/static';
-        // /static/frontend/<Vendor>/<theme>/<locale>/...  (vd: Dowlis/cisco2/en_US/…)
-        if (
-            preg_match('~/static/frontend/[^"\']+/(en_[A-Z]{2}|[a-z]{2}_[A-Z]{2})/~i', $bodyLc)
-            || preg_match('~/static/frontend/~i', $bodyLc)
-        ) {
-            $assetHits[] = '/static/frontend';
-        }
-        if (preg_match('~/static/_cache/merged/~i', $bodyLc))       $assetHits[] = '/static/_cache/merged';
-        if (preg_match('~luma-icons\\.(woff2|woff|ttf)~i', $bodyLc)) $assetHits[] = 'Luma-Icons';
-
-        if ($assetHits) {
-            // +10 điểm mỗi clue (tối đa +30), riêng Luma-Icons cộng thêm +20 (Magento đặc trưng)
-            $base  = min(30, count($assetHits) * 10);
-            $bonus = in_array('Luma-Icons', $assetHits, true) ? 20 : 0;
-            $conf += ($base + $bonus);
-            $signals[] = 'Asset clues: ' . implode(', ', $assetHits);
-        } else {
-            $signals[] = 'Asset clues: none';
-        }
-
-        // 4) Tránh false-positive với WordPress/Woo/Shopify
-        $nonMagentoHints = 0;
-        if (str_contains($bodyLc, 'wp-content') || str_contains($bodyLc, 'wp-json')) $nonMagentoHints++;
-        if (str_contains($bodyLc, 'cdn.shopify.com') || str_contains($bodyLc, 'x-shopify')) $nonMagentoHints++;
-        if ($nonMagentoHints > 0) {
-            $conf = max(0, $conf - 40);
-            $signals[] = 'Non-Magento hints present (WordPress/Shopify)';
-        }
-
-        if ($conf > 100) $conf = 100;
-        return ['ok' => $conf >= 60, 'confidence' => $conf, 'signals' => $signals];
     }
 
     /**

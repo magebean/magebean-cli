@@ -10,7 +10,6 @@
     "bin",
     "src",
     "resources",
-    "rules",
     "vendor"
   ],
   "files": [

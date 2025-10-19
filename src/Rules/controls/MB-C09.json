@@ -32,8 +32,7 @@
         {
           "name": "composer_core_advisories_offline",
           "args": {
-            "lock_file": "composer.lock",
-            "advisories": "rules/adobe-core-advisories.json"
+            "lock_file": "composer.lock"
           }
         }
       ],
