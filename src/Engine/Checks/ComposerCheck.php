@@ -177,8 +177,8 @@ final class ComposerCheck
         // 1) Resolve yanked metadata path (zip/dir/file-inside-dir)
         $candidates = [];
         if (!empty($args['yanked_meta'])) $candidates[] = (string)$args['yanked_meta'];
-        $candidates[] = 'DATA/packagist-yanked.json';        // new layout
-        $candidates[] = 'rules/packagist-yanked.json';       // legacy fallback
+        $candidates[] = 'packagist-yanked.json';
+        $candidates[] = 'rules/packagist-yanked.json';      // legacy rules/ fallback
 
         $metaPath = null;
         $openedZip = null;
@@ -659,7 +659,7 @@ final class ComposerCheck
     {
         $lock = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
 
-        $metaPath = $this->metaPath($args, 'tags', 'tags_meta', 'DATA/risk-surface.json')
+        $metaPath = $this->metaPath($args, 'tags', 'tags_meta', 'risk-surface.json')
             ?? $this->metaPath($args, 'tags', 'tags_meta', 'rules/risk-surface.json');
 
         $metaJson = null;
@@ -1335,7 +1335,7 @@ final class ComposerCheck
             }
         };
 
-        $rawRelease = $loadText('DATA/release-history.json') ?? $loadText('rules/release-history.json');
+        $rawRelease = $loadText('release-history.json') ?? $loadText('rules/release-history.json');
         if ($rawRelease === null) {
             return [null, "[UNKNOWN] Release metadata not found (DATA/release-history.json)"];
         }
@@ -1488,7 +1488,7 @@ final class ComposerCheck
         $pkg2vuln = json_decode($rawIdx, true);
         if (!is_array($pkg2vuln) || !$pkg2vuln) return [null, "[UNKNOWN] packages-index.json invalid/empty"];
 
-        $rawRel = $loadText('DATA/release-history.json') ?? $loadText('rules/release-history.json');
+        $rawRel = $loadText('release-history.json') ?? $loadText('rules/release-history.json');
         if ($rawRel === null) return [null, "[UNKNOWN] release-history.json missing"];
         $relJ = json_decode($rawRel, true);
         if (!is_array($relJ)) return [null, "[UNKNOWN] release-history.json invalid JSON"];
@@ -1795,7 +1795,7 @@ final class ComposerCheck
             }
         };
 
-        $raw = $loadText('DATA/vendor-support.json') ?? $loadText('rules/vendor-support.json');
+        $raw = $loadText('vendor-support.json') ?? $loadText('rules/vendor-support.json');
         if ($raw === null) return [null, "[UNKNOWN] Vendor-support metadata not found"];
 
         // 2.1) Loose JSON decode: strip BOM, comments, trailing commas; retry decode
@@ -2168,7 +2168,7 @@ final class ComposerCheck
             }
         };
 
-        $raw = $loadText('DATA/packagist-abandoned.json') ?? $loadText('rules/packagist-abandoned.json');
+        $raw = $loadText('packagist-abandoned.json') ?? $loadText('rules/packagist-abandoned.json');
         if ($raw === null) return [null, "[UNKNOWN] Abandoned metadata not found"];
 
         $j = json_decode($raw, true);
@@ -2266,7 +2266,7 @@ final class ComposerCheck
         $lock = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
         if (!is_file($lock)) return [null, "[UNKNOWN] composer.lock not found"];
 
-        $metaPath = $this->metaPath($args, 'release_history', 'release_meta', 'DATA/release-history.json')
+        $metaPath = $this->metaPath($args, 'release_history', 'release_meta', 'release-history.json')
             ?? $this->metaPath($args, 'release_history', 'release_meta', 'rules/release-history.json');
         if (!$metaPath) return [null, "[UNKNOWN] Release-history metadata not found"];
 
@@ -2303,7 +2303,7 @@ final class ComposerCheck
         $lock = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
         if (!is_file($lock)) return [null, "[UNKNOWN] composer.lock not found"];
 
-        $metaPath = $this->metaPath($args, 'repo_status', 'repo_meta', 'DATA/repo-status.json')
+        $metaPath = $this->metaPath($args, 'repo_status', 'repo_meta', 'repo-status.json')
             ?? $this->metaPath($args, 'repo_status', 'repo_meta', 'rules/repo-status.json');
         if (!$metaPath) return [null, "[UNKNOWN] Repo-status metadata not found"];
 
@@ -2328,7 +2328,7 @@ final class ComposerCheck
         $lock = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
         if (!is_file($lock)) return [null, "[UNKNOWN] composer.lock not found"];
 
-        $metaPath = $this->metaPath($args, 'repo_status', 'repo_meta', 'DATA/repo-status.json')
+        $metaPath = $this->metaPath($args, 'repo_status', 'repo_meta', 'repo-status.json')
             ?? $this->metaPath($args, 'repo_status', 'repo_meta', 'rules/repo-status.json');
         if (!$metaPath) return [null, "[UNKNOWN] Repo-status metadata not found"];
 
@@ -2966,36 +2966,66 @@ final class ComposerCheck
         return ['Unknown', ''];
     }
 
-    // 4) Gọi lại helpers của CveAuditor nếu có; có fallback local
-    private function eventsToIntervalsSafe($auditor, array $events, ?string &$minFixedCandidate = null): array
-    {
-        $ref = new \ReflectionClass($auditor);
-        if ($ref->hasMethod('eventsToIntervals')) {
-            $m = $ref->getMethod('eventsToIntervals');
-            $m->setAccessible(true);
-            return $m->invoke($auditor, $events, $minFixedCandidate);
-        }
-        // local
-        $res = [];
-        $curStart = null;
-        $minFixedCandidate = null;
-        foreach ($events as $ev) {
-            if (isset($ev['introduced'])) {
-                $curStart = ltrim((string)$ev['introduced'], 'v');
-            } elseif (isset($ev['fixed'])) {
-                $fx = ltrim((string)$ev['fixed'], 'v');
-                $minFixedCandidate = $this->minVersionLocal($minFixedCandidate, $fx);
-                if ($curStart !== null) {
-                    $res[] = [$curStart, $fx];
-                    $curStart = null;
-                } else {
-                    $res[] = [null, $fx];
+        /**
+         * 4) Delegate to CveAuditor::eventsToIntervals() if available; otherwise use local fallback.
+         */
+        private function eventsToIntervalsSafe($auditor, array $events, ?string &$minFixedCandidate = null): array
+        {
+            // Try to use CveAuditor implementation if it exists
+            if (is_object($auditor)) {
+                try {
+                    $ref = new \ReflectionClass($auditor);
+                    if ($ref->hasMethod('eventsToIntervals')) {
+                        $m = $ref->getMethod('eventsToIntervals');
+                        $m->setAccessible(true);
+
+                        $params = $m->getParameters();
+                        if (count($params) >= 2) {
+                            // Method expects (array $events, ?string &$minFixedCandidate)
+                            $args = [$events, &$minFixedCandidate];
+                        } else {
+                            // Older signature: eventsToIntervals(array $events)
+                            $args = [$events];
+                        }
+
+                        $result = $m->invokeArgs($auditor, $args);
+                        if (is_array($result)) {
+                            return $result;
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    // If reflection / invocation fails, fall back to local implementation
                 }
             }
+
+            // Local fallback implementation
+            $res = [];
+            $curStart = null;
+            $minFixedCandidate = null;
+
+            foreach ($events as $ev) {
+                if (isset($ev['introduced'])) {
+                    $curStart = ltrim((string) $ev['introduced'], 'v');
+                } elseif (isset($ev['fixed'])) {
+                    $fx = ltrim((string) $ev['fixed'], 'v');
+                    $minFixedCandidate = $this->minVersionLocal($minFixedCandidate, $fx);
+
+                    if ($curStart !== null) {
+                        $res[] = [$curStart, $fx];
+                        $curStart = null;
+                    } else {
+                        $res[] = [null, $fx];
+                    }
+                }
+            }
+
+            if ($curStart !== null) {
+                $res[] = [$curStart, null];
+            }
+
+            return $res;
         }
-        if ($curStart !== null) $res[] = [$curStart, null];
-        return $res;
-    }
+
 
     private function inRangeSafe($auditor, string $cur, ?string $a, ?string $b): bool
     {

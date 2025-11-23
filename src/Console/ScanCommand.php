@@ -669,11 +669,17 @@ HTML;
         return $out;
     }
 
-    private function collectBundleMeta(string $root): array
+        private function collectBundleMeta(string $root): array
     {
         $map = [];
-        foreach (['data', 'DATA', 'rules', 'RULES'] as $dir) {
-            $base = rtrim($root, '/\\') . DIRECTORY_SEPARATOR . $dir . DIRECTORY_SEPARATOR;
+        $root = rtrim($root, '/\\');
+
+        // Support both legacy layout (data/, rules/) and new flat layout (files at bundle root)
+        foreach (['', 'data', 'DATA', 'rules', 'RULES'] as $dir) {
+            $base = $root;
+            if ($dir !== '') {
+                $base .= DIRECTORY_SEPARATOR . $dir;
+            }
             if (!is_dir($base)) continue;
 
             $candidates = [
@@ -683,19 +689,22 @@ HTML;
                 'repo_status'     => 'repo-status.json',
                 'vendor_support'  => 'vendor-support.json',
                 // advisories split by source (new bundle layout)
-                'adobe_core'      => 'advisories-adobe.json',
-                'advisories'      => 'advisories-magento.json',       // default for latency check; falls back to marketplace/thirdparty if needed
-                // optional extras:
+                'osv'             => 'osv-advisories.json',
+                'ghsa'            => 'ghsa-advisories.json',
+                'friendsofphp'    => 'friendsofphp-advisories.json',
+                'snyk'            => 'snyk-advisories.json',
+                // other meta
                 'kev'             => 'cisa-kev.json',
                 'high_risk'       => 'high-risk-modules.json',
-                'osv_db'          => 'osv-db.json',                   // CVE DB (JSON/NDJSON đã “phẳng”)
+                'osv_db'          => 'osv-db.json',                   // CVE DB (JSON/NDJSON flattened)
                 'list'            => 'match-list.json',               // allow/deny list
                 'tags'            => 'risk-surface.json',             // risk tags
                 'market'          => 'marketplace-versions.json',     // marketplace versions
             ];
             foreach ($candidates as $key => $file) {
-                $p = $base . $file;
-                if (is_file($p)) {
+                $p = $base . DIRECTORY_SEPARATOR . $file;
+                if (is_file($p) && !isset($map[$key])) {
+                    // First match wins so bundles can ship duplicates in data/, rules/, or root.
                     $map[$key] = $p;
                 }
             }
