@@ -43,6 +43,7 @@ Doc: <href=https://magebean.com/documentation>magebean.com/documentation</>
   <fg=yellow>--format=html|json</>              Output format for results (default: html)
   <fg=yellow>--output=FILE</>                   Save results to a file (auto default based on format)
   <fg=yellow>--cve-data=PATH</>                 Path to CVE data (JSON/NDJSON or ZIP bundle)
+  <fg=yellow>--controls=MB-Cxx,MB-Cxx</>       Only load selected controls (e.g., MB-C01,MB-C05)
   <fg=yellow>--rules=MB-Rxx,MB-Rxx</>           Only run a list of specified rules (e.g., MB-R03,)
   <fg=yellow>--exclude-rules=MB-Rxx,MB-Rxx</>   Only run a list of specified rules (e.g., MB-R03,)
 
@@ -86,6 +87,7 @@ HELP;
             ->addOption('detail', null, InputOption::VALUE_NONE, 'Include Details column in HTML report')
             ->addOption('cve-data', null, InputOption::VALUE_OPTIONAL, 'Path to CVE data (JSON/NDJSON or ZIP bundle)')
             ->addOption('standard', null, InputOption::VALUE_OPTIONAL, 'Report standard: magebean (default) | owasp | pci | cwe', 'magebean')
+            ->addOption('controls', null, InputOption::VALUE_OPTIONAL, 'Comma-separated control IDs to load (e.g., MB-C01,MB-C05 or MB-01,MB-05)')
             ->addOption('rules', null, InputOption::VALUE_OPTIONAL, 'Comma-separated rule IDs to run (e.g., MB-R036,MB-R020)')
             ->addOption('path', null, InputOption::VALUE_OPTIONAL, 'Magento root path (omit to auto-detect from current working directory)', '');
     }
@@ -142,6 +144,7 @@ HELP;
             $cveDataFile = (string)($in->getOption('cve-data') ?? '');
             $standard    = strtolower((string)($in->getOption('standard') ?? 'magebean'));
             $rulesOpt    = (string)($in->getOption('rules') ?? '');
+            $controlsOpt = (string)($in->getOption('controls') ?? '');
 
             // validate standard
             $allowed = ['magebean', 'owasp', 'pci', 'cwe'];
@@ -207,7 +210,39 @@ HELP;
                 'meta' => $bundleMeta,
             ]);
 
-            $pack = RulePackLoader::loadAll();
+            // normalize controls filter
+            $controlsFilter = [];
+            if ($controlsOpt !== '') {
+                $parts = array_map('trim', explode(',', $controlsOpt));
+                $parts = array_values(array_filter($parts, static fn($p) => $p !== ''));
+                $normalized = [];
+                $invalid = [];
+                foreach ($parts as $c) {
+                    $nc = $this->normalizeControlId($c);
+                    if ($nc === '') {
+                        $invalid[] = $c;
+                    } else {
+                        $normalized[] = $nc;
+                    }
+                }
+                if ($invalid) {
+                    $out->writeln('<error>Invalid control id(s): ' . implode(', ', $invalid) . '</error>');
+                    $out->writeln('Expected format: MB-C01 or MB-01');
+                    return Command::FAILURE;
+                }
+                $controlsFilter = array_values(array_unique($normalized));
+            }
+
+            $pack = RulePackLoader::loadAll($controlsFilter);
+
+            if ($controlsFilter) {
+                $loaded = $pack['controls'] ?? [];
+                $missing = array_values(array_diff($controlsFilter, $loaded));
+                if ($missing) {
+                    $out->writeln('<error>Control file(s) not found: ' . implode(', ', $missing) . '</error>');
+                    return Command::FAILURE;
+                }
+            }
 
             // filter by --rules (comma-separated IDs)
             $requestedIds = [];
@@ -249,6 +284,7 @@ HELP;
             // attach meta
             $result['meta']['standard']    = $standard;
             $result['meta']['rules_filter'] = $requestedIds;
+            $result['meta']['controls_filter'] = $controlsFilter;
             $result['summary']['path'] = $projectPath;
 
             // 2) CVE audit (nếu có data)
@@ -425,6 +461,16 @@ HELP;
         $out->writeln('');
     }
 
+    private function normalizeControlId(string $raw): string
+    {
+        $id = strtoupper(trim($raw));
+        if ($id === '') return '';
+        if (preg_match('/^MB-C(\d{2})$/', $id, $m)) return 'MB-C' . $m[1];
+        if (preg_match('/^MB-(\d{2})$/', $id, $m)) return 'MB-C' . $m[1];
+        if (preg_match('/^C(\d{2})$/', $id, $m)) return 'MB-C' . $m[1];
+        if (preg_match('/^(\d{2})$/', $id, $m)) return 'MB-C' . $m[1];
+        return '';
+    }
 
     private function sevOrder(string $sev): int
     {
