@@ -984,7 +984,7 @@ final class ComposerCheck
     public function constraintsConflict(array $args): array
     {
         // ---- 0) Guard & nền tảng
-        $root = $args['path'] ?? getcwd();
+        $root = $this->ctx->path ?: getcwd();
         $lock = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
         if (!is_file($lock)) {
             return [null, "[UNKNOWN] composer.lock not found"];
@@ -1012,172 +1012,101 @@ final class ComposerCheck
             return [true, "No packages in composer.lock (nothing to check)"];
         }
 
-        // ---- 1) Resolve bundle root (zip hoặc dir, hoặc path file bên trong bundle)
-        $candidates = [];
-        if (!empty($args['cve_data'])) $candidates[] = (string)$args['cve_data'];
-        if (!empty($this->ctx->cveData)) $candidates[] = (string)$this->ctx->cveData;
-        $candidates = array_values(array_unique(array_filter($candidates, fn($p) => is_string($p) && $p !== '')));
-
-        $normalize = function (string $p): string {
-            if (preg_match('#^/|^[A-Za-z]:[\\\\/]#', $p)) return $p;
-            $abs = $this->ctx->abs($p);
-            return is_string($abs) && $abs !== '' ? $abs : (getcwd() . '/' . $p);
-        };
-        $tried = [];
-        $resolveRoot = function (string $raw) use ($normalize, &$tried) {
-            $p = $normalize($raw);
-            $tried[] = $p;
-
-            if (is_file($p) && preg_match('/\.zip$/i', $p)) return ['zip', $p];
-
-            $asDir = is_dir($p) ? $p : dirname($p);
-            $cur = $asDir;
-            for ($i = 0; $i < 5; $i++) {
-                if (is_dir($cur . '/INDEX') || is_dir($cur . '/DATA') || is_dir($cur . '/VULNS') || is_file($cur . '/INDEX/packages-index.json')) {
-                    return ['dir', $cur];
-                }
-                $parent = dirname($cur);
-                if ($parent === $cur) break;
-                $cur = $parent;
+        // ---- 1) Resolve CVE dataset path (support meta/osv_db or bundle with VULNS/)
+        $meta = $this->ctx->get('meta', []);
+        $pathCandidates = [];
+        if (is_string($args['cve_data'] ?? null) && $args['cve_data'] !== '') $pathCandidates[] = $this->ctx->abs((string)$args['cve_data']);
+        if (is_string($this->ctx->cveData ?? null) && $this->ctx->cveData !== '') $pathCandidates[] = $this->ctx->cveData;
+        if (is_array($meta)) {
+            foreach (['osv_db', 'osv'] as $k) {
+                if (!empty($meta[$k]) && is_string($meta[$k])) $pathCandidates[] = $meta[$k];
             }
-            if (preg_match('#/(DATA|VULNS|INDEX)/#', $p)) {
-                $root = preg_replace('#/(DATA|VULNS|INDEX)/.*$#', '', $p);
-                if (is_dir($root)) return ['dir', $root];
-            }
-            return null;
-        };
-
-        $bundle = null;
-        foreach ($candidates as $cand) {
-            $bundle = $resolveRoot($cand);
-            if ($bundle !== null) break;
         }
-        if ($bundle === null) {
-            $msgTried = $tried ? implode(' | ', $tried) : '(no candidates)';
-            return [null, "[UNKNOWN] CVE bundle not found/openable; tried: " . $msgTried];
+        $pathCandidates = array_values(array_unique(array_filter($pathCandidates, fn($p) => is_string($p) && $p !== '')));
+
+        $datasetPath = null;
+        foreach ($pathCandidates as $cand) {
+            $p = $this->ctx->abs((string)$cand);
+            if (is_file($p) || is_dir($p)) {
+                $datasetPath = $p;
+                break;
+            }
         }
 
-        // ---- 2) Đọc INDEX/packages-index.json → xác định gói có lỗ hổng
-        $pkg2vuln = null;
-        $vulnReader = null;
-
-        if ($bundle[0] === 'zip') {
-            $zip = new \ZipArchive();
-            if ($zip->open($bundle[1]) !== true) {
-                return [null, "[UNKNOWN] Unable to open CVE bundle zip: " . $bundle[1]];
+        $bundleInfo = null;
+        if ($datasetPath === null) {
+            $bundleInfo = $this->findCveBundleCandidate($args['cve_data'] ?? ($this->ctx->cveData ?: null));
+            if (($bundleInfo['status'] ?? '') === 'ok') {
+                $datasetPath = (string)$bundleInfo['path'];
             }
-            $i = $zip->locateName('INDEX/packages-index.json', \ZipArchive::FL_NOCASE);
-            if ($i === false) {
-                $zip->close();
-                return [true, "No vulnerable packages index found in bundle"];
-            }
-            $raw = $zip->getFromIndex($i);
-            $pkg2vuln = is_string($raw) ? json_decode($raw, true) : null;
-            if (!is_array($pkg2vuln) || !$pkg2vuln) {
-                $zip->close();
-                return [true, "No vulnerable packages index found in bundle (empty)"];
-            }
+        }
 
-            // reader VULNS/<id>.json trong zip
-            $vulnReader = function (string $vid) use ($zip) {
-                $path = "VULNS/{$vid}.json";
-                $idx = $zip->locateName($path, \ZipArchive::FL_NOCASE);
-                if ($idx === false) return null;
-                $text = $zip->getFromIndex($idx);
-                return is_string($text) ? json_decode($text, true) : null;
-            };
-            // zip sẽ đóng sau khi tính xong
-        } else {
-            $idxPath = $bundle[1] . '/INDEX/packages-index.json';
-            if (!is_file($idxPath)) return [true, "No vulnerable packages index found in bundle dir (missing)"];
-            $text = @file_get_contents($idxPath);
-            $pkg2vuln = $text !== false ? json_decode($text, true) : null;
-            if (!is_array($pkg2vuln) || !$pkg2vuln) return [true, "No vulnerable packages index found in bundle dir (empty)"];
+        if ($datasetPath === null) {
+            return [null, "[UNKNOWN] CVE dataset not found (supply --cve-data bundle or osv-db.json)"];
+        }
 
-            $vulnReader = function (string $vid) use ($bundle) {
-                $path = $bundle[1] . "/VULNS/{$vid}.json";
-                if (!is_file($path)) return null;
-                $text = @file_get_contents($path);
-                return $text !== false ? json_decode($text, true) : null;
-            };
+        // ---- 2) Load advisories via CveAuditor helper (supports zip/dir/plain JSON/NDJSON)
+        $auditor = new \Magebean\Engine\Cve\CveAuditor($this->ctx);
+        $vulns = $this->loadVulnsViaAuditor($auditor, $datasetPath);
+        if (!is_array($vulns)) $vulns = [];
+        if (($bundleInfo['vuln_count'] ?? null) === 0) {
+            return [true, "CVE dataset is empty (0 advisories)"];
+        }
+        if (!$vulns) {
+            return [true, "No advisories parsed from CVE dataset (nothing to check)"];
         }
 
         // ---- 3) Tính phiên bản fixed tối thiểu theo OSV ranges
-        $eventsToIntervals = function (array $events): array {
-            // chuyển [{introduced:x}|{fixed:y}|{last_affected:z}|{limit:y}] -> danh sách [a,b] (a<= v < b)
-            $intervals = [];
-            $curStart = null;
-            foreach ($events as $e) {
-                if (isset($e['introduced'])) {
-                    $curStart = ltrim((string)$e['introduced'], 'vV');
-                } elseif (isset($e['fixed'])) {
-                    $fixed = ltrim((string)$e['fixed'], 'vV');
-                    $intervals[] = [$curStart, $fixed];
-                    $curStart = null;
-                } elseif (isset($e['last_affected'])) {
-                    $la = ltrim((string)$e['last_affected'], 'vV');
-                    // last_affected → khoảng [curStart, la] (đóng); dùng b = la (không có +epsilon), xử lý bằng so sánh <= khi check
-                    $intervals[] = [$curStart, $la];
-                    $curStart = null;
-                }
-            }
-            // nếu còn dở dang [a, +∞)
-            if ($curStart !== null) $intervals[] = [$curStart, null];
-            return $intervals;
-        };
-        $inRange = function (string $ver, ?string $a, ?string $b) {
-            $v = ltrim($ver, 'vV');
-            if ($a !== null && version_compare($v, $a, '<')) return false;
-            if ($b !== null && version_compare($v, $b, '>=')) return false; // [a, b)
-            return true;
-        };
-
-        // package => minimal fixed (>= installed)
         $targets = [];
-        foreach ($installedVers as $pkg => $inst) {
-            if (empty($pkg2vuln[$pkg]) || !is_array($pkg2vuln[$pkg])) continue;
-            $minFixed = null;
+        foreach ($vulns as $vuln) {
+            if (!is_array($vuln) || empty($vuln['affected']) || !is_array($vuln['affected'])) continue;
 
-            foreach ($pkg2vuln[$pkg] as $vid) {
-                $vj = $vulnReader((string)$vid);
-                if (!is_array($vj)) continue;
-                $aff = $vj['affected'] ?? null;
-                if (!is_array($aff)) continue;
+            foreach ($vuln['affected'] as $aff) {
+                $pkg = $aff['package']['name'] ?? null;
+                $eco = strtolower((string)($aff['package']['ecosystem'] ?? ''));
+                if (!$pkg || !isset($installedVers[$pkg])) continue;
+                if ($eco !== 'packagist' && $eco !== 'composer') continue;
 
-                foreach ($aff as $a) {
-                    $pname = $a['package']['name'] ?? null;
-                    $eco   = $a['package']['ecosystem'] ?? null;
-                    if (!is_string($pname) || $pname !== $pkg) continue;
-                    if ($eco && is_string($eco) && !preg_match('/^packagist$/i', $eco)) continue;
+                $cur = $installedVers[$pkg];
+                $hit = false;
+                $minFixed = $targets[$pkg][1] ?? null;
 
-                    $ranges = is_array($a['ranges'] ?? null) ? $a['ranges'] : [];
-                    foreach ($ranges as $rng) {
+                // explicit versions
+                if (!empty($aff['versions']) && is_array($aff['versions'])) {
+                    foreach ($aff['versions'] as $v) {
+                        $v = ltrim((string)$v, 'vV');
+                        if ($v !== '' && version_compare($cur, $v, '==')) {
+                            $hit = true;
+                            break;
+                        }
+                    }
+                }
+
+                // ranges
+                $minFixedCandidate = null;
+                if (!empty($aff['ranges']) && is_array($aff['ranges'])) {
+                    foreach ($aff['ranges'] as $rng) {
                         $events = is_array($rng['events'] ?? null) ? $rng['events'] : [];
-                        $intervals = $eventsToIntervals($events);
-                        foreach ($intervals as [$from, $to]) {
-                            if ($inRange($inst, $from ?? '0.0.0', $to)) {
-                                // nếu có 'fixed' endpoint thì lấy nó làm candidate
-                                if ($to !== null && version_compare($to, $inst, '>')) {
-                                    if ($minFixed === null || version_compare($to, $minFixed, '<')) {
-                                        $minFixed = $to;
-                                    }
-                                }
+                        $intervals = $this->eventsToIntervalsSafe($auditor, $events, $minFixedCandidate);
+                        foreach ($intervals as [$a, $b]) {
+                            if ($this->inRangeSafe($auditor, $cur, $a, $b)) {
+                                $hit = true;
+                                if ($b !== null) $minFixed = $this->minVersionLocal($minFixed, $b);
                             }
                         }
-                    }
-
-                    // fallback: database_specific.fixed
-                    if ($minFixed === null && isset($a['database_specific']['fixed'])) {
-                        $fx = ltrim((string)$a['database_specific']['fixed'], 'vV');
-                        if ($fx !== '' && version_compare($fx, $inst, '>')) {
-                            $minFixed = $fx;
-                        }
+                        if (isset($minFixedCandidate)) $minFixed = $this->minVersionLocal($minFixed, $minFixedCandidate);
                     }
                 }
-            }
 
-            if ($minFixed !== null && version_compare($minFixed, $inst, '>')) {
-                $targets[$pkg] = [$inst, $minFixed];
+                // fallback database_specific.fixed
+                if (isset($aff['database_specific']['fixed'])) {
+                    $fx = ltrim((string)$aff['database_specific']['fixed'], 'vV');
+                    if ($fx !== '') $minFixed = $this->minVersionLocal($minFixed, $fx);
+                }
+
+                if ($hit && $minFixed !== null && version_compare($minFixed, $cur, '>')) {
+                    $targets[$pkg] = [$cur, $minFixed];
+                }
             }
         }
 
@@ -1731,72 +1660,85 @@ final class ComposerCheck
         }
         if (!$installed) return [true, "No packages in composer.lock (nothing to check)"];
 
+        // Prefer Context->meta (resolved from extracted bundle) before falling back to bundle root detection.
+        $metaPath = $this->metaPath($args, 'vendor_support', 'vendor_support_meta', 'vendor-support.json')
+            ?? $this->metaPath($args, 'vendor_support', 'vendor_support_meta', 'rules/vendor-support.json');
+        $raw = null;
+        if ($metaPath) {
+            $raw = @file_get_contents($metaPath);
+            if ($raw === false) $raw = null;
+        }
+
         // 1) Resolve bundle root (zip/dir/path-inside-bundle)
-        $candidates = [];
-        if (!empty($args['vendor_support_meta'])) $candidates[] = (string)$args['vendor_support_meta'];
-        if (!empty($args['cve_data']))           $candidates[] = (string)$args['cve_data'];
-        if (!empty($this->ctx->cveData))         $candidates[] = (string)$this->ctx->cveData;
-        $candidates = array_values(array_unique(array_filter($candidates, fn($p) => is_string($p) && $p !== '')));
+        if ($raw === null) {
+            $candidates = [];
+            if (!empty($args['vendor_support_meta'])) $candidates[] = (string)$args['vendor_support_meta'];
+            if (!empty($args['cve_data']))           $candidates[] = (string)$args['cve_data'];
+            if (!empty($this->ctx->cveData))         $candidates[] = (string)$this->ctx->cveData;
+            $candidates = array_values(array_unique(array_filter($candidates, fn($p) => is_string($p) && $p !== '')));
 
-        $normalize = function (string $p): string {
-            if (preg_match('#^/|^[A-Za-z]:[\\\\/]#', $p)) return $p;
-            $abs = $this->ctx->abs($p);
-            return is_string($abs) && $abs !== '' ? $abs : (getcwd() . '/' . $p);
-        };
-        $tried = [];
-        $resolveRoot = function (string $raw) use ($normalize, &$tried) {
-            $p = $normalize($raw);
-            $tried[] = $p;
-            if (is_file($p) && preg_match('/\.zip$/i', $p)) return ['zip', $p];
-            $asDir = is_dir($p) ? $p : dirname($p);
-            $cur = $asDir;
-            for ($i = 0; $i < 5; $i++) {
-                if (is_dir($cur . '/INDEX') || is_dir($cur . '/DATA') || is_dir($cur . '/VULNS') || is_file($cur . '/INDEX/packages-index.json')) {
-                    return ['dir', $cur];
+            $normalize = function (string $p): string {
+                if (preg_match('#^/|^[A-Za-z]:[\\\\/]#', $p)) return $p;
+                $abs = $this->ctx->abs($p);
+                return is_string($abs) && $abs !== '' ? $abs : (getcwd() . '/' . $p);
+            };
+            $tried = [];
+            $resolveRoot = function (string $raw) use ($normalize, &$tried) {
+                $p = $normalize($raw);
+                $tried[] = $p;
+                if (is_file($p) && preg_match('/\.zip$/i', $p)) return ['zip', $p];
+                $asDir = is_dir($p) ? $p : dirname($p);
+                $cur = $asDir;
+                for ($i = 0; $i < 5; $i++) {
+                    if (is_dir($cur . '/INDEX') || is_dir($cur . '/DATA') || is_dir($cur . '/VULNS') || is_file($cur . '/INDEX/packages-index.json')) {
+                        return ['dir', $cur];
+                    }
+                    $parent = dirname($cur);
+                    if ($parent === $cur) break;
+                    $cur = $parent;
                 }
-                $parent = dirname($cur);
-                if ($parent === $cur) break;
-                $cur = $parent;
-            }
-            if (preg_match('#/(DATA|VULNS|INDEX)/#', $p)) {
-                $root = preg_replace('#/(DATA|VULNS|INDEX)/.*$#', '', $p);
-                if (is_dir($root)) return ['dir', $root];
-            }
-            return null;
-        };
+                if (preg_match('#/(DATA|VULNS|INDEX)/#', $p)) {
+                    $root = preg_replace('#/(DATA|VULNS|INDEX)/.*$#', '', $p);
+                    if (is_dir($root)) return ['dir', $root];
+                }
+                return null;
+            };
 
-        $bundle = null;
-        foreach ($candidates as $cand) {
-            if (($bundle = $resolveRoot($cand)) !== null) break;
-        }
-        if (!$bundle) {
-            $msg = $tried ? implode(' | ', $tried) : '(no candidates)';
-            return [null, "[UNKNOWN] Vendor-support metadata not found; bundle root unresolved; tried: " . $msg];
-        }
+            $bundle = null;
+            foreach ($candidates as $cand) {
+                if (($bundle = $resolveRoot($cand)) !== null) break;
+            }
+            if (!$bundle) {
+                $msg = $tried ? implode(' | ', $tried) : '(no candidates)';
+                return [null, "[UNKNOWN] Vendor-support metadata not found; bundle root unresolved; tried: " . $msg];
+            }
 
-        // 2) Load DATA/vendor-support.json (fallback rules/)
-        $loadText = function (string $rel) use ($bundle) {
-            if ($bundle[0] === 'zip') {
-                $zip = new \ZipArchive();
-                if ($zip->open($bundle[1]) !== true) return null;
-                $idx = $zip->locateName($rel, \ZipArchive::FL_NOCASE);
-                if ($idx === false) {
+            // 2) Load DATA/vendor-support.json (fallback rules/)
+            $loadText = function (string $rel) use ($bundle) {
+                if ($bundle[0] === 'zip') {
+                    $zip = new \ZipArchive();
+                    if ($zip->open($bundle[1]) !== true) return null;
+                    $idx = $zip->locateName($rel, \ZipArchive::FL_NOCASE);
+                    if ($idx === false) {
+                        $zip->close();
+                        return null;
+                    }
+                    $raw = $zip->getFromIndex($idx);
                     $zip->close();
-                    return null;
+                    return is_string($raw) ? $raw : null;
+                } else {
+                    $path = rtrim($bundle[1], '/') . '/' . $rel;
+                    if (!is_file($path)) return null;
+                    $raw = @file_get_contents($path);
+                    return $raw === false ? null : $raw;
                 }
-                $raw = $zip->getFromIndex($idx);
-                $zip->close();
-                return is_string($raw) ? $raw : null;
-            } else {
-                $path = rtrim($bundle[1], '/') . '/' . $rel;
-                if (!is_file($path)) return null;
-                $raw = @file_get_contents($path);
-                return $raw === false ? null : $raw;
-            }
-        };
+            };
 
-        $raw = $loadText('vendor-support.json') ?? $loadText('rules/vendor-support.json');
-        if ($raw === null) return [null, "[UNKNOWN] Vendor-support metadata not found"];
+            $raw = $loadText('vendor-support.json') ?? $loadText('rules/vendor-support.json');
+            if ($raw === null) {
+                return [true, "Vendor-support metadata not provided; skipping check (add vendor-support.json in CVE bundle to enable)"];
+            }
+        }
 
         // 2.1) Loose JSON decode: strip BOM, comments, trailing commas; retry decode
         $looseDecode = static function (string $s) {
