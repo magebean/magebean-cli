@@ -45,6 +45,10 @@ final class HtmlReporter
         // Lấy meta & cờ suppress confidence (được set bởi ScanRunner)
         $meta = (array)($result['meta'] ?? []);
         $suppressConfidence = (bool)($meta['suppress_confidence'] ?? false);
+        $profile = (array)($meta['profile'] ?? []);
+        $profileId = htmlspecialchars((string)($profile['id'] ?? 'baseline'), ENT_QUOTES, 'UTF-8');
+        $profileTitle = htmlspecialchars((string)($profile['title'] ?? 'Magebean Baseline'), ENT_QUOTES, 'UTF-8');
+        $profileDescription = htmlspecialchars((string)($profile['description'] ?? ''), ENT_QUOTES, 'UTF-8');
 
         $sevCounts = ['Critical' => 0, 'High' => 0, 'Medium' => 0, 'Low' => 0];
         $rows = '';
@@ -120,6 +124,9 @@ final class HtmlReporter
             '{{findings_medium}}'      => (string)$sevCounts['Medium'],
             '{{findings_low}}'         => (string)$sevCounts['Low'],
             '{{findings_total}}'       => (string)$findingsTotal,
+            '{{profile_id}}'           => $profileId,
+            '{{profile_title}}'        => $profileTitle,
+            '{{profile_description}}'  => $profileDescription,
         ]);
         $html = str_replace('{{table}}', $rows, $html);
 

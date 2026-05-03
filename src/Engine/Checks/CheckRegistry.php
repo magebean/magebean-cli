@@ -38,6 +38,9 @@ final class CheckRegistry
         foreach (['code_grep', 'text_grep', 'file_grep', 'grep'] as $name) {
             $registry->register($name, fn(array $args): array => $code->grep($args));
         }
+        $registry->register('code_raw_sql', fn(array $args): array => $code->rawSql($args));
+        $registry->register('code_phtml_escaped_output', fn(array $args): array => $code->phtmlEscapedOutput($args));
+        $registry->register('code_csrf_form_key', fn(array $args): array => $code->csrfFormKey($args));
 
         $registry->register('fs_no_world_writable', fn(array $args): array => $fs->noWorldWritable($args));
         $registry->register('file_mode_max', fn(array $args): array => $fs->fileModeMax($args));
@@ -60,6 +63,8 @@ final class CheckRegistry
         $registry->register('magento_admin_2fa_enabled', fn(array $args): array => $mage->adminTwoFactorAuthEnabled($args));
         $registry->register('magento_admin_password_policy_strong', fn(array $args): array => $mage->adminPasswordPolicyStrong($args));
         $registry->register('magento_admin_session_timeout', fn(array $args): array => $mage->adminSessionTimeout($args));
+        $registry->register('magento_admin_exposure_restricted', fn(array $args): array => $mage->adminExposureRestricted($args));
+        $registry->register('magento_admin_captcha_or_rate_limit', fn(array $args): array => $mage->adminCaptchaOrRateLimit($args));
         $registry->register('nginx_directive', fn(array $args): array => $web->nginxDirective($args));
         $registry->register('apache_htaccess_directive', fn(array $args): array => $web->apacheDirective($args));
 

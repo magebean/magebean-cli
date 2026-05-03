@@ -161,6 +161,9 @@ final class ScanRunner
                 'details'  => $details,
                 'evidence' => $evidence,
             ];
+            if (isset($rule['profile']) && is_array($rule['profile'])) {
+                $finding['profile'] = $rule['profile'];
+            }
 
             $findings[] = $finding;
 

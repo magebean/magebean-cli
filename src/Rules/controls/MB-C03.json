@@ -10,7 +10,7 @@
       "op": "all",
       "checks": [
         {
-          "name": "code_grep",
+          "name": "code_raw_sql",
           "args": {
             "paths": [
               "app"
@@ -18,11 +18,6 @@
             "include_ext": [
               "php",
               "phtml"
-            ],
-            "must_not_match": [
-              "->query\\(",
-              "mysqli_query\\(",
-              "new\\s+PDO\\s*\\("
             ]
           }
         }
@@ -36,20 +31,21 @@
       "id": "MB-R013",
       "title": "Template output is escaped",
       "control": "MB-C03",
-      "severity": "medium",
+      "severity": "high",
       "op": "all",
       "checks": [
         {
-          "name": "code_grep",
+          "name": "code_phtml_escaped_output",
           "args": {
             "paths": [
-              "app/design"
+              "app"
             ],
-            "include_ext": [
-              "phtml"
-            ],
-            "must_not_match": [
-              "(?s)<\\?=\\s*(?![^\\n\\r]*?(?:escapeHtml|escapeHtmlAttr|escapeUrl|escapeJs|escapeCss)\\s*\\().*?\\?>"
+            "escape_functions": [
+              "escapeHtml",
+              "escapeHtmlAttr",
+              "escapeUrl",
+              "escapeJs",
+              "escapeCss"
             ]
           }
         }
@@ -63,7 +59,7 @@
       "id": "MB-R014",
       "title": "Avoid PHP superglobals directly",
       "control": "MB-C03",
-      "severity": "medium",
+      "severity": "high",
       "op": "all",
       "checks": [
         {
@@ -76,16 +72,14 @@
               "php"
             ],
             "must_not_match": [
-              "\\$_GET\\[",
-              "\\$_POST\\[",
-              "\\$_REQUEST\\["
+              "\\$_(?:GET|POST|REQUEST|COOKIE|FILES|SERVER)\\b"
             ]
           }
         }
       ],
       "messages": {
         "pass": "No direct access to PHP superglobals detected.",
-        "fail": "Direct use of $_GET/$_POST/$_REQUEST found. Use Magento request objects for sanitization."
+        "fail": "Direct use of PHP request superglobals found. Use Magento request, cookie, file upload, or server abstractions for sanitization."
       }
     },
     {
@@ -96,18 +90,10 @@
       "op": "all",
       "checks": [
         {
-          "name": "code_grep",
+          "name": "code_csrf_form_key",
           "args": {
             "paths": [
               "app"
-            ],
-            "include_ext": [
-              "phtml",
-              "php",
-              "html"
-            ],
-            "must_not_match": [
-              "(?is)<form[^>]*method\\s*=\\s*['\\\"]?post['\\\"]?[^>]*>(?![\\s\\S]*?(?:form_key|getFormKey\\s*\\(|<form_key\\b|data-mage-init[^>]*formKey))[\\s\\S]*?<\\/form>"
             ]
           }
         }

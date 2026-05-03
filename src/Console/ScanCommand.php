@@ -7,6 +7,7 @@ namespace Magebean\Console;
 use Magebean\Engine\Context;
 use Magebean\Engine\ScanRunner;
 use Magebean\Engine\RulePackLoader;
+use Magebean\Engine\ProfileLoader;
 use Magebean\Engine\ProjectConfigLoader;
 use Magebean\Engine\RulePackMerger;
 use Magebean\Engine\RuleValidator;
@@ -47,6 +48,7 @@ Doc: <href=https://magebean.com/documentation>magebean.com/documentation</>
   <fg=yellow>--format=html|json|sarif</>        Output format for results (default: html)
   <fg=yellow>--output=FILE</>                   Save results to a file (auto default based on format)
   <fg=yellow>--cve-data=PATH</>                 Path to CVE data (JSON/NDJSON or ZIP bundle)
+  <fg=yellow>--profile=owasp|pci|FILE</>        Select a built-in or custom profile (default: baseline/all rules)
   <fg=yellow>--controls=MB-Cxx,MB-Cxx</>       Only load selected controls (e.g., MB-C01,MB-C05)
   <fg=yellow>--rules=MB-Rxx,MB-Rxx</>           Only run a list of specified rules (e.g., MB-R036,MB-R020)
   <fg=yellow>--exclude-rules=MB-Rxx,MB-Rxx</>   Exclude specific rules after loading the pack
@@ -92,6 +94,7 @@ HELP;
             ->addOption('detail', null, InputOption::VALUE_NONE, 'Include Details column in HTML report')
             ->addOption('cve-data', null, InputOption::VALUE_OPTIONAL, 'Path to CVE data (JSON/NDJSON or ZIP bundle)')
             ->addOption('standard', null, InputOption::VALUE_OPTIONAL, 'Report standard: magebean (default) | owasp | pci | cwe', 'magebean')
+            ->addOption('profile', null, InputOption::VALUE_OPTIONAL, 'Built-in profile alias (owasp|pci) or custom profile JSON path')
             ->addOption('controls', null, InputOption::VALUE_OPTIONAL, 'Comma-separated control IDs to load (e.g., MB-C01,MB-C05 or MB-01,MB-05)')
             ->addOption('rules', null, InputOption::VALUE_OPTIONAL, 'Comma-separated rule IDs to run (e.g., MB-R036,MB-R020)')
             ->addOption('exclude-rules', null, InputOption::VALUE_OPTIONAL, 'Comma-separated rule IDs to exclude after loading')
@@ -154,6 +157,7 @@ HELP;
             $outFile     = (string)($in->getOption('output') ?? '');
             $cveDataFile = (string)($in->getOption('cve-data') ?? '');
             $standard    = strtolower((string)($in->getOption('standard') ?? 'magebean'));
+            $profileOpt  = trim((string)($in->getOption('profile') ?? ''));
             $rulesOpt    = (string)($in->getOption('rules') ?? '');
             $excludeRulesOpt = (string)($in->getOption('exclude-rules') ?? '');
             $controlsOpt = (string)($in->getOption('controls') ?? '');
@@ -260,6 +264,28 @@ HELP;
 
             $pack = RulePackMerger::applyProjectConfig($pack, $projectConfig);
 
+            $activeProfile = [
+                'id' => 'baseline',
+                'title' => 'Magebean Baseline',
+                'description' => 'All enabled rules from the Magebean rule catalog.',
+                'report_template' => 'standard',
+                '_source' => 'builtin:baseline',
+            ];
+            if ($profileOpt === '' && in_array($standard, ['owasp', 'pci'], true)) {
+                $profileOpt = $standard;
+            }
+            if ($profileOpt !== '' && !in_array(strtolower($profileOpt), ['baseline', 'all', 'magebean'], true)) {
+                $profile = ProfileLoader::load($profileOpt, $projectPath);
+                $pack = ProfileLoader::apply($pack, $profile);
+                $activeProfile = ProfileLoader::publicMetadata($profile);
+                $standard = (string)($activeProfile['id'] ?? $standard);
+                $out->writeln(sprintf(
+                    '<info>Loaded profile:</info> %s (%d rules)',
+                    (string)($activeProfile['id'] ?? $profileOpt),
+                    count($pack['rules'] ?? [])
+                ));
+            }
+
             // filter by --rules (comma-separated IDs)
             $requestedIds = [];
             if ($rulesOpt !== '') {
@@ -339,6 +365,7 @@ HELP;
             $out->writeln('');
             // attach meta
             $result['meta']['standard']    = $standard;
+            $result['meta']['profile']     = $activeProfile;
             $result['meta']['rules_filter'] = $requestedIds;
             $result['meta']['controls_filter'] = $controlsFilter;
             $result['meta']['project_config'] = $configFile;
@@ -364,7 +391,7 @@ HELP;
                     (new SarifReporter())->write($result, $outFile);
                     break;
                 default:
-                    $tpl = $this->resolveTemplatePath();
+                    $tpl = $this->resolveTemplatePath((string)($activeProfile['report_template'] ?? 'standard'));
                     $rep = new HtmlReporter($tpl, (bool)$in->getOption('detail'));
                     $rep->write($result, $outFile);
                     break;
@@ -427,7 +454,10 @@ HELP;
         $out->writeln('');
         $out->writeln(sprintf('<fg=cyan;options=bold>Magebean Security Audit v1.0</>        Target: <fg=green>%s</>', $path));
         $standard = (string)($result['meta']['standard'] ?? 'magebean');
+        $profile = (array)($result['meta']['profile'] ?? []);
+        $profileTitle = (string)($profile['title'] ?? $profile['id'] ?? 'Magebean Baseline');
         $out->writeln(sprintf('Standard: <info>%s</info>', strtoupper($standard)));
+        $out->writeln(sprintf('Profile: <info>%s</info>', $profileTitle));
         $out->writeln(sprintf('Time: <comment>%s</comment>   PHP: <info>%s</info>   Env: %s', date('Y-m-d H:i'), $phpShort, $envTag($env)));
         if ($isExternal) {
             $det = $result['meta']['detected'] ?? [];
@@ -609,11 +639,15 @@ HELP;
         }
         return 'UNKNOWN';
     }
-    private function resolveTemplatePath(): string
+    private function resolveTemplatePath(string $template = 'standard'): string
     {
+        $template = preg_match('/^[a-z0-9_-]+$/i', $template) ? $template : 'standard';
         $candidates = [
+            __DIR__ . '/../../resources/report-template-' . $template . '.html',
             __DIR__ . '/../../resources/report-template.html',
+            __DIR__ . '/../resources/report-template-' . $template . '.html',
             __DIR__ . '/../resources/report-template.html',
+            getcwd() . '/resources/report-template-' . $template . '.html',
             getcwd() . '/resources/report-template.html',
         ];
         foreach ($candidates as $p) {
@@ -634,6 +668,7 @@ summary{cursor:pointer}
 <h2>Magebean Scan</h2>
 <div>Completed: {{scan_completed}}</div>
 <div>Path: {{path_audited}}</div>
+<div>Profile: {{profile_title}} ({{profile_id}})</div>
 <div>Rules: {{rules_passed}} / {{rules_total}} ({{rules_passed_percent}}%) — Failed: {{rules_failed}}</div>
 <div>Findings (Critical: {{findings_critical}}, High: {{findings_high}}, Medium: {{findings_medium}}, Low: {{findings_low}})</div>
 <table>

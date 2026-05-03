@@ -111,11 +111,20 @@
       "op": "all",
       "checks": [
         {
-          "name": "php_array_neq",
+          "name": "magento_admin_exposure_restricted",
           "args": {
-            "file": "app/etc/env.php",
-            "path": "backend.frontName",
-            "not_equals": "admin"
+            "env_file": "app/etc/env.php",
+            "paths": [
+              "/admin/",
+              "/index.php/admin/",
+              "/backend/"
+            ],
+            "acl_files": [
+              "nginx.conf",
+              "pub/.htaccess",
+              ".htaccess"
+            ],
+            "timeout_ms": 8000
           }
         }
       ],
@@ -132,16 +141,16 @@
       "op": "all",
       "checks": [
         {
-          "name": "php_array_exists",
+          "name": "magento_admin_captcha_or_rate_limit",
           "args": {
             "file": "app/etc/config.php",
-            "path": "system.default.admin/captcha"
+            "max_lockout_failures": 10
           }
         }
       ],
       "messages": {
-        "pass": "CAPTCHA / rate-limiting is configured for admin authentication.",
-        "fail": "CAPTCHA / rate-limiting is not configured. Enable admin CAPTCHA (or reCAPTCHA) to slow brute-force attempts."
+        "pass": "CAPTCHA, reCAPTCHA, or login lockout protection is enabled for admin authentication.",
+        "fail": "CAPTCHA/rate-limiting protection is weak or missing. Enable admin CAPTCHA, reCAPTCHA, or login lockout controls."
       }
     }
   ]
