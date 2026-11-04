@@ -29,7 +29,11 @@ final class AgentResultMapper
                     'resources' => [],
                 ];
             }
-            $ruleKey=strtoupper((string)$finding['id']);$entry=$manifestIndex[$ruleKey];$status=match($finding['status']??'UNKNOWN'){'PASS'=>'pass','FAIL'=>'fail',default=>'error'};$findings[]=['assessment_item_id'=>(string)$entry['assessment_item_id'],'rule_key'=>$ruleKey,'status'=>$status,'message'=>$this->redact((string)$finding['message'],$magentoPath),'detail'=>$this->sanitize($finding['detail']??$finding['details']??[],$magentoPath),'evidence'=>$this->sanitize($finding['evidence']??[],$magentoPath),'checked_at'=>gmdate(DATE_ATOM)];}
+            $evidence = $this->sanitize($finding['evidence'] ?? [], $magentoPath);
+            if (isset($finding['risk_observation'])) {
+                $evidence['risk_observation'] = $this->sanitizeRiskEnvelope($finding['risk_observation'], $magentoPath);
+            }
+            $ruleKey=strtoupper((string)$finding['id']);$entry=$manifestIndex[$ruleKey];$status=match($finding['status']??'UNKNOWN'){'PASS'=>'pass','FAIL'=>'fail',default=>'error'};$findings[]=['assessment_item_id'=>(string)$entry['assessment_item_id'],'rule_key'=>$ruleKey,'status'=>$status,'message'=>$this->redact((string)$finding['message'],$magentoPath),'detail'=>$this->sanitize($finding['detail']??$finding['details']??[],$magentoPath),'evidence'=>$evidence,'checked_at'=>gmdate(DATE_ATOM)];}
         foreach ($findings as $position => $payload) {
             $findings[$position]['title'] = $this->resultTitle($payload);
         }
@@ -72,6 +76,30 @@ final class AgentResultMapper
         }
         return $title;
     }
-    private function sanitize(mixed $value,string $root): mixed { if(is_string($value)) return $this->redact($value,$root); if(!is_array($value)) return $value; $out=[];foreach(array_slice($value,0,50,true) as $k=>$v){if(in_array(strtolower((string)$k),['password','token','secret','authorization','cookie'],true)){$out[$k]='[REDACTED]';continue;}$out[$k]=$this->sanitize($v,$root);}return $out; }
+    private function sanitize(mixed $value, string $root, int $limit = 50): mixed
+    {
+        if (is_string($value)) return $this->redact($value, $root);
+        if (!is_array($value)) return $value;
+
+        $out = [];
+        foreach (array_slice($value, 0, $limit, true) as $key => $entry) {
+            $out[$key] = in_array(strtolower((string) $key), ['password', 'token', 'secret', 'authorization', 'cookie'], true)
+                ? '[REDACTED]'
+                : $this->sanitize($entry, $root);
+        }
+        return $out;
+    }
+
+    private function sanitizeRiskEnvelope(array $risk, string $root): array
+    {
+        $sanitized = $this->sanitize(array_diff_key($risk, array_flip(['findings', 'collection_gaps', 'detector_runs', 'observations'])), $root);
+        foreach (['findings', 'collection_gaps', 'detector_runs', 'observations'] as $key) {
+            if (!isset($risk[$key]) || !is_array($risk[$key])) continue;
+            $sanitized[$key] = $this->sanitize($risk[$key], $root, 100);
+            if (count($risk[$key]) > count($sanitized[$key])) $sanitized[$key.'_truncated'] = true;
+        }
+        return $sanitized;
+    }
+
     private function redact(string $value,string $root): string { $value=str_replace($root,'[MAGENTO_ROOT]',$value); return preg_replace('/(password|token|secret|authorization|cookie)\s*[:=]\s*\S+/i','$1=[REDACTED]',$value)??$value; }
 }

@@ -4,7 +4,7 @@
 
 - [README](../README.md): installation, quick start and profile selection.
 - [CLI reference](cli-reference.md): commands, options, modes and agent operations.
-- [Magebean Security Baseline v1](magebean-baseline-v1.md): 139 Magebean rules grouped by control, mirrored from the Magebean catalog; excludes PCI DSS and OWASP ASVS clauses.
+- [Magebean Security Baseline v1](magebean-baseline-v1.md): 99 Magebean rules grouped by control, mirrored from the Magebean catalog; excludes PCI DSS and OWASP ASVS clauses.
 - [Requirement source families](requirement-source-families.md): catalog authority, family boundaries and current inventory.
 - [Requirement model](requirement-model.md): identities, reusable checks, obligations and outcomes.
 

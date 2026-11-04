@@ -23,7 +23,8 @@ try{
   $r=$index['MB-'.$suffix];qualityAssert(RequirementAssessmentEvaluator::evaluate($r,fn()=>CheckResult::of(CheckOutcome::Pass,'Observed scoped predicate'))->outcome===RequirementOutcome::Pass,'Verified success can conclude '.$suffix);
   qualityAssert(RequirementAssessmentEvaluator::evaluate($r,fn()=>CheckResult::of(CheckOutcome::Unknown,'Required input unreadable'))->outcome===RequirementOutcome::Unknown,'Missing evidence cannot be promoted '.$suffix);
  }
- foreach(['0004','0010','0015','0016','0019','0020','0021','0023','0025','0043','0073','0078','0079','0089','0096','0097','0098'] as$suffix)qualityAssert(RequirementPolicy::requiresHuman($index['MB-'.$suffix]),'Broad heuristic assessment needs human evidence '.$suffix);
+ $archive=array_column(RequirementCatalog::read('magebean-retirements')['requirements'],null,'id');
+ foreach(['0004','0010','0015','0016','0019','0020','0021','0023','0025','0043','0073','0078','0079','0089','0096','0097','0098'] as$suffix)qualityAssert(RequirementPolicy::requiresHuman($archive['MB-'.$suffix]),'Broad heuristic assessment needs human evidence '.$suffix);
  file_put_contents($root.'/composer.json',json_encode(['require'=>['example/package'=>'^1.0']]));
  foreach([['packages'=>[['name'=>'broken/package']]],['packages'=>[],'packages-dev'=>'invalid'],['packages'=>[['name'=>'a/b','version'=>'1.0'],['name'=>'a/b','version'=>'1.0']]]] as$lock){
   file_put_contents($root.'/composer.lock',json_encode($lock));

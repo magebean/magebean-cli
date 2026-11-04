@@ -233,8 +233,12 @@ final class HtmlReporter
             foreach ($finding['risk_observation']['findings'] ?? [] as $observation) {
                 $html .= '<h3>' . $escape($observation['check'] ?? 'Observation') . '</h3><p>' . $escape($observation['message'] ?? 'Risk indicator observed') . '</p>';
                 if(($observation['kind']??'')==='collection_issue'&&!empty($observation['evidence']['collection_guidance']['action']))$html.='<p>Collection action: '.$escape($observation['evidence']['collection_guidance']['action']).'</p>';
+                if (isset($observation['confidence'])) {
+                    $labels = array_filter([$observation['severity'] ?? '', $observation['category'] ?? '', $observation['confidence']]);
+                    $html .= '<p>'.$escape(implode(' · ', $labels)).'</p>';
+                }
                 if (!empty($observation['reason_code'])) $html .= '<small>Reason: ' . $escape($observation['reason_code']) . '</small>';
-                foreach ($observation['evidence']['findings'] ?? $observation['evidence']['violations'] ?? [] as $location) {
+                foreach ($observation['evidence']['locations'] ?? $observation['evidence']['findings'] ?? $observation['evidence']['violations'] ?? [] as $location) {
                     if (!is_array($location)) continue;
                     $file = $location['file'] ?? $location['path'] ?? $location['package'] ?? '';
                     if ($file !== '') $html .= '<p><code>' . $escape($file) . (isset($location['line']) ? ':' . (int)$location['line'] : '') . '</code> ' . $escape($location['construct'] ?? $location['reason'] ?? '') . '</p>';

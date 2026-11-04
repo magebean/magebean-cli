@@ -6,7 +6,7 @@ use Magebean\Engine\Reporting\HtmlReporter;
 use Magebean\Agent\AgentScanner;
 $n=0;function guideAssert(bool $v,string $m):void{global$n;++$n;if(!$v)throw new RuntimeException($m);}
 $catalog=RequirementCatalog::read('magebean-catalog')['requirements'];
-guideAssert(count($catalog)===139,'Review covers entire Magebean family including scoped automation additions');
+guideAssert(count($catalog)===99,'Review covers entire Magebean family including scoped automation additions');
 foreach($catalog as$r){
  guideAssert(count($r['remediation']??[])>=3,'Change, verify and rerun guidance exists '.$r['id']);
  guideAssert(!empty($r['finding_guidance']['triage'])&&!empty($r['finding_guidance']['verification']),'Investigation and validation exist '.$r['id']);

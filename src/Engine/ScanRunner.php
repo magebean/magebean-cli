@@ -162,6 +162,8 @@ final class ScanRunner
                 foreach ($finding['evidence']['obligations'] as &$obligationEvidence) {
                     foreach ($obligationEvidence['checks'] as &$checkEvidence) {
                         if (($checkEvidence['status'] ?? '') !== 'UNKNOWN') continue;
+                        if (($rule['family'] ?? '') === 'magebean'
+                            && ($checkEvidence['evidence'][MagebeanDetectorAnalysis::EVIDENCE_KEY]['complete'] ?? false)) continue;
                         $checkScope = $rule;
                         $checkScope['checks'] = array_values(array_filter($rule['checks'] ?? [], static fn(array $c): bool => $c['name'] === $checkEvidence['check']));
                         $checkEvidence['collection_guidance'] = RequirementDiagnostics::forFinding([
@@ -194,6 +196,9 @@ final class ScanRunner
                         $observation['evidence']['collection_guidance'] ??= $finding['collection_guidance'] ?? RequirementDiagnostics::forFinding($finding, $rule);
                     }
                     unset($observation);
+                    if ($risk['collection_complete'] && !empty($risk['detector_runs'])) {
+                        unset($finding['collection_guidance'], $finding['evidence']['collection_guidance']);
+                    }
                     $finding['risk_observation'] = $risk;
                     $finding['evidence']['risk_observation'] = $risk;
                     $finding['needs_attention'] = $risk['needs_attention'];

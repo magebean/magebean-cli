@@ -8,8 +8,8 @@ $assertions=0;
 function workflowAssert(bool $ok,string $message):void{global $assertions;$assertions++;if(!$ok)throw new RuntimeException($message);}
 $root=sys_get_temp_dir().'/mb-internal-workflow-'.bin2hex(random_bytes(6));mkdir($root.'/app/etc',0700,true);
 try{
- $catalog=RequirementCatalog::loadAll()['rules'];$production=null;$human=null;
- foreach($catalog as$r){if(($r['checks'][0]['name']??'')==='magento_production_mode'&&($r['review_state']??'')==='accepted_scoped_criterion')$production=$r; if($human===null&&$r['family']==='magebean'&&$r['human_evidence']['required'])$human=$r;}
+ $catalog=RequirementCatalog::loadAll()['rules'];$production=null;$human=RequirementCatalog::read('magebean-retirements')['requirements'][0];
+ foreach($catalog as$r){if(($r['checks'][0]['name']??'')==='magento_production_mode'&&($r['review_state']??'')==='accepted_scoped_criterion')$production=$r;}
  workflowAssert($production!==null&&$human!==null,'Reviewed scoped and human criteria exist');
  $manifest=['schema_version'=>'1.0','manifest_hash'=>'sha256:internal-workflow','rules'=>[['assessment_item_id'=>'production-item','rule_key'=>$production['id']],['assessment_item_id'=>'human-item','rule_key'=>$human['id']],['assessment_item_id'=>'legacy-item','rule_key'=>'MB-R037']]];
  $scanner=new AgentScanner();
@@ -17,9 +17,9 @@ try{
   file_put_contents($root.'/app/etc/env.php','<?php return '.var_export(['MAGE_MODE'=>$mode],true).';');
   $payload=$scanner->run($root,$manifest);workflowAssert($payload['schema_version']==='1.0'&&$payload['manifest_hash']===$manifest['manifest_hash'],'Wire envelope unchanged');
   workflowAssert(count($payload['results'])===3,'Mixed manifest exact cardinality');
-  workflowAssert(array_column($payload['results'],'assessment_item_id')===['production-item','human-item','legacy-item'],'No unsolicited alias expansion');
+  workflowAssert(array_column($payload['results'],'assessment_item_id')===['production-item','legacy-item','human-item'],'No unsolicited alias expansion');
   workflowAssert($payload['results'][0]['rule_key']===$production['id']&&$payload['results'][0]['status']===$expected,'Reviewed scoped predicate retains pass/fail');
-  workflowAssert($payload['results'][1]['status']==='error','Human evidence is inconclusive in legacy transport');
+  workflowAssert($payload['results'][2]['status']==='unsupported' && str_contains($payload['results'][2]['message'], 'retired'),'Historical Magebean item receives a retirement diagnostic');
   workflowAssert(!str_contains(json_encode($payload),$root),'Payload remains root-redacted');
   workflowAssert($payload['results'][0]['evidence']['requirement_id']===$production['id'],'Identity preserved in evidence');
  }

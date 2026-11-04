@@ -10,7 +10,7 @@ final class BoundedSourceInventory
     public function __construct(private readonly ?CollectionSession $session=null) {}
     public function collect(Context $ctx, array $args = []): array
     {
-        $scope=array_intersect_key($args,array_flip(['paths','include_ext','max_files','max_file_bytes','max_total_bytes','timeout_seconds']));
+        $scope=array_intersect_key($args,array_flip(['paths','include_ext','max_files','max_file_bytes','max_total_bytes','timeout_seconds','exclude_paths','verify_stable']));
         $load=fn():array=>$this->capture($ctx,$args);
         return $this->session?->remember('bounded-source:'.hash('sha256',$ctx->path.serialize($scope)),$load)??$load();
     }
@@ -20,7 +20,11 @@ final class BoundedSourceInventory
         $extensions=$args['include_ext']??['php','phtml'];
         if(!is_array($paths)||!array_is_list($paths)||$paths===[]||count($paths)>100||!is_array($extensions)||!array_is_list($extensions)||$extensions===[]||count($extensions)>30)throw new \InvalidArgumentException('Bounded nonempty source paths and extensions required.');
         foreach($extensions as $ext)if(!is_string($ext)||!preg_match('/^[a-z0-9]+$/D',$ext))throw new \InvalidArgumentException('Invalid source extension.');
-        foreach($paths as $path)if(!is_string($path)||$path===''||str_contains($path,"\0")||preg_match('~(?:^/|^[A-Za-z]:|(?:^|/)\.\.(?:/|$))~',str_replace('\\','/',$path)))throw new \InvalidArgumentException('Source paths must remain inside the project.');
+        $excluded = $args['exclude_paths'] ?? [];
+        if (!is_array($excluded) || !array_is_list($excluded) || count($excluded) > 20000) throw new \InvalidArgumentException('Invalid excluded source paths.');
+        foreach(array_merge($paths, $excluded) as $path)if(!is_string($path)||$path===''||str_contains($path,"\0")||preg_match('~(?:^/|^[A-Za-z]:|(?:^|/)\.\.(?:/|$))~',str_replace('\\','/',$path)))throw new \InvalidArgumentException('Source paths must remain inside the project.');
+        $excluded = array_fill_keys($excluded, true);
+        $verifyStable = ($args['verify_stable'] ?? false) === true;
         $result=['files'=>[],'complete'=>true,'gaps'=>[],'files_read'=>0,'bytes_read'=>0,'scope'=>$paths];
         $gap=static function(string $reason,string $path)use(&$result):void{$result['complete']=false;if(count($result['gaps'])<50)$result['gaps'][]=['reason'=>$reason,'file'=>$path];};
         $root=realpath($ctx->path);
@@ -40,7 +44,8 @@ final class BoundedSourceInventory
             $this->session?->checkpoint();
             $file=array_pop($stack);$relative=ltrim(substr($file,strlen($root)),'/');
             if(microtime(true)>$deadline){$gap('deadline_exceeded',$relative);break;}
-            if(isset($seen[$file]))continue;$seen[$file]=true;
+            if(isset($excluded[$relative]) || isset($seen[$file]))continue;$seen[$file]=true;
+            if ($verifyStable) clearstatcache(true, $file);
             // Do not follow any link: hidden descendants and alternate targets cannot be certified complete.
             if(is_link($file)){$gap('symlink_not_followed',$relative);continue;}
             $real=realpath($file);
@@ -60,6 +65,7 @@ final class BoundedSourceInventory
             if(!is_file($file)){$gap('unsupported_source_entry',$relative);continue;}
             $ext=strtolower(pathinfo($file,PATHINFO_EXTENSION));if(!in_array($ext,$extensions,true))continue;
             if(count($result['files'])>=$maxFiles){$gap('file_budget_exceeded',$relative);break;}
+            $expected = $verifyStable ? @lstat($file) : null;
             $size=@filesize($file);
             if($size===false||!is_readable($file)){$gap('unreadable_source',$relative);continue;}
             if($size>$maxFileBytes){$gap('oversized_source',$relative);continue;}
@@ -67,6 +73,21 @@ final class BoundedSourceInventory
             $handle=@fopen($file,'rb');if($handle===false){$gap('unreadable_source',$relative);continue;}
             $before=fstat($handle);$content=stream_get_contents($handle,$maxFileBytes+1);$after=fstat($handle);fclose($handle);
             if($content===false||strlen($content)>$maxFileBytes||$before===false||$after===false||$before['size']!==$after['size']||strlen($content)!==$after['size']){$gap('source_changed_or_truncated',$relative);continue;}
+            if ($verifyStable) {
+                clearstatcache(true, $file);
+                $current = @lstat($file);
+                foreach (['dev', 'ino', 'size', 'mtime', 'ctime'] as $field) {
+                    if ($expected === false || $current === false || $expected[$field] !== $before[$field]
+                        || $before[$field] !== $after[$field] || $after[$field] !== $current[$field]) {
+                        $gap('source_changed_or_truncated', $relative);
+                        continue 2;
+                    }
+                }
+                if (strlen($content) + $result['bytes_read'] > $maxBytes) {
+                    $gap('total_byte_budget_exceeded', $relative);
+                    break;
+                }
+            }
             $result['files'][]=['file'=>$relative,'content'=>$content,'extension'=>$ext];$result['files_read']++;$result['bytes_read']+=strlen($content);
         }
         if($result['files_read']===0)$gap('no_eligible_source_files','');

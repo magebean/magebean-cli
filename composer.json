@@ -5,7 +5,8 @@
   "require": {
     "php": ">=8.1",
     "symfony/console": "^6.4 || ^7.0",
-    "composer/semver": "^3.4"
+    "composer/semver": "^3.4",
+    "nikic/php-parser": "5.6.1"
   },
   "require-dev": {
     "humbug/box": "^4.6"

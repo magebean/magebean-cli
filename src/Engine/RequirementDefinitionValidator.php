@@ -12,6 +12,7 @@ final class RequirementDefinitionValidator
         $error=static function(string $message)use(&$errors,$id):void{$errors[]="Requirement $id $message";};
         if(!preg_match('/^MB-[0-9]{4,}$/D',$id))$error('has an invalid canonical identity.');
         if(isset($rule['family'])&&!in_array($rule['family'],['magebean','asvs','pci'],true))$error('has an invalid owning family.');
+        if (($rule['family'] ?? null) === 'magebean' && RequirementPolicy::requiresHuman($rule)) $error('cannot require human evidence in the active Magebean family.');
         if(isset($rule['source'])&&!is_array($rule['source']))$error('source must be structured.');
         foreach(['title','criterion','control']as$field)if(!is_string($rule[$field]??null)||trim($rule[$field])==='')$error("requires nonempty $field.");
         if(!is_int($rule['revision']??null)||$rule['revision']<1)$error('revision must be a positive integer.');

@@ -47,7 +47,25 @@ final class FindingsConsoleRenderer
         if(!empty($result['coverage_summary'])){
             $c=$result['coverage_summary'];
             $this->line($out,sprintf('%d executed / %d inventoried; %d not evaluated',$c['executed'],$c['inventory'],$c['not_evaluated']),'  Coverage  ','fg=gray');
-            if(empty($c['assessment_complete']))$this->line($out,'Scan coverage incomplete; see collection issues and omitted checks.','','fg=yellow');
+            if ($issues || empty($result['meta']['scan_complete']) || !empty($c['not_evaluated'])) {
+                $this->line($out, 'Scan coverage incomplete; see collection issues and omitted checks.', '', 'fg=yellow');
+            }
+        }
+        foreach ($result['findings'] ?? [] as $finding) {
+            $risk = $finding['risk_observation'] ?? [];
+            foreach ($risk['observations'] ?? [] as $observation) {
+                $symbol = $observation['evidence']['subject']['symbol'] ?? '';
+                $this->line($out, 'Information · '.$observation['message'].($symbol !== '' ? ' '.$symbol : ''), '  ', 'fg=gray');
+            }
+            foreach ($risk['detector_runs'] ?? [] as $run) {
+                if ($run['suppressed_count'] > 0) {
+                    $this->line($out, $run['detector'].' · '.$run['suppressed_count'].' suppressed', '  ', 'fg=gray');
+                    if ($detailed) foreach ($run['suppressions'] as $suppression) $this->line($out, $suppression, '    ');
+                }
+            }
+            if (!empty($risk['findings_truncated']) || !empty($risk['collection_gaps_truncated'])) {
+                $this->line($out, ($finding['id'] ?? '').' · Observation output truncated.', '  ', 'fg=yellow');
+            }
         }
         if(!$risks){$out->writeln('');$this->line($out,'No risk observations requiring attention were collected.','','fg=green');}
         foreach($risks as$i=>$finding){
@@ -56,6 +74,20 @@ final class FindingsConsoleRenderer
             $this->line($out,sprintf('%02d  %s  %s',$i+1,strtoupper($severity),$finding['id']??''),'',$this->severityStyle($severity).';options=bold');
             foreach($finding['risk_observation']['findings']as$observation){
                 $this->line($out,$observation['message']??'Observed issue','  ','options=bold');
+                if (isset($observation['confidence'])) {
+                    $labels = array_filter([$observation['severity'] ?? null, $observation['category'] ?? null, $observation['confidence']]);
+                    $this->line($out, implode(' · ', array_map('ucfirst', $labels)), '    ', 'fg=gray');
+                }
+                if (isset($observation['detector'])) {
+                    $evidence = $observation['evidence'];
+                    $subject = $evidence['subject'];
+                    $this->line($out, implode(' · ', array_filter([$subject['module'] ?? '', $subject['package'] ?? '', $subject['area'] ?? '', $observation['detector'].' '.$observation['detector_version']])), '    ', 'fg=gray');
+                    if ($evidence['remediation'] !== '') $this->line($out, $evidence['remediation'], '    ');
+                    if ($detailed) {
+                        $this->line($out, $evidence['reasoning'], '    ');
+                        foreach ($evidence['assumptions'] as $assumption) $this->line($out, $assumption, '    ');
+                    }
+                }
                 if(($observation['kind']??'')==='collection_issue'&&!empty($observation['evidence']['collection_guidance']['action']))$this->line($out,'How to resolve '.($finding['id']??'').': '.$observation['evidence']['collection_guidance']['action'],'    ','fg=gray');
                 if($detailed)$this->line($out,'Check: '.($observation['check']??'').' · '.($observation['reason_code']??'observation'),'  ','fg=gray');
                 $locations=[];

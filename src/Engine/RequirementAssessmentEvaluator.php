@@ -13,7 +13,7 @@ final class RequirementAssessmentEvaluator
         $evidence=['requirement_id'=>$definition['id'], 'revision'=>$definition['revision'], 'obligations'=>[]];
         if ($state !== 'APPLICABLE') return new RequirementAssessment(RequirementOutcome::Unknown,
             'Requirement applicability is unresolved or excluded; no conformance conclusion was produced.', $evidence, 'REQUIREMENT_APPLICABILITY_UNRESOLVED', $applicability);
-        $unknownReasons=[]; $unknown=false; $human=false; $heuristic=false; $confirmed=false; $hasMandatory=false; $failure='';
+        $unknownReasons=[]; $unknown=false; $completedDetector=false; $otherUnknown=false; $human=false; $heuristic=false; $confirmed=false; $hasMandatory=false; $failure='';
         foreach ($definition['obligations'] ?? [] as $obligation) {
             $role=(string)($obligation['role']??'mandatory');
             $proof=(string)($obligation['proof']??'heuristic');
@@ -31,7 +31,16 @@ final class RequirementAssessmentEvaluator
             $evidence['obligations'][]=['id'=>$obligation['id'],'role'=>$role,'operator'=>$any?'any':'all','proof'=>$proof,'status'=>$outcome->value,'checks'=>$details];
             if ($role==='supporting') continue;
             $hasMandatory=true;
-            foreach($results as$r)if($r->outcome===CheckOutcome::Unknown&&trim($r->message)!=='')$unknownReasons[]=preg_replace('/^\[UNKNOWN\]\s*/','',trim($r->message));
+            foreach ($results as $result) {
+                if ($result->outcome !== CheckOutcome::Unknown) continue;
+                if (($definition['family'] ?? null) === 'magebean'
+                    && ($result->evidence[MagebeanDetectorAnalysis::EVIDENCE_KEY]['complete'] ?? false) === true) {
+                    $completedDetector = true;
+                    continue;
+                }
+                $otherUnknown = true;
+                if (trim($result->message) !== '') $unknownReasons[] = preg_replace('/^\[UNKNOWN\]\s*/', '', trim($result->message));
+            }
             if ($proof==='human') { $human=true; continue; }
             // Missing necessary observations cannot be hidden by an unconfirmed failure signal.
             if ($outcome!==CheckOutcome::Pass && $proof!=='verified_predicate'
@@ -54,6 +63,8 @@ final class RequirementAssessmentEvaluator
         // Unreviewed criterion-to-predicate bindings cannot be promoted to a normative failure.
         if ($confirmed && !$reviewPending) return new RequirementAssessment(RequirementOutcome::Fail,
             $failure ?: 'A verified mandatory requirement condition failed.', $evidence, 'REQUIREMENT_CONFIRMED_VIOLATION',$applicability);
+        if ($unknown && $completedDetector && !$otherUnknown) return new RequirementAssessment(RequirementOutcome::Unknown,
+            'Detector analysis completed within its declared scope.', $evidence, 'REQUIREMENT_AUTOMATION_INSUFFICIENT', $applicability);
         if ($unknown) return new RequirementAssessment(RequirementOutcome::Unknown,
             'Necessary requirement evidence is missing, incomplete or indeterminate.'.($unknownReasons!==[]?' '.implode(' ',array_slice(array_values(array_unique($unknownReasons)),0,2)):''), $evidence,'REQUIREMENT_EVIDENCE_INCOMPLETE',$applicability);
         if ($human || $requiredHuman) {

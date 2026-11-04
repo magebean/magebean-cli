@@ -13,9 +13,9 @@ final class RequirementProfileCatalog
     private static function validate(array $p):array
     {
         if(!is_array($p['requirement_ids']??null))throw new \RuntimeException('Profile requires requirement_ids.');$known=array_column(RequirementCatalog::loadAll()['rules'],null,'id');$seen=[];
-        foreach($p['requirement_ids'] as $id){if(!is_string($id)||preg_match('/^MB-[0-9]+$/D',$id)!==1)throw new \RuntimeException('Unknown internal requirement identity in profile.');$resolved=isset($known[$id])?[$id]:LegacyRequirementAliases::resolve($id);if(count($resolved)!==1||!isset($known[$resolved[0]]))throw new \RuntimeException('Unknown internal requirement identity in profile.');$seen[$resolved[0]]=true;}
+        foreach($p['requirement_ids'] as $id){if(!is_string($id)||preg_match('/^MB-[0-9]+$/D',$id)!==1)throw new \RuntimeException('Unknown internal requirement identity in profile.');MagebeanRetirement::reject($id);$resolved=isset($known[$id])?[$id]:LegacyRequirementAliases::resolve($id);if(count($resolved)!==1||!isset($known[$resolved[0]]))throw new \RuntimeException('Unknown internal requirement identity in profile.');$seen[$resolved[0]]=true;}
         $p['requirement_ids']=array_keys($seen);
-        if (in_array($p['id']??'', ['basic','hardening','owasp-top-10-2025'],true)) {
+        if (in_array($p['id']??'', ['basic','hardening','owasp-top-10-2025','module-integrity','module-source','module-lifecycle','module-reliability'],true)) {
             if (($p['automation_only']??false)!==true || !empty($p['evidence_tasks'])) throw new \RuntimeException('Magebean profiles must be automated-only without manual evidence tasks.');
             foreach ($p['requirement_ids'] as $id) if (RequirementPolicy::requiresHuman($known[$id])) throw new \RuntimeException('Magebean profiles cannot include human-evidence requirements: '.$id);
         }
@@ -33,8 +33,9 @@ final class RequirementProfileCatalog
         $family=$p['family']??array_key_first($families);
         if($family!==null&&!in_array($family,['magebean','asvs','pci'],true))throw new \RuntimeException('Unknown requirement profile family.');
         if($families!==[]&&!isset($families[$family]))throw new \RuntimeException('Requirement profile family does not match its members.');
-        $expected=match($p['id']??''){'basic','hardening','owasp-top-10-2025'=>'magebean','asvs-l1','asvs-l2','asvs-l3'=>'asvs','pci','pci-dss-v4.0.1'=>'pci',default=>null};
+        $expected=match($p['id']??''){'basic','hardening','owasp-top-10-2025','module-integrity','module-source','module-lifecycle','module-reliability'=>'magebean','asvs-l1','asvs-l2','asvs-l3'=>'asvs','pci','pci-dss-v4.0.1'=>'pci',default=>null};
         if($expected!==null&&$family!==$expected)throw new \RuntimeException('Built-in profile must use its own requirement family.');
+        if ($family === 'magebean' && !empty($p['evidence_tasks'])) throw new \RuntimeException('Magebean profiles cannot include manual evidence tasks.');
         if($family!==null)$p['family']=$family;
         if(isset($p['assessment_level'])&&!in_array($p['assessment_level'],[1,2,3],true))throw new \RuntimeException('Invalid profile assessment level.');return $p;
     }

@@ -50,6 +50,7 @@ final class ScanReportAssembler
             $result['meta']['omitted_requirements'] = $plan->metadata['omittedRequirements'] ?? [];
             foreach ($result['findings'] as &$finding) {
                 if (($finding['status'] ?? '') !== 'UNKNOWN') continue;
+                if (($finding['risk_observation']['collection_complete'] ?? false) && !empty($finding['risk_observation']['detector_runs'])) continue;
                 $finding['collection_guidance'] ??= RequirementDiagnostics::forFinding($finding);
                 $finding['evidence']['collection_guidance'] = $finding['collection_guidance'];
                 $finding['message'] = preg_replace('/^Necessary requirement evidence is missing, incomplete or indeterminate\.\s*/', '', (string)($finding['message'] ?? '')) ?: 'Required scan input is unavailable.';
@@ -93,7 +94,7 @@ final class ScanReportAssembler
         }
         unset($finding);
         if ($lanes !== []) $result['summary']['lanes'] = $lanes;
-        if (($activeProfile['family'] ?? '') === 'magebean' && !empty($activeProfile['automation_only'])) {
+        if (($activeProfile['family'] ?? '') === 'magebean' && !empty($result['meta']['automation_only'])) {
             $result['meta']['findings_first'] = true;
             $result['risk_findings'] = [];
             $result['collection_issues'] = [];
@@ -104,6 +105,12 @@ final class ScanReportAssembler
                     $attention = $finding;
                     $attention['message'] = $risk['findings'][0]['message'] ?? $finding['message'];
                     $attention['classification'] = 'risk_observation';
+                    $severities = ['critical', 'high', 'medium', 'low', 'info'];
+                    $observedSeverities = [];
+                    foreach ($risk['findings'] as $row) {
+                        if (($row['kind'] ?? '') !== 'collection_issue') $observedSeverities[] = $row['severity'] ?? $finding['severity'];
+                    }
+                    $attention['severity'] = array_values(array_intersect($severities, $observedSeverities))[0] ?? $finding['severity'];
                     if (array_filter($risk['findings'], static fn(array $row):bool => ($row['kind'] ?? '') !== 'collection_issue') === []) {
                         $attention['severity'] = 'info';
                         $attention['title'] = $attention['message'];
@@ -124,6 +131,14 @@ final class ScanReportAssembler
                     $result['collection_issues'][] = ['id'=>$finding['id']] + $gap;
                 }
             }
+            $categories = [];
+            foreach ($result['risk_findings'] as $finding) {
+                foreach ($finding['risk_observation']['findings'] as $row) {
+                    if (!isset($row['category'])) continue;
+                    $categories[$row['category']] = ($categories[$row['category']] ?? 0) + 1;
+                }
+            }
+            if ($categories !== []) $result['summary']['detector_findings_by_category'] = $categories;
             $result['summary']['needs_attention'] = count($result['risk_findings']);
             $result['summary']['collection_issues'] = count($result['collection_issues']);
         }
@@ -131,7 +146,7 @@ final class ScanReportAssembler
             $result['evidence_tasks'] = array_map(static fn(array $task): array => array_merge($task, ['status' => 'NOT_ASSESSED']), $activeProfile['evidence_tasks']);
         }
         if (!empty($activeProfile['show_unassessed_requirements']) || !empty($activeProfile['automation_only'])) {
-            $profile=RequirementProfileCatalog::load($activeProfile['id']);
+            $profile = RequirementProfileCatalog::load($plan->metadata['profile_selector'] ?? $activeProfile['id']);
             $catalog=array_column(RequirementCatalog::loadAll()['rules'],null,'id');
             $executed=array_column($result['findings'],null,'id');
             $omitted=array_column($result['meta']['omitted_requirements']??[],null,'id');

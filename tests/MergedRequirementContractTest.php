@@ -6,7 +6,7 @@ use Magebean\Engine\Checks\CheckRegistry;
 use Magebean\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 function mergedAssert(bool $v,string $m):void{if(!$v)throw new RuntimeException($m);}
-$all=RequirementCatalog::loadAll();mergedAssert(count($all['rules'])===764,'Independent family inventory active count');$refs=['OWASP-ASVS'=>[],'PCI-DSS'=>[]];foreach($all['rules'] as $r)foreach($r['alignments'] as $a)if(isset($refs[$a['standard']])){mergedAssert(!isset($refs[$a['standard']][$a['reference']]),'Standard reference has one surviving owner');$refs[$a['standard']][$a['reference']]=$r['id'];}mergedAssert(count($refs['OWASP-ASVS'])===345&&count($refs['PCI-DSS'])===280,'Consolidation retains all625 normative references');
+$all=RequirementCatalog::loadAll();mergedAssert(count($all['rules'])===724,'Independent family inventory active count');$refs=['OWASP-ASVS'=>[],'PCI-DSS'=>[]];foreach($all['rules'] as $r)foreach($r['alignments'] as $a)if(isset($refs[$a['standard']])){mergedAssert(!isset($refs[$a['standard']][$a['reference']]),'Standard reference has one surviving owner');$refs[$a['standard']][$a['reference']]=$r['id'];}mergedAssert(count($refs['OWASP-ASVS'])===345&&count($refs['PCI-DSS'])===280,'Consolidation retains all625 normative references');
 $known=array_fill_keys(array_column($all['rules'],'id'),true);foreach(RequirementProfileCatalog::all() as $p){mergedAssert(count($p['requirement_ids'])===count(array_unique($p['requirement_ids'])),'Profile canonical membership deduplicated');foreach($p['requirement_ids'] as $id)mergedAssert(isset($known[$id]),'Profile membership is active canonical');}
 // Former cross-family debug union is now an independent ASVS clause.
 $merged=array_column($all['rules'],null,'id')['MB-0379'];

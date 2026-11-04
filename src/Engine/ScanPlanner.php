@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace Magebean\Engine;
 use Magebean\Engine\Checks\CheckRegistry;
+use Magebean\Engine\Checks\MagentoModuleIntegrityCheck;
 
 /** Primary selection uses internal identities; legacy execution is an explicit adapter. */
 final class ScanPlanner
@@ -11,8 +12,12 @@ final class ScanPlanner
         $diagnostic ??= static function (ScanDiagnostic $d): void {};
         $options = $request->options;
         $requested = self::ids($options['rules'] ?? '');
+        $moduleSelection = $options['modules'] ?? null;
+        $modules = $moduleSelection === null ? [] : MagentoModuleIntegrityCheck::moduleNames(array_map('trim', explode(',', $moduleSelection)));
         $internal = array_filter($requested, static fn(string $id): bool => (preg_match('/^MB-[0-9]{4,}$/D', $id) === 1));
+        if ($modules !== [] && $requested !== [] && $internal === []) throw new \RuntimeException('--modules requires module audit criteria.');
         if ($requested !== [] && $internal === []) return (new LegacyScanPlanner())->planCli($request, $registry, $diagnostic);
+        foreach ($internal as $id) MagebeanRetirement::reject($id);
         if ($internal !== [] && count($internal) !== count($requested)) throw new \RuntimeException('Select internal requirement IDs separately from deprecated legacy execution IDs.');
         $mode = strtoupper((string)($request->context->get('meta', [])['target_mode'] ?? 'LOCAL'));
         if($mode==='HYBRID')$mode='LOCAL';
@@ -23,16 +28,21 @@ final class ScanPlanner
         $legacyPolicyIds = self::ids($options['exclude-rules'] ?? '');
         foreach (['include_rules','select_rules','exclude_rules'] as $field) $legacyPolicyIds=array_merge($legacyPolicyIds,self::ids($config[$field]??[]));
         $legacyPolicyIds=array_merge($legacyPolicyIds,array_map('strtoupper',array_keys($config['override_rules']??[])));
+        foreach ($legacyPolicyIds as $id) {
+            if (preg_match('/^MB-[0-9]{4,}$/D', $id)) MagebeanRetirement::reject($id);
+        }
         $usesLegacyPolicy=array_filter($legacyPolicyIds,static fn(string $id):bool=>preg_match('/^MB-R[0-9]+$/D',$id)===1||str_starts_with($id,'OWASP-ASVS:'))!==[];
         if($usesLegacyPolicy){
             if($internal!==[])throw new \RuntimeException('Use internal requirement IDs for policy when selecting internal requirements.');
             $diagnostic(new ScanDiagnostic('comment','Using the deprecated selection-policy compatibility adapter.'));
+            if ($modules !== []) throw new \RuntimeException('--modules requires module audit criteria.');
             return (new LegacyScanPlanner())->planCli($request,$registry,$diagnostic);
         }
         // Existing executable custom packs retain their explicit compatibility path.
         if (!empty($config['rules']) || !empty($config['rule_files']) || !empty($config['rule_packs']) || !empty($config['rule_paths'])) {
             if ($internal !== []) throw new \RuntimeException('Legacy project rule packs cannot redefine internal requirements.');
             $diagnostic(new ScanDiagnostic('comment', 'Using the deprecated project-rule compatibility adapter.'));
+            if ($modules !== []) throw new \RuntimeException('--modules requires module audit criteria.');
             return (new LegacyScanPlanner())->planCli($request, $registry, $diagnostic);
         }
         $caps = is_array($config['capabilities'] ?? null) ? $config['capabilities'] : [];
@@ -46,7 +56,7 @@ final class ScanPlanner
         }
         if ($profile === '') $profile = $requested !== [] ? match(array_key_first($requestedFamilies)){'asvs'=>'asvs-l3','pci'=>'pci',default=>'basic'} : (in_array(strtolower((string)($options['standard'] ?? '')), ['owasp','pci'], true) ? strtolower($options['standard']) : 'basic');
         if (is_file(ProjectPath::resolve($profile, $base))) $profile = ProjectPath::resolve($profile, $base);
-        if(is_file($profile)){$custom=json_decode((string)file_get_contents($profile),true,512,JSON_THROW_ON_ERROR);if(!isset($custom['requirement_ids'])){if($internal!==[])throw new \RuntimeException('Internal selections require a primary requirement_ids profile.');$diagnostic(new ScanDiagnostic('comment','Using the deprecated custom-profile compatibility adapter.'));return (new LegacyScanPlanner())->planCli($request,$registry,$diagnostic);}}
+        if(is_file($profile)){$custom=json_decode((string)file_get_contents($profile),true,512,JSON_THROW_ON_ERROR);if(!isset($custom['requirement_ids'])){if($modules!==[])throw new \RuntimeException('--modules requires module audit criteria.');if($internal!==[])throw new \RuntimeException('Internal selections require a primary requirement_ids profile.');$diagnostic(new ScanDiagnostic('comment','Using the deprecated custom-profile compatibility adapter.'));return (new LegacyScanPlanner())->planCli($request,$registry,$diagnostic);}}
         $pack = RequirementCatalog::forProfile($profile, $caps, $mode);
         $activeProfile = $pack['profile'];
         if($requestedFamilies!==[]&&!isset($requestedFamilies[$activeProfile['family']]))throw new \RuntimeException('Selected requirements do not belong to the profile family; choose a profile from the same source.');
@@ -110,6 +120,14 @@ final class ScanPlanner
             }
         }
         unset($definition);
+        if ($modules !== []) {
+            $matched = false;
+            foreach ($pack['rules'] as &$definition) {
+                $matched = self::applyModules($definition, $modules) || $matched;
+            }
+            unset($definition);
+            if (!$matched) throw new \RuntimeException('--modules requires module audit criteria.');
+        }
         $pack['controls'] = RequirementCatalog::controlIds($pack['rules']);
         $errors = RuleValidator::validatePack($pack, $registry);
         if ($errors !== []) {
@@ -144,6 +162,10 @@ final class ScanPlanner
         $manifestFamilies=[];
         foreach($entries as$entry){
             $key=strtoupper((string)($entry['rule_key']??''));
+            if (preg_match('/^MB-[0-9]{4,}$/D', $key) && MagebeanRetirement::diagnostic($key) !== null) {
+                $manifestFamilies['magebean'] = true;
+                continue;
+            }
             foreach(isset($all[$key])?[$key]:RequirementCatalog::resolveAlias($key)as$resolved)if(isset($all[$resolved]))$manifestFamilies[$all[$resolved]['family']]=true;
         }
         if(count($manifestFamilies)>1)throw new \RuntimeException('Agent assessments cannot mix Magebean, ASVS and PCI requirement families.');
@@ -164,6 +186,11 @@ final class ScanPlanner
             $index[$id] = $entry;
         }
         foreach ($index as $id=>$entry) {
+            if (preg_match('/^MB-[0-9]{4,}$/D', $id) && ($message = MagebeanRetirement::diagnostic($id)) !== null) {
+                $unsupported[] = ['assessment_item_id' => (string)($entry['assessment_item_id'] ?? ''),
+                    'rule_key' => $id, 'status' => 'unsupported', 'message' => $message];
+                continue;
+            }
             if (!(preg_match('/^MB-[0-9]{4,}$/D', $id) === 1)) { if (isset($legacyRules[$id])) {$selected[]=$legacyRules[$id];$bindings[]=['requested_key'=>$id,'assessment_item_id'=>(string)($entry['assessment_item_id']??''),'canonical_id'=>$id];} continue; }
             $canonicalIds=isset($all[$id])?[$id]:RequirementCatalog::resolveAlias($id);
             $canonicalId=count($canonicalIds)===1?$canonicalIds[0]:null;
@@ -178,11 +205,35 @@ final class ScanPlanner
                     continue;
                 }
             }
+            if (($r['family'] ?? null) === 'magebean' && isset($manifest['module_names'])
+                && in_array('magento_module_integrity', array_column($r['checks'], 'name'), true)) {
+                if (!is_array($manifest['module_names'])) throw new \RuntimeException('Manifest module_names must be a list.');
+                self::applyModules($r, MagentoModuleIntegrityCheck::moduleNames($manifest['module_names']));
+            }
             if (isset($manifest['assessment_level'])) $r['assessment_level']=$manifest['assessment_level'];
             $bindings[]=['requested_key'=>$id,'assessment_item_id'=>(string)($entry['assessment_item_id']??''),'canonical_id'=>$canonicalId];
             if(!isset($executedIds[$canonicalId])){$selected[]=$r;$executedIds[$canonicalId]=true;}
         }
         return new ScanPlan($request, ['assessment_model'=>'internal-requirement-v1','rules'=>$selected], ['manifestIndex'=>$index,'unsupported'=>$unsupported,'manifestBindings'=>$bindings], true);
+    }
+
+    private static function applyModules(array &$definition, array $modules): bool
+    {
+        if (($definition['family'] ?? null) !== 'magebean') return false;
+        $matched = false;
+        foreach ($definition['obligations'] as &$obligation) {
+            foreach ($obligation['checks'] as &$check) {
+                if ($check['name'] !== 'magento_module_integrity') continue;
+                $check['args']['modules'] = $modules;
+                $matched = true;
+            }
+            unset($check);
+        }
+        unset($obligation);
+        if ($matched) {
+            $definition['checks'] = array_merge(...array_column($definition['obligations'], 'checks'));
+        }
+        return $matched;
     }
 
     private static function ids(mixed $raw): array

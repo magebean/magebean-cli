@@ -16,6 +16,7 @@ final class RequirementPolicy
     {
         $resolved=[];
         foreach ($ids as $id) {
+            MagebeanRetirement::reject($id);
             $matches=RequirementCatalog::resolveAlias($id,$profile);
             if ($matches===[]) throw new \RuntimeException('Unknown requirement selector: '.$id);
             $resolved=array_merge($resolved,$matches);

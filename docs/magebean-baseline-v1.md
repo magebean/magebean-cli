@@ -2,8 +2,9 @@
 
 **Author:** Son Cao  
 **Baseline version:** 1  
-**Documentation revision:** 2026-10-21  
-**Scope:** 139 Magebean requirements
+**Documentation revision:** 2026-11-03
+
+**Scope:** 99 Magebean requirements
 
 ## Scope and authority
 
@@ -15,7 +16,7 @@ PCI DSS and OWASP ASVS requirements are outside this baseline. Use their officia
 
 One requirement is one assessable Magebean criterion with a stable MB identity. Each entry records its revision, criterion, severity, catalog coverage, target modes and native profile membership. Checks and evidence obligations remain defined in the authoritative catalog. Historical MB-R identifiers are compatibility definitions, not baseline inventory.
 
-Profile membership selects rules without redefining them. Rules without native profile membership remain documented criteria outside executable profiles. Coverage describes implementation capability, not a scan outcome or complete verification of the criterion.
+Profile membership selects rules without redefining them. Human-required criteria are archived in [magebean-retirements.json](../src/Rules/requirements/magebean-retirements.json). Their IDs remain reserved. Coverage describes implementation capability, not a scan outcome or complete verification of the criterion.
 
 For profile selection and execution, use the [automated-only profile contract](magebean-automated-only-profiles.md) and [CLI reference](cli-reference.md). For evidence obligations and outcomes, use the [requirement model](requirement-model.md).
 
@@ -23,19 +24,21 @@ For profile selection and execution, use the [automated-only profile contract](m
 
 | Control | Rules |
 |---|---:|
-| MB-C01 — File & Folder Permissions | 12 |
-| MB-C02 — Admin & Auth Hardening | 15 |
-| MB-C03 — Secure Coding Practices | 32 |
-| MB-C04 — HTTPS & TLS Enforcement | 12 |
-| MB-C05 — Production Mode & Deployment Hygiene | 9 |
-| MB-C06 — Cache & Indexing Health | 5 |
-| MB-C07 — Logging & Monitoring | 9 |
+| MB-C01 — File & Folder Permissions | 9 |
+| MB-C02 — Admin & Auth Hardening | 11 |
+| MB-C03 — Secure Coding Practices | 15 |
+| MB-C04 — HTTPS & TLS Enforcement | 10 |
+| MB-C05 — Production Mode & Deployment Hygiene | 6 |
+| MB-C06 — Cache & Indexing Health | 4 |
+| MB-C07 — Logging & Monitoring | 3 |
 | MB-C08 — Cron Job Reliability | 3 |
-| MB-C09 — Extension Vulnerability Management | 13 |
-| MB-C10 — Abandoned Extensions Removal | 5 |
-| MB-C11 — Composer Dependency Hygiene | 6 |
-| MB-C12 — Third-party Config Security | 18 |
-| **Total Magebean rules** | **139** |
+| MB-C09 — Extension Vulnerability Management | 7 |
+| MB-C10 — Abandoned Extensions Removal | 4 |
+| MB-C11 — Composer Dependency Hygiene | 5 |
+| MB-C12 — Third-party Config Security | 4 |
+| MB-C20 — Module Structure and Integration | 16 |
+| MB-C21 — Module Reliability and Performance | 2 |
+| **Total Magebean rules** | **99** |
 
 ## Magebean requirement inventory
 
@@ -70,15 +73,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Target modes:** LOCAL
 - **Native profiles:** basic, hardening, owasp
 
-#### MB-0004 — Code directories are read-only
-
-- **Revision:** 4
-- **Criterion:** Code directories are read-only for the application runtime in the collected Magento deployment; assess effective runtime identity, permissions, ACLs and read-only mounts.
-- **Severity:** high
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
 #### MB-0005 — Directory listing absent on probed Magento paths
 
 - **Revision:** 3
@@ -87,24 +81,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Catalog coverage:** AUTOMATED
 - **Target modes:** LOCAL, REMOTE
 - **Native profiles:** basic, hardening, owasp
-
-#### MB-0083 — No cardholder data in files, exports, or backups
-
-- **Revision:** 3
-- **Criterion:** Verify actual in-scope files, exports, logs and backups do not retain prohibited cardholder or sensitive authentication data. Static PAN-like and sensitive-field pattern observations are supporting evidence only; missing matches, unreadable files or uncollected backup formats cannot establish absence of such data.
-- **Severity:** critical
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0748 — No executable code in media or upload paths
-
-- **Revision:** 1
-- **Criterion:** No executable code in media or upload paths; assess only the collected Magento deployment scope.
-- **Severity:** critical
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
 
 #### MB-0780 — Media inventory has no executable PHP-like filenames
 
@@ -181,15 +157,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Target modes:** LOCAL
 - **Native profiles:** basic, hardening, owasp
 
-#### MB-0010 — Admin URL exposure restricted
-
-- **Revision:** 4
-- **Criterion:** Admin URL exposure restricted; assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
 #### MB-0011 — Configured admin login CAPTCHA or bounded lockout
 
 - **Revision:** 3
@@ -208,24 +175,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Target modes:** LOCAL
 - **Native profiles:** basic, hardening
 
-#### MB-0101 — Global Admin ACL limited to approved roles
-
-- **Revision:** 2
-- **Criterion:** Global Admin ACL limited to approved roles; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0102 — PCI vendor default account evidence assessment
-
-- **Revision:** 2
-- **Criterion:** PCI vendor default account evidence assessment; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
 #### MB-0728 — Configured admin password minimum is at least eight
 
 - **Revision:** 1
@@ -234,15 +183,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Catalog coverage:** AUTOMATED
 - **Target modes:** LOCAL
 - **Native profiles:** basic, hardening
-
-#### MB-0731 — Admin passwords require at least 8 characters
-
-- **Revision:** 1
-- **Criterion:** Admin passwords require at least 8 characters; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
 
 #### MB-0773 — Admin secret URL keys enabled
 
@@ -300,177 +240,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Catalog coverage:** DIRECT
 - **Target modes:** LOCAL
 - **Native profiles:** hardening, owasp
-
-#### MB-0015 — Forms include CSRF tokens (form_key)
-
-- **Revision:** 4
-- **Criterion:** Forms include CSRF tokens (form_key); assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0016 — SSRF protections present
-
-- **Revision:** 4
-- **Criterion:** SSRF protections present; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0019 — No eval/assert/dynamic execution
-
-- **Revision:** 4
-- **Criterion:** No eval/assert/dynamic execution; assess only the collected Magento deployment scope.
-- **Severity:** critical
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0020 — Path traversal protections
-
-- **Revision:** 4
-- **Criterion:** Path traversal protections; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0021 — Secure file upload handling
-
-- **Revision:** 4
-- **Criterion:** Secure file upload handling; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0023 — Use CSPRNG; avoid weak PRNG
-
-- **Revision:** 4
-- **Criterion:** Use CSPRNG; avoid weak PRNG; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0025 — No unsafe raw crypto or session APIs in custom code
-
-- **Revision:** 4
-- **Criterion:** No unsafe raw crypto or session APIs in custom code; assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0086 — No raw card collection in Magento checkout
-
-- **Revision:** 3
-- **Criterion:** Verify effective Magento checkout and payment flows do not collect raw card data outside the intended hosted or tokenized gateway boundary. Source field and checkout-pattern observations are supporting evidence only; runtime rendering, hosted fields, gateway behavior and data flow require independent assessment.
-- **Severity:** critical
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0094 — Custom controllers and APIs include function-level authorization
-
-- **Revision:** 2
-- **Criterion:** Custom controllers and APIs include function-level authorization; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0095 — GraphQL and API exposure minimized
-
-- **Revision:** 2
-- **Criterion:** GraphQL and API exposure minimized; assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0097 — Secrets are not hardcoded in custom code
-
-- **Revision:** 4
-- **Criterion:** Secrets are not hardcoded in custom code; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0098 — Unsafe XML parsing disabled
-
-- **Revision:** 4
-- **Criterion:** Unsafe XML parsing disabled; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0099 — File download and export endpoints require authorization
-
-- **Revision:** 2
-- **Criterion:** File download and export endpoints require authorization; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0732 — No raw SQL without abstraction
-
-- **Revision:** 1
-- **Criterion:** No raw SQL without abstraction; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0733 — Template output is escaped
-
-- **Revision:** 1
-- **Criterion:** Template output is escaped; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0734 — No unsafe deserialization
-
-- **Revision:** 1
-- **Criterion:** No unsafe deserialization; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0735 — Command execution is guarded
-
-- **Revision:** 1
-- **Criterion:** Command execution is guarded; assess only the collected Magento deployment scope.
-- **Severity:** critical
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0736 — Escaping for JS context
-
-- **Revision:** 1
-- **Criterion:** Escaping for JS context; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0737 — Sensitive data not logged
-
-- **Revision:** 1
-- **Criterion:** Sensitive data not logged; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
 
 #### MB-0786 — Direct named query methods use a literal first argument
 
@@ -581,6 +350,25 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Native profiles:** hardening, owasp
 
 
+#### MB-0814 — Avoid direct request superglobals in module log calls
+
+- **Revision:** 1
+- **Criterion:** Selected PHP and PHTML module source avoids direct request superglobal references in arguments to enumerated log-like methods.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-integrity
+
+
+#### MB-0822 — Review request data reaching command and query calls
+
+- **Revision:** 1
+- **Criterion:** Flag supported direct and single assignment flows from request superglobals into shell calls or named query text arguments.
+- **Severity:** high
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-source
+
 ### MB-C04 — HTTPS & TLS Enforcement
 
 #### MB-0026 — Observed storefront entrypoint redirects to HTTPS
@@ -627,24 +415,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Catalog coverage:** AUTOMATED
 - **Target modes:** LOCAL, REMOTE
 - **Native profiles:** basic, hardening, owasp
-
-#### MB-0089 — Checkout Content Security Policy enforced
-
-- **Revision:** 4
-- **Criterion:** Checkout Content Security Policy enforced; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0096 — Security headers baseline enforced
-
-- **Revision:** 4
-- **Criterion:** Security headers baseline enforced; assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
 
 #### MB-0777 — Observed Admin entrypoint redirects to HTTPS
 
@@ -730,33 +500,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Target modes:** LOCAL
 - **Native profiles:** basic, hardening
 
-#### MB-0738 — Xdebug disabled in production
-
-- **Revision:** 1
-- **Criterion:** Xdebug disabled in production; assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL, REMOTE
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0739 — display_errors is Off
-
-- **Revision:** 1
-- **Criterion:** display_errors is Off; assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL, REMOTE
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0740 — No dev debug configs on production (template hints off)
-
-- **Revision:** 1
-- **Criterion:** No dev debug configs on production (template hints off); assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
 #### MB-0784 — Published theme and locale static scopes have representative assets
 
 - **Revision:** 1
@@ -814,16 +557,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Target modes:** LOCAL
 - **Native profiles:** hardening
 
-#### MB-0741 — No dev cache backends (avoid file backend)
-
-- **Revision:** 1
-- **Criterion:** No dev cache backends (avoid file backend); assess only the collected Magento deployment scope.
-- **Severity:** low
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-
 ### MB-C07 — Logging & Monitoring
 
 #### MB-0042 — Log/report paths are absent from the collected webroot
@@ -834,60 +567,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Catalog coverage:** DIRECT
 - **Target modes:** LOCAL
 - **Native profiles:** basic, hardening, owasp
-
-#### MB-0043 — Log rotation configured
-
-- **Revision:** 4
-- **Criterion:** Log rotation configured; assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0090 — Payment page tamper monitoring readiness
-
-- **Revision:** 2
-- **Criterion:** Payment page tamper monitoring readiness; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0093 — PCI manual evidence checklist present
-
-- **Revision:** 2
-- **Criterion:** PCI manual evidence checklist present; assess only the collected Magento deployment scope.
-- **Severity:** low
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0742 — Debug template hints disabled in production
-
-- **Revision:** 1
-- **Criterion:** Debug template hints disabled in production; assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0743 — PII not logged in application logs
-
-- **Revision:** 1
-- **Criterion:** PII not logged in application logs; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0747 — No cardholder data in application logs
-
-- **Revision:** 1
-- **Criterion:** No cardholder data in application logs; assess only the collected Magento deployment scope.
-- **Severity:** critical
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
 
 #### MB-0783 — Installed Magento cron has every-minute cadence
 
@@ -958,42 +637,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Target modes:** LOCAL
 - **Native profiles:** basic, hardening, owasp
 
-#### MB-0051 — Dependency vulnerability remediation plan identifies an actionable resolution
-
-- **Revision:** 2
-- **Criterion:** For each detected dependency vulnerability in the assessed lockfile, an actionable remediation plan must identify an available fixed package release or an explicitly reviewed alternative mitigation.
-- **Severity:** medium
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0052 — Enabled high-risk modules are maintained
-
-- **Revision:** 2
-- **Criterion:** Enabled high-risk modules are maintained; assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0053 — Temporary mitigations documented
-
-- **Revision:** 2
-- **Criterion:** Temporary mitigations documented; assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0054 — Known-exploited packages prioritized (CISA KEV)
-
-- **Revision:** 2
-- **Criterion:** Known-exploited packages prioritized (CISA KEV); assess only the collected Magento deployment scope.
-- **Severity:** critical
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
 #### MB-0055 — Collected transitive versions have no returned applicable advisories
 
 - **Revision:** 3
@@ -1021,15 +664,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Target modes:** LOCAL
 - **Native profiles:** hardening, owasp
 
-#### MB-0058 — Marketplace extensions are current and maintained
-
-- **Revision:** 2
-- **Criterion:** Marketplace extensions are current and maintained; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
 #### MB-0059 — Affected advisory publication age is within 30 days
 
 - **Revision:** 3
@@ -1038,15 +672,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Catalog coverage:** DIRECT
 - **Target modes:** LOCAL
 - **Native profiles:** hardening, owasp
-
-#### MB-0060 — Marketplace extensions have vendor support evidence
-
-- **Revision:** 2
-- **Criterion:** Marketplace extensions have vendor support evidence; assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
 
 #### MB-0806 — Declared mitigation records satisfy structure and expiry policy
 
@@ -1086,15 +711,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Catalog coverage:** PARTIALLY_AUTOMATED
 - **Target modes:** LOCAL
 - **Native profiles:** hardening
-
-#### MB-0064 — No risky forks replacing upstream libs
-
-- **Revision:** 2
-- **Criterion:** No risky forks replacing upstream libs; assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
 
 #### MB-0805 — Collected Composer dependency sources match explicit policy
 
@@ -1153,16 +769,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Target modes:** LOCAL
 - **Native profiles:** hardening, owasp
 
-#### MB-0744 — No abandoned libraries allowed
-
-- **Revision:** 1
-- **Criterion:** No abandoned libraries allowed; assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-
 ### MB-C12 — Third-party Config Security
 
 #### MB-0072 — No configured secret-pattern matches in collected VCS scope
@@ -1174,114 +780,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Target modes:** LOCAL
 - **Native profiles:** hardening
 
-#### MB-0073 — HTTPS-only endpoints configured
-
-- **Revision:** 4
-- **Criterion:** HTTPS-only endpoints configured; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0075 — Webhook signature validation present
-
-- **Revision:** 2
-- **Criterion:** Webhook signature validation present; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0076 — Outbound connections restricted by allow-list
-
-- **Revision:** 2
-- **Criterion:** Outbound connections restricted by allow-list; assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0077 — PII minimization for third-party flows
-
-- **Revision:** 2
-- **Criterion:** PII minimization for third-party flows; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0078 — Strong TLS ciphers on upstream gateways
-
-- **Revision:** 4
-- **Criterion:** Strong TLS ciphers on upstream gateways; assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0079 — API keys stored in env.php (not in DB/plain code)
-
-- **Revision:** 4
-- **Criterion:** API keys stored in env.php (not in DB/plain code); assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIAL
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0081 — SaaS integrations scoped by ACL (least privilege/IP allowlist)
-
-- **Revision:** 2
-- **Criterion:** SaaS integrations scoped by ACL (least privilege/IP allowlist); assess only the collected Magento deployment scope.
-- **Severity:** low
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0082 — No PAN or sensitive authentication data stored in database
-
-- **Revision:** 3
-- **Criterion:** Verify actual in-scope database storage and runtime write paths do not retain raw PAN or sensitive authentication data. Source schema, SQL and write-pattern observations are supporting evidence only; no source-pattern match does not establish absence of data in the deployed database.
-- **Severity:** critical
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0085 — Payment method inventory and data-flow scope are documented
-
-- **Revision:** 2
-- **Criterion:** All enabled Magento payment methods must be inventoried and their cardholder-data flows classified before PCI scope is determined.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0087 — Payment page script inventory maintained
-
-- **Revision:** 2
-- **Criterion:** Payment page script inventory maintained; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0088 — Payment page script allowlist and integrity controls
-
-- **Revision:** 2
-- **Criterion:** Payment page script allowlist and integrity controls; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0092 — Payment webhook endpoint authentication hardening
-
-- **Revision:** 2
-- **Criterion:** Payment webhook endpoint authentication hardening; assess only the collected Magento deployment scope.
-- **Severity:** high
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
 #### MB-0730 — No configured secret patterns in deployed application files
 
 - **Revision:** 2
@@ -1290,24 +788,6 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Catalog coverage:** AUTOMATED
 - **Target modes:** LOCAL
 - **Native profiles:** basic, hardening, owasp
-
-#### MB-0745 — Debug/verbose off for third-party integrations
-
-- **Revision:** 1
-- **Criterion:** Debug/verbose off for third-party integrations; assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
-
-#### MB-0746 — Third-party logging sanitized (mask/redact)
-
-- **Revision:** 1
-- **Criterion:** Third-party logging sanitized (mask/redact); assess only the collected Magento deployment scope.
-- **Severity:** medium
-- **Catalog coverage:** PARTIALLY_AUTOMATED
-- **Target modes:** LOCAL
-- **Native profiles:** None (retained criterion outside native profiles)
 
 #### MB-0798 — No plain HTTP standalone PHP string literals in custom source
 
@@ -1327,3 +807,169 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Target modes:** LOCAL
 - **Native profiles:** hardening, owasp
 
+### MB-C20 — Module Structure and Integration
+
+#### MB-0808 — Consistent static Magento module identity
+
+- **Revision:** 1
+- **Criterion:** Literal module registrations and module.xml names agree for selected module roots, and a literal registration name has a unique installed root.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-integrity
+
+#### MB-0809 — Supported module XML satisfies its local schema
+
+- **Revision:** 1
+- **Criterion:** Collected module, routes, webapi and ACL XML declarations satisfy their resolvable project-local declared Magento XSD.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-integrity
+
+#### MB-0810 — Declared Composer package names are available
+
+- **Revision:** 1
+- **Criterion:** Package names in selected modules’ Composer require metadata appear in the installed package inventory or a collected provide or replace declaration.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-integrity
+
+#### MB-0811 — REST declaration references a public service method
+
+- **Revision:** 1
+- **Criterion:** Selected global webapi.xml entries reference a public method on a uniquely indexed service class or interface within supported resolution scope.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-integrity
+
+#### MB-0812 — REST ACL references are declared in collected context
+
+- **Revision:** 1
+- **Criterion:** Selected enabled modules’ global webapi.xml resource references resolve to an enabled static global ACL declaration or the special anonymous or self resource.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-integrity
+
+#### MB-0813 — Review sensitive anonymous REST declarations
+
+- **Revision:** 1
+- **Criterion:** Flag selected enabled modules’ global webapi.xml routes that declare anonymous access and have an export, download, credentials, permissions, roles, or secrets path segment.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-integrity
+
+
+#### MB-0815 — DI preferences resolve to compatible concrete targets
+
+- **Revision:** 1
+- **Criterion:** Effective preferences in supported DI stages resolve to compatible concrete PHP classes within the indexed symbol scope.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-integrity
+
+#### MB-0816 — DI virtual types resolve to concrete classes
+
+- **Revision:** 1
+- **Criterion:** Effective virtual type chains in supported DI stages are acyclic and resolve to concrete classes within the indexed symbol scope.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-integrity
+
+#### MB-0817 — DI constructor arguments match supported signatures
+
+- **Revision:** 1
+- **Criterion:** Named DI arguments match indexed constructor parameters. Array arguments match the supported parameter types.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-integrity
+
+#### MB-0818 — DI plugins target interceptable declarations
+
+- **Revision:** 1
+- **Criterion:** Enabled directly configured plugins use concrete plugin classes and supported hooks on interceptable target methods.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-integrity
+
+#### MB-0819 — Module PHP syntax matches the configured target
+
+- **Revision:** 1
+- **Criterion:** Selected PHP files avoid enumerated language features introduced after Composer config.platform.php.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-source
+
+#### MB-0820 — Indexed public method declarations preserve their contracts
+
+- **Revision:** 1
+- **Criterion:** Directly redeclared methods retain public visibility and staticness from their uniquely indexed public parent or interface declaration.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-source
+
+#### MB-0821 — Declared Magento Framework constraints match the installed version
+
+- **Revision:** 1
+- **Criterion:** Selected modules declaring a magento/framework dependency accept the installed framework version under Composer constraint semantics.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-source
+
+#### MB-0823 — Declarative schema XML satisfies its installed schema
+
+- **Revision:** 1
+- **Criterion:** Selected global db_schema.xml documents have supported XML syntax and satisfy their declared installed XSD.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-lifecycle
+
+#### MB-0824 — Setup patch declarations and dependencies are compatible
+
+- **Revision:** 1
+- **Criterion:** Indexed setup patch classes implement the interface for their directory and supported static dependencies resolve to compatible concrete patches without cycles.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-lifecycle
+
+#### MB-0825 — Cron and queue declarations reference public handlers
+
+- **Revision:** 1
+- **Criterion:** Supported global cron and queue declarations refer to public methods on uniquely indexed handler symbols.
+- **Severity:** medium
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-lifecycle
+
+### MB-C21 — Module Reliability and Performance
+
+#### MB-0826 — Review empty exception handlers
+
+- **Revision:** 1
+- **Criterion:** Flag empty catch bodies in selected module PHP as suspected reliability issues.
+- **Severity:** low
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-reliability
+
+#### MB-0827 — Review query-like calls in loops
+
+- **Revision:** 1
+- **Criterion:** Record query-like method calls directly inside loops in selected module PHP for performance review.
+- **Severity:** low
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** module-reliability

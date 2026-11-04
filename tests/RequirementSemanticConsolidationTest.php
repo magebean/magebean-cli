@@ -21,7 +21,7 @@ foreach($manifest['groups'] as $group){
         mergeAssert(in_array($id,$originalIds,true),'Historical retired definition preserved');
         mergeAssert(($allocations[$id]['redirect_to']??null)===$group['canonical_id'],'Historical allocation redirect is immutable');
         mergeAssert(!isset($index[$id]),'Family split must allocate new IDs rather than revive retired identities');
-        mergeAssert(RequirementCatalog::resolveAlias($id)===[$replacements[$id]],'Retired selector resolves its source-bound replacement without reviving old identity');
+        mergeAssert(RequirementCatalog::resolveAlias($id)===(isset($index[$replacements[$id]]) ? [$replacements[$id]] : []),'Retired selector resolves its source-bound replacement without reviving old identity');
     }
 }
 mergeAssert(count($retired)===42&&count(array_unique($retired))===42,'Exactly42 unique retired identities stay reserved');

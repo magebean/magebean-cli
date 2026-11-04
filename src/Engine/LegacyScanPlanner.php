@@ -132,6 +132,14 @@ final class LegacyScanPlanner
 
         }
 
+        foreach ($pack['rules'] ?? [] as $rule) {
+            $id = (string) ($rule['id'] ?? '');
+            if (preg_match('/^MB-[0-9]{4,}$/D', $id)) MagebeanRetirement::reject($id);
+            if (($rule['family'] ?? null) === 'magebean' && RequirementPolicy::requiresHuman($rule)) {
+                throw new \RuntimeException('Active Magebean selections cannot require human evidence: '.$id);
+            }
+        }
+
         // filter by --rules (comma-separated IDs)
         $requestedIds = [];
         if ($rulesOpt !== '') {

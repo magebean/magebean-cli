@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "next_id": 808,
+  "next_id": 828,
   "allocations": [
     {
       "id": "MB-0001",
@@ -5016,6 +5016,126 @@
     {
       "id": "MB-0807",
       "allocation_key": "magebean/production-observation-v1/production_worker_xdebug_absent",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0808",
+      "allocation_key": "magebean/module-integrity-v1/identity",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0809",
+      "allocation_key": "magebean/module-integrity-v1/xml",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0810",
+      "allocation_key": "magebean/module-integrity-v1/dependencies",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0811",
+      "allocation_key": "magebean/module-integrity-v1/rest-service",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0812",
+      "allocation_key": "magebean/module-integrity-v1/rest-acl",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0813",
+      "allocation_key": "magebean/module-integrity-v1/rest-anonymous",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0814",
+      "allocation_key": "magebean/module-integrity-v1/request-logging",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0815",
+      "allocation_key": "magebean/module-integrity-v1/di-preference",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0816",
+      "allocation_key": "magebean/module-integrity-v1/di-virtual-type",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0817",
+      "allocation_key": "magebean/module-integrity-v1/di-arguments",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0818",
+      "allocation_key": "magebean/module-integrity-v1/di-plugins",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0819",
+      "allocation_key": "magebean/module-source-v1/php-target",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0820",
+      "allocation_key": "magebean/module-source-v1/php-contract",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0821",
+      "allocation_key": "magebean/module-source-v1/magento-platform",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0822",
+      "allocation_key": "magebean/module-source-v1/request-sinks",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0823",
+      "allocation_key": "magebean/module-operations-v1/declarative-schema",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0824",
+      "allocation_key": "magebean/module-operations-v1/setup-patches",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0825",
+      "allocation_key": "magebean/module-operations-v1/handler-references",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0826",
+      "allocation_key": "magebean/module-operations-v1/empty-catch",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0827",
+      "allocation_key": "magebean/module-operations-v1/loop-query",
       "revision": 1,
       "verdict": "accepted_scoped_criterion"
     }

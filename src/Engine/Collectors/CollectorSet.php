@@ -10,6 +10,8 @@ final class CollectorSet
     public readonly ComposerCollector $composer;
     public readonly PhpArrayCollector $php;
     public readonly HttpCollector $http;
+    public readonly MagentoModuleInventory $magentoModules;
+    public readonly MagentoModuleAnalysis $magentoAnalysis;
 
     public function __construct(public readonly CollectionSession $session = new CollectionSession())
     {
@@ -18,5 +20,7 @@ final class CollectorSet
         $this->composer = new ComposerCollector($this->files);
         $this->php = new PhpArrayCollector();
         $this->http = new HttpCollector($session);
+        $this->magentoModules = new MagentoModuleInventory($session);
+        $this->magentoAnalysis = new MagentoModuleAnalysis($this->magentoModules, $session);
     }
 }

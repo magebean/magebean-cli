@@ -82,6 +82,10 @@ When neither `--path` nor `--url` is supplied, Magebean searches for a Magento r
 | `owasp` | Application predicates tagged with Top 10 categories; categories are not requirement IDs. |
 | `pci` | 280 PCI DSS 4.0.1-aligned identities with applicable human/evidence obligations. |
 | `hardening` | Production hardening predicates. |
+| `module-integrity` | Opt-in local module structure and AppSec checks. |
+| `module-source` | Opt-in PHP target, method contract, framework constraint and request flow checks. |
+| `module-lifecycle` | Opt-in declarative schema, setup patch and cron/queue handler checks. |
+| `module-reliability` | Opt-in reliability and performance observations. |
 | `FILE` | Custom profile selecting internal identities. |
 
 `rules:list` reports actual selected counts. Human and capability filters reduce execution selection and do not increase the underlying unique inventory.
@@ -122,6 +126,7 @@ php magebean.phar scan --profile=basic
 | `--url=URL` | Absolute storefront URL. Selects Remote or Hybrid mode. |
 | `--profile=PROFILE\|FILE` | Built-in or custom profile. Default: `basic`. |
 | `--include-manual-review` | Include human manual-review rules; excluded by default. |
+| `--modules=Vendor_Module,...` | Replace the module audit source scope with exact installed module names. |
 | `--capabilities=NAME,...` | Enable capability-dependent profile rules for this scan. |
 | `--controls=MB-Cxx,...` | Restrict the loaded rule pack to control IDs. |
 | `--rules=MB-xxxx,...` | Select internal requirements explicitly; historical MB-R selectors remain compatibility requests. |

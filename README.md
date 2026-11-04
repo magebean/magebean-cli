@@ -10,7 +10,7 @@ Use the fast production-readiness profile for routine checks, map an assessment 
 
 ## Assessment terminology
 
-We use **requirement** for the unit assessed and reported. The accepted model is **one requirement = one assessment definition (legacy name: rule)**, containing one or more reusable checks. ASVS profiles compile one definition per versioned requirement. The underlying MB-R catalog remains a compatibility/evidence catalog; all seven customer profiles use persisted source-family definitions. Exact command names such as `rules:list`, options such as `--rules`, and JSON `rules` keys remain supported as implemented today.
+We use **requirement** for the unit assessed and reported. The accepted model is **one requirement = one assessment definition (legacy name: rule)**, containing one or more reusable checks. ASVS profiles compile one definition per versioned requirement. The underlying MB-R catalog remains a compatibility/evidence catalog; all eleven customer profiles use persisted source-family definitions. Exact command names such as `rules:list`, options such as `--rules`, and JSON `rules` keys remain supported as implemented today.
 
 Start with the [documentation index](docs/README.md) and the [Magebean Baseline v1](docs/magebean-baseline-v1.md), which contains only Magebean requirements. ASVS and PCI DSS clauses remain in their separate official source documents and CLI catalogs.
 
@@ -76,7 +76,9 @@ The build uses only application runtime files and production Composer packages, 
   --path=/var/www/magento
 ```
 
-The primary catalog contains **764 requirements** in three separate families: **139 Magebean, 345 ASVS and 280 PCI**. Historical legacy rule counts describe the deprecated compatibility library, not current profile coverage.
+The primary catalog contains **724 requirements** in three separate families: **99 Magebean, 345 ASVS and 280 PCI**. Historical legacy rule counts describe the deprecated compatibility library, not current profile coverage.
+
+For an opt-in local module audit, run `magebean scan --path=/path/to/magento --profile=module-integrity`. Add `--modules=Vendor_Module` to select an installed Composer module or narrow the scope.
 
 `scan` and `rules:list` use the 37-requirement `basic` profile by default. Basic includes 30 security and 7 readiness criteria informed by Adobe guidance. Basic, Hardening and Magebean OWASP are automated-only profiles, without human-evidence requirements or manual checklists. Unavailable technical evidence remains an execution error, never an implicit PASS. Numeric thresholds are Magebean policy. ASVS and PCI retain their independent document clauses and evidence workflows; use `--include-manual-review` for those assessments. PCI supports `--pci-context`, `--pci-evidence` and `--pci-report`.
 
@@ -162,7 +164,7 @@ Selection order is: target pack → project policy → (`--rules` or profile) �
 | Profile | Source family | Inventory | Default LOCAL selection |
 |---|---|---:|---:|
 | `basic` | Magebean | 37 | 37 |
-| `hardening` | Magebean | 79 | 67 |
+| `hardening` | Magebean | 99 | 67 |
 | `owasp` | Magebean | 51 | 41 |
 | `asvs-l1` | ASVS 5.0.0 | 70 | 0 |
 | `asvs-l2` | ASVS 5.0.0 | 253 | 0 |

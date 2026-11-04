@@ -31,11 +31,12 @@ hardeningAssert(count(RequirementCatalog::forProfile('hardening')['rules'])===67
 $backlog=RequirementCatalog::read('magebean-automation-backlog')['requirements'];
 hardeningAssert(count($backlog)===50,'Unproven criteria tracked rather than relabelled');
 $all=array_column(RequirementCatalog::loadAll()['rules'],null,'id');
-foreach($backlog as$r)hardeningAssert($all[$r['id']]['criterion']===$r['criterion']&&RequirementPolicy::requiresHuman($all[$r['id']]),'Original criterion preserved '.$r['id']);
+$archive=array_column(RequirementCatalog::read('magebean-retirements')['requirements'],null,'id');
+foreach($backlog as$r)hardeningAssert(!isset($all[$r['id']])&&$archive[$r['id']]['criterion']===$r['criterion']&&RequirementPolicy::requiresHuman($archive[$r['id']]),'Original criterion preserved '.$r['id']);
 $file=tempnam(sys_get_temp_dir(),'mb-hardening-profile-');try{
  $bad=$h;$bad['requirement_ids']=array_values(array_diff($h['requirement_ids'],['MB-0730']));file_put_contents($file,json_encode($bad));
  $rejected=false;try{RequirementProfileCatalog::load($file);}catch(RuntimeException$e){$rejected=str_contains($e->getMessage(),'must include');}hardeningAssert($rejected,'Lost automated coverage rejected');
- $bad=$h;$bad['requirement_ids'][]='MB-0016';file_put_contents($file,json_encode($bad));$rejected=false;try{RequirementProfileCatalog::load($file);}catch(RuntimeException$e){$rejected=str_contains($e->getMessage(),'human-evidence');}hardeningAssert($rejected,'Human criterion rejected');
+ $bad=$h;$bad['requirement_ids'][]='MB-0016';file_put_contents($file,json_encode($bad));$rejected=false;try{RequirementProfileCatalog::load($file);}catch(RuntimeException$e){$rejected=str_contains($e->getMessage(),'retired');}hardeningAssert($rejected,'Human criterion rejected');
  $bad=$h;$bad['evidence_tasks']=[['id'=>'manual']];file_put_contents($file,json_encode($bad));$rejected=false;try{RequirementProfileCatalog::load($file);}catch(RuntimeException$e){$rejected=str_contains($e->getMessage(),'manual');}hardeningAssert($rejected,'Manual checklist rejected');
 }finally{unlink($file);}
 echo "HardeningCoverageTest: $n assertions passed\n";

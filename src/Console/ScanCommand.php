@@ -129,7 +129,8 @@ HELP;
             // HTML report output is disabled, so the HTML-only detail option is hidden for now.
             // ->addOption('detail', null, InputOption::VALUE_NONE, 'Include Details column in HTML report')
             ->addOption('standard', null, InputOption::VALUE_OPTIONAL, 'Legacy report selector: magebean (default) | owasp | pci | cwe; prefer --profile', 'magebean')
-            ->addOption('profile', null, InputOption::VALUE_OPTIONAL, 'Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | custom JSON')
+            ->addOption('profile', null, InputOption::VALUE_OPTIONAL, 'Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | module-integrity | module-source | module-lifecycle | module-reliability | custom JSON')
+            ->addOption('modules', null, InputOption::VALUE_REQUIRED, 'Comma-separated Magento module names for module audit criteria')
             ->addOption('include-manual-review', null, InputOption::VALUE_NONE, 'Include human manual-review rules (excluded by default)')
             ->addOption('capabilities', null, InputOption::VALUE_OPTIONAL, 'Comma-separated application capabilities used to activate contextual profile rules')
             ->addOption('controls', null, InputOption::VALUE_OPTIONAL, 'Comma-separated control IDs to load (e.g., MB-C01,MB-C05 or MB-01,MB-05)')

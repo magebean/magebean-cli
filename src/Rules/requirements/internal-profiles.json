@@ -1214,6 +1214,62 @@
       ],
       "report_template": "pci",
       "family": "pci"
+    },
+    "module-integrity": {
+      "id": "module-integrity",
+      "title": "Magento Module Integrity",
+      "description": "Opt-in local checks for custom and explicitly selected Composer modules. Reports bounded static observations and collection gaps.",
+      "family": "magebean",
+      "automation_only": true,
+      "requirement_ids": [
+        "MB-0808",
+        "MB-0809",
+        "MB-0810",
+        "MB-0811",
+        "MB-0812",
+        "MB-0813",
+        "MB-0814",
+        "MB-0815",
+        "MB-0816",
+        "MB-0817",
+        "MB-0818"
+      ]
+    },
+    "module-source": {
+      "id": "module-source",
+      "title": "Magento Module Source",
+      "description": "Opt-in static PHP compatibility, public method contracts and bounded request flow checks.",
+      "family": "magebean",
+      "automation_only": true,
+      "requirement_ids": [
+        "MB-0819",
+        "MB-0820",
+        "MB-0821",
+        "MB-0822"
+      ]
+    },
+    "module-lifecycle": {
+      "id": "module-lifecycle",
+      "title": "Magento Module Lifecycle",
+      "description": "Opt-in declarative schema, setup patch and handler reference checks.",
+      "family": "magebean",
+      "automation_only": true,
+      "requirement_ids": [
+        "MB-0823",
+        "MB-0824",
+        "MB-0825"
+      ]
+    },
+    "module-reliability": {
+      "id": "module-reliability",
+      "title": "Magento Module Reliability",
+      "description": "Opt-in suspected reliability and informational performance observations.",
+      "family": "magebean",
+      "automation_only": true,
+      "requirement_ids": [
+        "MB-0826",
+        "MB-0827"
+      ]
     }
   }
 }

@@ -49,6 +49,8 @@ final class CheckRegistry
         $dependencyPolicy = new DependencyPolicyCheck($ctx);
         $productionRuntime = new ProductionRuntimeCheck($ctx);
         $providerWebhook = new ProviderWebhookSourceCheck($ctx);
+        $moduleIntegrity = new MagentoModuleIntegrityCheck($ctx, $collectors);
+        $registry->register('magento_module_integrity', $moduleIntegrity->run(...));
         $registry->register('provider_webhook_source_diagnostics', fn(array $args): CheckResult => $providerWebhook->run($args));
         $productionPolicy = new ProductionCheckPolicy($ctx);
         $workerObservation = new LinuxWorkerObservationCheck($ctx);

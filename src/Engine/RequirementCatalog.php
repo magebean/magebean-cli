@@ -13,6 +13,9 @@ final class RequirementCatalog
             foreach ($data['requirements'] as $definition) {
                 $id=$definition['id']??null;
                 if (!is_string($id) || isset($seen[$id]) || ($definition['family']??null)!==$family) throw new \RuntimeException('Duplicate identity or invalid owning family in '.$family.' catalog.');
+                if ($family === 'magebean' && RequirementPolicy::requiresHuman($definition)) {
+                    throw new \RuntimeException('Active Magebean catalog cannot require human evidence: '.$id);
+                }
                 $seen[$id]=true;$rules[]=$definition;
             }
         }

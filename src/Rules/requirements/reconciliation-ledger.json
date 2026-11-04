@@ -47,7 +47,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0005",
@@ -107,7 +108,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0011",
@@ -143,7 +145,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0016",
@@ -155,7 +158,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0019",
@@ -167,7 +171,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0020",
@@ -179,7 +184,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0021",
@@ -191,7 +197,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0023",
@@ -203,7 +210,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0025",
@@ -215,7 +223,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0026",
@@ -383,7 +392,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0046",
@@ -455,7 +465,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0052",
@@ -467,7 +478,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0053",
@@ -479,7 +491,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0054",
@@ -491,7 +504,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0055",
@@ -539,7 +553,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0059",
@@ -563,7 +578,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0061",
@@ -611,7 +627,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0065",
@@ -695,7 +712,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0075",
@@ -707,7 +725,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0076",
@@ -719,7 +738,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0077",
@@ -731,7 +751,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0078",
@@ -743,7 +764,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0079",
@@ -755,7 +777,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0081",
@@ -767,7 +790,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0082",
@@ -779,7 +803,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0083",
@@ -791,7 +816,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0085",
@@ -803,7 +829,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0086",
@@ -815,7 +842,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0087",
@@ -827,7 +855,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0088",
@@ -839,7 +868,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0089",
@@ -851,7 +881,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0090",
@@ -863,7 +894,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0092",
@@ -875,7 +907,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0093",
@@ -887,7 +920,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0094",
@@ -899,7 +933,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0095",
@@ -911,7 +946,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0096",
@@ -923,7 +959,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0097",
@@ -935,7 +972,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0098",
@@ -947,7 +985,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0099",
@@ -959,7 +998,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0100",
@@ -983,7 +1023,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0102",
@@ -995,7 +1036,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0103",
@@ -12462,7 +12504,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0732",
@@ -12474,7 +12517,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0733",
@@ -12486,7 +12530,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0734",
@@ -12498,7 +12543,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0735",
@@ -12510,7 +12556,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0736",
@@ -12522,7 +12569,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0737",
@@ -12534,7 +12582,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0738",
@@ -12546,7 +12595,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0739",
@@ -12558,7 +12608,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0740",
@@ -12570,7 +12621,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0741",
@@ -12582,7 +12634,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0742",
@@ -12594,7 +12647,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0743",
@@ -12606,7 +12660,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0744",
@@ -12618,7 +12673,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0745",
@@ -12630,7 +12686,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0746",
@@ -12642,7 +12699,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0747",
@@ -12654,7 +12712,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0748",
@@ -12666,7 +12725,8 @@
       "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean"
+      "family": "magebean",
+      "lifecycle": "retired"
     },
     {
       "id": "MB-0749",
@@ -13543,20 +13603,260 @@
       "obligation_count": 1,
       "alignments": [],
       "family": "magebean"
+    },
+    {
+      "id": "MB-0808",
+      "allocation_key": "magebean/module-integrity-v1/identity",
+      "revision": 1,
+      "criterion": "Literal module registrations and module.xml names agree for selected module roots, and a literal registration name has a unique installed root.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "module-integrity-phase-4",
+      "limitations": "Dynamic registration, absent metadata, and incomplete discovery require a collection diagnostic.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0809",
+      "allocation_key": "magebean/module-integrity-v1/xml",
+      "revision": 1,
+      "criterion": "Collected module, routes, webapi and ACL XML declarations satisfy their resolvable project-local declared Magento XSD.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "module-integrity-phase-4",
+      "limitations": "A missing schema or unparseable document is a collection gap. Effective XML merge behavior is outside this predicate.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0810",
+      "allocation_key": "magebean/module-integrity-v1/dependencies",
+      "revision": 1,
+      "criterion": "Package names in selected modules’ Composer require metadata appear in the installed package inventory or a collected provide or replace declaration.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "module-integrity-phase-4",
+      "limitations": "Checks package identity only. Does not assess versions, platform constraints, module enablement, or sequence as a dependency list.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0811",
+      "allocation_key": "magebean/module-integrity-v1/rest-service",
+      "revision": 1,
+      "criterion": "Selected global webapi.xml entries reference a public method on a uniquely indexed service class or interface within supported resolution scope.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "module-integrity-phase-4",
+      "limitations": "Unindexed classes and unresolved inheritance remain collection gaps. DI preferences and generated runtime behavior are outside scope.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0812",
+      "allocation_key": "magebean/module-integrity-v1/rest-acl",
+      "revision": 1,
+      "criterion": "Selected enabled modules’ global webapi.xml resource references resolve to an enabled static global ACL declaration or the special anonymous or self resource.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "module-integrity-phase-4",
+      "limitations": "Missing references are suspected because runtime and generated ACL additions can affect the tree.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0813",
+      "allocation_key": "magebean/module-integrity-v1/rest-anonymous",
+      "revision": 1,
+      "criterion": "Flag selected enabled modules’ global webapi.xml routes that declare anonymous access and have an export, download, credentials, permissions, roles, or secrets path segment.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "module-integrity-phase-4",
+      "limitations": "This is a bounded heuristic. Runtime restrictions, alternate guards and business intent can make the route benign.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0814",
+      "allocation_key": "magebean/module-integrity-v1/request-logging",
+      "revision": 1,
+      "criterion": "Selected PHP and PHTML module source avoids direct request superglobal references in arguments to enumerated log-like methods.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "module-integrity-phase-4",
+      "limitations": "Reuses the exact syntactic request logging policy. Receiver type, dataflow and actual delivery are outside scope.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0815",
+      "allocation_key": "magebean/module-integrity-v1/di-preference",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion",
+      "criterion": "Effective preferences in supported DI stages resolve to compatible concrete PHP classes within the indexed symbol scope.",
+      "reviewer": "module-integrity-phase-5",
+      "limitations": "Static declaration analysis only. Unresolved symbols and unsupported runtime or generated behavior are collection gaps.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0816",
+      "allocation_key": "magebean/module-integrity-v1/di-virtual-type",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion",
+      "criterion": "Effective virtual type chains in supported DI stages are acyclic and resolve to concrete classes within the indexed symbol scope.",
+      "reviewer": "module-integrity-phase-5",
+      "limitations": "Static declaration analysis only. Unresolved symbols and unsupported runtime or generated behavior are collection gaps.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0817",
+      "allocation_key": "magebean/module-integrity-v1/di-arguments",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion",
+      "criterion": "Named DI arguments match indexed constructor parameters. Array arguments match the supported parameter types.",
+      "reviewer": "module-integrity-phase-5",
+      "limitations": "Static declaration analysis only. Unresolved symbols and unsupported runtime or generated behavior are collection gaps.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0818",
+      "allocation_key": "magebean/module-integrity-v1/di-plugins",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion",
+      "criterion": "Enabled directly configured plugins use concrete plugin classes and supported hooks on interceptable target methods.",
+      "reviewer": "module-integrity-phase-5",
+      "limitations": "Static declaration analysis only. Unresolved symbols and unsupported runtime or generated behavior are collection gaps.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0819",
+      "allocation_key": "magebean/module-source-v1/php-target",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion",
+      "criterion": "Selected PHP files avoid enumerated language features introduced after Composer config.platform.php.",
+      "reviewer": "module-source-phase-6",
+      "limitations": "Bounded static detection. Findings apply to the documented syntax, declaration or flow patterns only.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0820",
+      "allocation_key": "magebean/module-source-v1/php-contract",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion",
+      "criterion": "Directly redeclared methods retain public visibility and staticness from their uniquely indexed public parent or interface declaration.",
+      "reviewer": "module-source-phase-6",
+      "limitations": "Bounded static detection. Findings apply to the documented syntax, declaration or flow patterns only.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0821",
+      "allocation_key": "magebean/module-source-v1/magento-platform",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion",
+      "criterion": "Selected modules declaring a magento/framework dependency accept the installed framework version under Composer constraint semantics.",
+      "reviewer": "module-source-phase-6",
+      "limitations": "Bounded static detection. Findings apply to the documented syntax, declaration or flow patterns only.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0822",
+      "allocation_key": "magebean/module-source-v1/request-sinks",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion",
+      "criterion": "Flag supported direct and single assignment flows from request superglobals into shell calls or named query text arguments.",
+      "reviewer": "module-source-phase-6",
+      "limitations": "Bounded static detection. Findings apply to the documented syntax, declaration or flow patterns only.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0823",
+      "allocation_key": "magebean/module-operations-v1/declarative-schema",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion",
+      "criterion": "Selected global db_schema.xml documents have supported XML syntax and satisfy their declared installed XSD.",
+      "reviewer": "module-operations-phase-7",
+      "limitations": "Bounded static analysis. Runtime setup, handler dispatch, failure behavior and performance are outside the supported predicate.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0824",
+      "allocation_key": "magebean/module-operations-v1/setup-patches",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion",
+      "criterion": "Indexed setup patch classes implement the interface for their directory and supported static dependencies resolve to compatible concrete patches without cycles.",
+      "reviewer": "module-operations-phase-7",
+      "limitations": "Bounded static analysis. Runtime setup, handler dispatch, failure behavior and performance are outside the supported predicate.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0825",
+      "allocation_key": "magebean/module-operations-v1/handler-references",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion",
+      "criterion": "Supported global cron and queue declarations refer to public methods on uniquely indexed handler symbols.",
+      "reviewer": "module-operations-phase-7",
+      "limitations": "Bounded static analysis. Runtime setup, handler dispatch, failure behavior and performance are outside the supported predicate.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0826",
+      "allocation_key": "magebean/module-operations-v1/empty-catch",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion",
+      "criterion": "Flag empty catch bodies in selected module PHP as suspected reliability issues.",
+      "reviewer": "module-operations-phase-7",
+      "limitations": "Bounded static analysis. Runtime setup, handler dispatch, failure behavior and performance are outside the supported predicate.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
+    },
+    {
+      "id": "MB-0827",
+      "allocation_key": "magebean/module-operations-v1/loop-query",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion",
+      "criterion": "Record query-like method calls directly inside loops in selected module PHP for performance review.",
+      "reviewer": "module-operations-phase-7",
+      "limitations": "Bounded static analysis. Runtime setup, handler dispatch, failure behavior and performance are outside the supported predicate.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
     }
   ],
   "counts": {
-    "active_internal_requirements": 764,
-    "historical_allocations": 807,
-    "retired_identity_count": 43,
+    "active_internal_requirements": 724,
+    "historical_allocations": 827,
+    "retired_identity_count": 103,
     "families": {
-      "magebean": 139,
+      "magebean": 99,
       "asvs": 345,
       "pci": 280
     },
     "asvs_alignment_references": 345,
     "pci_alignment_references": 280,
-    "accepted_scoped_criteria": 79,
-    "human_evidence_required": 685
+    "accepted_scoped_criteria": 99,
+    "human_evidence_required": 625
   }
 }

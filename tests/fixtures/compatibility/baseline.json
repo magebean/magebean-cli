@@ -23,7 +23,15 @@
                     "optional": true,
                     "array": false,
                     "default": null,
-                    "description": "Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | custom JSON"
+                    "description": "Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | module-integrity | module-source | module-lifecycle | module-reliability | custom JSON"
+                },
+                "modules": {
+                    "shortcut": null,
+                    "required": true,
+                    "optional": false,
+                    "array": false,
+                    "default": null,
+                    "description": "Comma-separated Magento module names for module audit criteria"
                 },
                 "include-manual-review": {
                     "shortcut": null,
