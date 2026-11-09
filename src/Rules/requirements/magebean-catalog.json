@@ -9878,6 +9878,82 @@
                     "criterion": "Record query-like method calls directly inside loops in selected module PHP for performance review."
                 }
             }
+        },
+        {
+            "id": "MB-0828",
+            "revision": 1,
+            "title": "Composer dependency matches in local OSV snapshot",
+            "criterion": "Collected Composer lock versions have no applicable active advisory in the required local OSV snapshot.",
+            "control": "MB-C09",
+            "severity": "high",
+            "alignments": [],
+            "obligations": [
+                {
+                    "id": "O001",
+                    "op": "all",
+                    "role": "mandatory",
+                    "proof": "verified_predicate",
+                    "checks": [
+                        {
+                            "name": "composer_audit_offline",
+                            "args": {
+                                "cve_data": ".magebean/osv-db.json",
+                                "require_explicit_snapshot": true
+                            }
+                        }
+                    ]
+                }
+            ],
+            "coverage": "PARTIAL",
+            "verification": "automated",
+            "review_state": "accepted_scoped_criterion",
+            "human_evidence": {
+                "required": false,
+                "instructions": ""
+            },
+            "target_modes": [
+                "LOCAL"
+            ],
+            "checks": [
+                {
+                    "name": "composer_audit_offline",
+                    "args": {
+                        "cve_data": ".magebean/osv-db.json",
+                        "require_explicit_snapshot": true
+                    }
+                }
+            ],
+            "op": "all",
+            "family": "magebean",
+            "lane": "security",
+            "remediation": [
+                "Review the advisory and the locked dependency version.",
+                "Update or mitigate the dependency and refresh the local advisory snapshot.",
+                "Rerun the same profile against the refreshed lock and snapshot."
+            ],
+            "finding_guidance": {
+                "version": 2,
+                "interpretation": "Collected Composer lock versions have no applicable active advisory in the required local OSV snapshot.",
+                "risk": "Requires a nonempty OSV JSON advisory list at .magebean/osv-db.json. Coverage is limited to the supplied snapshot and supported advisory ranges.",
+                "triage": [
+                    "Review the advisory and the locked dependency version."
+                ],
+                "verification": [
+                    "Review the advisory and the locked dependency version.",
+                    "Update or mitigate the dependency and refresh the local advisory snapshot.",
+                    "Rerun the same profile against the refreshed lock and snapshot."
+                ],
+                "limitations": "Requires a nonempty OSV JSON advisory list at .magebean/osv-db.json. Coverage is limited to the supplied snapshot and supported advisory ranges.",
+                "references": [],
+                "category": "security",
+                "expected_observation": {
+                    "checks": [
+                        "composer_audit_offline"
+                    ],
+                    "declared_resources": [],
+                    "criterion": "Collected Composer lock versions have no applicable active advisory in the required local OSV snapshot."
+                }
+            }
         }
     ]
 }

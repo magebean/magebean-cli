@@ -77,6 +77,12 @@ final class ScanReportAssembler
             $result['summary']['execution_errors'] = count($executionErrors);
         }
 
+        if (($activeProfile['id'] ?? '') === 'prelaunch') {
+            $result['meta']['release_scope'] = [
+                'path' => $projectPath, 'endpoint' => $projectUrl !== '' ? $projectUrl : null,
+                'matching_build_verified' => false,
+            ];
+        }
         $result['summary']['path'] = $projectPath;
         $result['summary']['url'] = $projectUrl;
 

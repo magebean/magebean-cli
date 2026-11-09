@@ -122,6 +122,7 @@ HELP;
     protected function configure(): void
     {
         $this
+            ->setAliases(['audit'])
             ->setDescription('Audit Magento 2 security using selectable Magebean security profiles.')
             ->addUsage('--url=https://magento-store.com')
             ->addUsage('--path=/var/www/html')
@@ -129,7 +130,7 @@ HELP;
             // HTML report output is disabled, so the HTML-only detail option is hidden for now.
             // ->addOption('detail', null, InputOption::VALUE_NONE, 'Include Details column in HTML report')
             ->addOption('standard', null, InputOption::VALUE_OPTIONAL, 'Legacy report selector: magebean (default) | owasp | pci | cwe; prefer --profile', 'magebean')
-            ->addOption('profile', null, InputOption::VALUE_OPTIONAL, 'Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | module-integrity | module-source | module-lifecycle | module-reliability | custom JSON')
+            ->addOption('profile', null, InputOption::VALUE_OPTIONAL, 'Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | module-integrity | module-source | module-lifecycle | module-reliability | development | prelaunch | custom JSON')
             ->addOption('modules', null, InputOption::VALUE_REQUIRED, 'Comma-separated Magento module names for module audit criteria')
             ->addOption('include-manual-review', null, InputOption::VALUE_NONE, 'Include human manual-review rules (excluded by default)')
             ->addOption('capabilities', null, InputOption::VALUE_OPTIONAL, 'Comma-separated application capabilities used to activate contextual profile rules')
@@ -156,21 +157,38 @@ HELP;
         $hasUrl = $in->hasParameterOption('--url');
         $resolver = new ScanTargetResolver();
         $renderer = new ScanConsoleRenderer();
-        $targetMode = $resolver->mode($hasPath, $hasUrl);
+        $profile = strtolower(trim((string) ($in->getOption('profile') ?? '')));
+        $launchProfile = in_array($profile, ['development', 'prelaunch'], true);
+        $targetMode = $launchProfile ? 'LOCAL' : $resolver->mode($hasPath, $hasUrl);
         $renderer->writePhase($out, 1, 4, sprintf('Resolving %s target and input options', $targetMode));
 
         $pathOpt = trim((string)($in->getOption('path') ?? ''));
         $urlOpt = trim((string)($in->getOption('url') ?? ''));
 
         try {
-            $target = $resolver->resolve($hasPath, $hasUrl, $pathOpt, $urlOpt, static function (string $path) use ($out): void {
+            $target = $launchProfile
+                ? $resolver->resolveProfile($profile, $hasPath, $hasUrl, $pathOpt, $urlOpt)
+                : $resolver->resolve($hasPath, $hasUrl, $pathOpt, $urlOpt, static function (string $path) use ($out): void {
                 $out->writeln(sprintf('<info>Detected Magento root:</info> %s', $path));
             });
             $projectPath = $target->path;
             $projectUrl = $target->url;
 
             $out->writeln(sprintf('<info>Target mode:</info> %s', $targetMode));
-            if ($hasPath && $hasUrl) $out->writeln('<comment>Local Magento store configuration supplies the runtime URL; --url is ignored.</comment>');
+            if (!$launchProfile && $hasPath && $hasUrl) $out->writeln('<comment>Local Magento store configuration supplies the runtime URL; --url is ignored.</comment>');
+
+            if ($profile === 'prelaunch') {
+                $out->writeln('Local release candidate: '.\Symfony\Component\Console\Formatter\OutputFormatter::escape($projectPath));
+                $out->writeln($projectUrl === ''
+                    ? '<comment>Runtime coverage unavailable. Supply --url for staging checks.</comment>'
+                    : 'Tested endpoint: '.\Symfony\Component\Console\Formatter\OutputFormatter::escape($projectUrl));
+                if ($projectUrl !== '') $out->writeln('Local and HTTP evidence are separate. A matching deployed build was not verified.');
+                $lock = $projectPath.'/composer.lock';
+                if (is_file($lock) && !is_link($lock) && filesize($lock) <= 16777216) {
+                    $hash = @hash_file('sha256', $lock);
+                    if (is_string($hash)) $out->writeln('Local composer.lock SHA-256: '.$hash);
+                }
+            }
 
             $standard = strtolower((string)($in->getOption('standard') ?? 'magebean'));
             $allowed = ['magebean', 'owasp', 'pci', 'cwe'];

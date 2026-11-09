@@ -23,7 +23,7 @@
                     "optional": true,
                     "array": false,
                     "default": null,
-                    "description": "Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | module-integrity | module-source | module-lifecycle | module-reliability | custom JSON"
+                    "description": "Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | module-integrity | module-source | module-lifecycle | module-reliability | development | prelaunch | custom JSON"
                 },
                 "modules": {
                     "shortcut": null,
@@ -158,7 +158,7 @@
                     "optional": true,
                     "array": false,
                     "default": null,
-                    "description": "Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | custom JSON"
+                    "description": "Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | development | prelaunch | custom JSON"
                 },
                 "severity": {
                     "shortcut": null,

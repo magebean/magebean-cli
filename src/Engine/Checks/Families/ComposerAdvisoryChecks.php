@@ -522,6 +522,42 @@ final class ComposerAdvisoryChecks extends ComposerSupport
             return [true, "No packages in composer.lock (nothing to audit)"];
         }
 
+        if (!empty($args['require_explicit_snapshot'])) {
+            $relative = (string) ($args['cve_data'] ?? '');
+            $path = $this->ctx->abs($relative);
+            $text = $relative !== '' && is_file($path) ? @file_get_contents($path, false, null, 0, 33554433) : false;
+            $snapshot = is_string($text) && strlen($text) <= 33554432 ? json_decode($text, true, 128) : null;
+            if (!is_array($snapshot) || !array_is_list($snapshot) || $snapshot === []) {
+                return [null, '[UNKNOWN] Local advisory snapshot unavailable or invalid. Supply an OSV JSON advisory list at '.$relative.'.',
+                    ['reason_code' => 'OFFLINE_ADVISORY_SNAPSHOT_UNAVAILABLE']];
+            }
+            $advisories = [];
+            $composerRecords = 0;
+            foreach ($snapshot as $row) {
+                if (!is_array($row) || !is_string($row['id'] ?? null) || !is_array($row['affected'] ?? null) || $row['affected'] === []) {
+                    return [null, '[UNKNOWN] Local advisory snapshot contains an invalid advisory.',
+                        ['reason_code' => 'OFFLINE_ADVISORY_SNAPSHOT_INVALID']];
+                }
+                foreach ($row['affected'] as $affected) {
+                    $name = $affected['package']['name'] ?? null;
+                    $ecosystem = $affected['package']['ecosystem'] ?? null;
+                    if (!is_string($name) || $name === '' || !is_string($ecosystem) || $ecosystem === '') {
+                        return [null, '[UNKNOWN] Local advisory snapshot contains an invalid affected package.',
+                            ['reason_code' => 'OFFLINE_ADVISORY_SNAPSHOT_INVALID']];
+                    }
+                    if (in_array(strtolower($ecosystem), ['packagist', 'composer'], true)) ++$composerRecords;
+                }
+                if (empty($row['withdrawn'])) $advisories[] = $row;
+            }
+            if ($composerRecords === 0) {
+                return [null, '[UNKNOWN] Local advisory snapshot has no Composer package records.',
+                    ['reason_code' => 'OFFLINE_ADVISORY_SNAPSHOT_INVALID']];
+            }
+            $evidence = ['source' => 'offline_dataset', 'dataset' => $relative, 'snapshot_records' => count($snapshot)];
+            return $advisories === [] ? [true, 'No active advisories in the local snapshot.', $evidence]
+                : $this->evaluateOsvAdvisories($advisories, $installedVers, $evidence);
+        }
+
         $meta = $this->ctx->get('meta', []);
         $pathCandidates = [];
         foreach (['cve_data', 'cve_db', 'osv_db', 'osv'] as $key) {

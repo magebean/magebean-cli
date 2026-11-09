@@ -25,32 +25,32 @@ final class FindingsConsoleRenderer
         usort($risks,static fn(array $a,array $b):int=>($order[strtolower($a['severity']??'low')]??4)<=>($order[strtolower($b['severity']??'low')]??4));
         $detailed=!empty($result['meta']['rules_filter']);
         $out->writeln('');
-        $this->line($out,'MAGEBEAN  /  Production scan','', 'fg=cyan;options=bold');
-        $this->line($out,'CLI '.Application::VERSION,'','fg=gray');
+        $this->line($out, 'MAGEBEAN  /  Audit', '', 'fg=cyan;options=bold');
+        $this->line($out, 'CLI '.Application::VERSION, '', 'fg=gray');
         $this->rule($out);
-        $this->line($out,$result['meta']['profile']['title']??$result['meta']['standard']??'Magebean','  Profile  ');
-        $this->line($out,$path,'  Target   ');
         $out->writeln('');
-        $this->line($out,count($risks).' finding'.(count($risks)===1?'':'s'),'  Needs attention         ', $risks?'fg=yellow;options=bold':'fg=green;options=bold');
-        if($issues||!$covered)$this->line($out,(string)count($issues),'  Scan collection issues  ','fg='.($issues?'yellow':'gray'));
+        $this->line($out, $result['meta']['profile']['title']??$result['meta']['standard']??'Magebean', '  Profile   ');
+        $this->line($out, $path, '  Target    ');
+        $out->writeln('');
+        $this->line($out, count($risks).' finding'.(count($risks)===1?'':'s').' need attention', '  ', $risks?'fg=yellow;options=bold':'fg=green;options=bold');
         $counts=array_count_values(array_map(static fn(array $f):string=>strtolower($f['severity']??'low'),$risks));
         if($risks){
             $out->write('  ');
             $used=2;
             foreach($order as$severity=>$unused)if(!empty($counts[$severity])){
                 $badge=ucfirst($severity).' '.$counts[$severity];
-                if($used+Helper::width($badge)+2>$this->width){$out->writeln('');$out->write('  ');$used=2;}
-                $out->write('<'.$this->severityStyle($severity).'>'.$badge.'</>  ');$used+=Helper::width($badge)+2;
+                if($used+Helper::width($badge)+3>$this->width){$out->writeln('');$out->write('  ');$used=2;}
+                $out->write('<'.$this->severityStyle($severity).'>'.$badge.'</>   ');$used+=Helper::width($badge)+3;
             }
             $out->writeln('');
         }
+        $out->writeln('');
         if(!empty($result['coverage_summary'])){
             $c=$result['coverage_summary'];
-            $this->line($out,sprintf('%d executed / %d inventoried; %d not evaluated',$c['executed'],$c['inventory'],$c['not_evaluated']),'  Coverage  ','fg=gray');
-            if ($issues || empty($result['meta']['scan_complete']) || !empty($c['not_evaluated'])) {
-                $this->line($out, 'Scan coverage incomplete; see collection issues and omitted checks.', '', 'fg=yellow');
-            }
+            $this->line($out, sprintf('%d / %d rules executed', $c['executed'], $c['inventory']), '  Coverage  ', 'fg=gray');
+            if (!empty($c['not_evaluated'])) $this->line($out, $c['not_evaluated'].' rules not evaluated', '            ', 'fg=gray');
         }
+        if($issues||!$covered)$this->line($out, (string)count($issues), '  Scan collection issues  ', 'fg='.($issues?'yellow':'gray'));
         foreach ($result['findings'] ?? [] as $finding) {
             $risk = $finding['risk_observation'] ?? [];
             foreach ($risk['observations'] ?? [] as $observation) {
@@ -74,7 +74,7 @@ final class FindingsConsoleRenderer
             $this->line($out,sprintf('%02d  %s  %s',$i+1,strtoupper($severity),$finding['id']??''),'',$this->severityStyle($severity).';options=bold');
             foreach($finding['risk_observation']['findings']as$observation){
                 $this->line($out,$observation['message']??'Observed issue','  ','options=bold');
-                if (isset($observation['confidence'])) {
+                if ($detailed && isset($observation['confidence'])) {
                     $labels = array_filter([$observation['severity'] ?? null, $observation['category'] ?? null, $observation['confidence']]);
                     $this->line($out, implode(' · ', array_map('ucfirst', $labels)), '    ', 'fg=gray');
                 }
@@ -82,13 +82,13 @@ final class FindingsConsoleRenderer
                     $evidence = $observation['evidence'];
                     $subject = $evidence['subject'];
                     $this->line($out, implode(' · ', array_filter([$subject['module'] ?? '', $subject['package'] ?? '', $subject['area'] ?? '', $observation['detector'].' '.$observation['detector_version']])), '    ', 'fg=gray');
-                    if ($evidence['remediation'] !== '') $this->line($out, $evidence['remediation'], '    ');
+                    if ($detailed && $evidence['remediation'] !== '') $this->line($out, $evidence['remediation'], '    ');
                     if ($detailed) {
                         $this->line($out, $evidence['reasoning'], '    ');
                         foreach ($evidence['assumptions'] as $assumption) $this->line($out, $assumption, '    ');
                     }
                 }
-                if(($observation['kind']??'')==='collection_issue'&&!empty($observation['evidence']['collection_guidance']['action']))$this->line($out,'How to resolve '.($finding['id']??'').': '.$observation['evidence']['collection_guidance']['action'],'    ','fg=gray');
+                if($detailed&&($observation['kind']??'')==='collection_issue'&&!empty($observation['evidence']['collection_guidance']['action']))$this->line($out,'How to resolve '.($finding['id']??'').': '.$observation['evidence']['collection_guidance']['action'],'    ','fg=gray');
                 if($detailed)$this->line($out,'Check: '.($observation['check']??'').' · '.($observation['reason_code']??'observation'),'  ','fg=gray');
                 $locations=[];
                 foreach(['matches','violations','findings','diagnostics','locations']as$key)foreach($observation['evidence'][$key]??[]as$location){
@@ -104,13 +104,12 @@ final class FindingsConsoleRenderer
             $guide=$finding['requirement']['finding_guidance']??[];
             $collectionOnly=!array_filter($finding['risk_observation']['findings'],static fn(array $o):bool=>($o['kind']??'')!=='collection_issue');
             if($detailed)foreach(['interpretation'=>'Context','risk'=>'Risk','limitations'=>'Scope']as$key=>$label)if(!empty($guide[$key])&&is_string($guide[$key])){$this->line($out,$label,'  ','fg=cyan');$this->line($out,$guide[$key],'    ');}
-            foreach(['Remediation guidance'=>$collectionOnly?[]:($finding['remediation']??[]),'Verification after remediation'=>$detailed?($guide['verification']??[]):[]]as$label=>$steps){
+            foreach(['Remediation guidance'=>(!$detailed||$collectionOnly)?[]:($finding['remediation']??[]),'Verification after remediation'=>$detailed?($guide['verification']??[]):[]]as$label=>$steps){
                 $steps=array_values(array_filter($steps,static fn($step):bool=>is_string($step)&&trim($step)!==''));
                 if(!$steps)continue;
                 $out->writeln('');$this->line($out,$label,'  ','fg=cyan;options=bold');
                 foreach($detailed?$steps:array_slice($steps,0,1)as$step)$this->line($out,$step,'    - ');
             }
-            if(!$detailed)$this->line($out,'Details: scan --profile='.($result['meta']['profile_selector']??$result['meta']['profile']['id']??'basic').' --rules='.($finding['id']??''),'  ','fg=gray');
             if(!empty($finding['risk_observation']['collection_gaps'])&&!array_filter($finding['risk_observation']['findings'],static fn(array $o):bool=>($o['kind']??'')==='collection_issue'))$this->line($out,'Additional collection issues are listed separately.','  ','fg=yellow');
         }
         if($issues){
@@ -118,8 +117,13 @@ final class FindingsConsoleRenderer
             foreach($issues as$issue){
                 $this->line($out,($issue['id']??'').'  '.($issue['message']??$issue['title']??'Observation unavailable'),'  ');
                 foreach($issue['risk_observation']['collection_gaps']??$issue['collection_gaps']??[]as$gap)$this->line($out,$gap['message']??$gap['reason_code']??'Observation unavailable','    ');
-                if(!empty($issue['collection_guidance']['action']))$this->line($out,'How to resolve '.($issue['id']??'').': '.$issue['collection_guidance']['action'],'    ','fg=gray');
+                if($detailed&&!empty($issue['collection_guidance']['action']))$this->line($out,'How to resolve '.($issue['id']??'').': '.$issue['collection_guidance']['action'],'    ','fg=gray');
             }
+        }
+        if (!$detailed && $risks) {
+            $out->writeln('');
+            $this->line($out, 'For issue details and remediation, select one or more rule IDs:', '', 'fg=gray');
+            $this->line($out, 'scan --profile='.($result['meta']['profile_selector']??$result['meta']['profile']['id']??'basic').' --rules='.($risks[0]['id']??''), '  ', 'fg=gray');
         }
         $out->writeln('');
     }

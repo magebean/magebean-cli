@@ -53,6 +53,38 @@ final class ScanTargetResolver
 
         return new ResolvedScanTarget($projectPath, $projectUrl, $targetMode);
     }
+    public function resolveProfile(string $profile, bool $hasPath, bool $hasUrl, string $path, string $url): ResolvedScanTarget
+    {
+        if ($profile === 'development' && $hasUrl) {
+            throw new \RuntimeException('Development uses a local source checkout. Use prelaunch with a staging URL for HTTP checks.');
+        }
+        if ($hasPath && $path === '') throw new \RuntimeException('--path requires a non-empty value.');
+        $origin = $hasUrl ? $this->normalizeRemoteUrl($url) : '';
+        $root = realpath($hasPath ? $path : (string) getcwd());
+        if ($root === false || !is_dir($root)) throw new \RuntimeException('Magento project path is unavailable.');
+        for ($depth = 0; $depth <= 4; ++$depth) {
+            if ($profile === 'prelaunch') {
+                $candidate = $this->findMagentoRoot($root);
+                if ($candidate !== null) {
+                    $this->assertMagento2Root($candidate, true);
+                    return new ResolvedScanTarget($candidate, $origin, self::MODE_LOCAL, $profile);
+                }
+            } else {
+                $text = @file_get_contents($root.'/composer.json', false, null, 0, 1048577);
+                $manifest = is_string($text) && strlen($text) <= 1048576 ? json_decode($text, true) : null;
+                foreach (['magento/framework', 'magento/product-community-edition', 'magento/product-enterprise-edition', 'magento/magento-cloud-metapackage'] as $package) {
+                    if (isset($manifest['require'][$package]) && is_string($manifest['require'][$package])) {
+                        return new ResolvedScanTarget($root, '', self::MODE_LOCAL, $profile);
+                    }
+                }
+            }
+            $parent = dirname($root);
+            if ($parent === $root) break;
+            $root = $parent;
+        }
+        throw new \RuntimeException('Cannot locate a Magento project for '.$profile.'. Pass --path to the Magento root.');
+    }
+
     private function findMagentoRoot(string $path, int $maxParents = 0): ?string
     {
         $probe = function (string $p): bool {
@@ -76,7 +108,7 @@ final class ScanTargetResolver
         return null;
     }
 
-    private function assertMagento2Root(string $root): void
+    private function assertMagento2Root(string $root, bool $allowProductPackage = false): void
     {
         // 1) Thư mục tồn tại & đọc được
         if (!is_dir($root) || !is_readable($root)) {
@@ -123,6 +155,9 @@ final class ScanTargetResolver
 
         $hasFramework =
             isset($json['require']['magento/framework']) ||
+            ($allowProductPackage && (isset($json['require']['magento/product-community-edition'])
+                || isset($json['require']['magento/product-enterprise-edition'])
+                || isset($json['require']['magento/magento-cloud-metapackage']))) ||
             (isset($json['name']) && is_string($json['name']) && str_starts_with($json['name'], 'magento/'));
 
         if (!$hasFramework) {

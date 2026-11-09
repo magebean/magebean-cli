@@ -91,7 +91,7 @@ try {
     integrityAssert(is_resource($process), 'CLI fixture launches.');
     $out = stream_get_contents($pipes[1]); $err = stream_get_contents($pipes[2]);
     fclose($pipes[1]); fclose($pipes[2]);
-    integrityAssert(proc_close($process) === 1 && str_contains($out, 'Suspected') && str_contains($out, 'fixture/extension'), 'CLI profile reports scoped findings: '.$out.$err);
+    integrityAssert(proc_close($process) === 1 && !str_contains($out, 'Suspected') && str_contains($out, 'fixture/extension'), 'CLI profile reports scoped findings: '.$out.$err);
 
     $put($subject.'/Di.php', <<<'PHP'
 <?php
@@ -174,7 +174,7 @@ PHP);
     integrityAssert(is_resource($process), 'Source CLI fixture launches.');
     $out = stream_get_contents($pipes[1]); $err = stream_get_contents($pipes[2]);
     fclose($pipes[1]); fclose($pipes[2]);
-    integrityAssert(proc_close($process) === 1 && str_contains($out, 'MB-0822') && str_contains($out, 'Suspected'),
+    integrityAssert(proc_close($process) === 1 && str_contains($out, 'MB-0822') && !str_contains($out, 'Suspected'),
         'Source CLI reports suspected observations: '.$out.$err);
     $put($subject.'/BrokenSource.php', '<?php function broken(');
     $partialSource = $scan($sourceOptions);

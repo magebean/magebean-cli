@@ -20,7 +20,7 @@ final class MagentoDiConfiguration
     private function read(Context $context, array $inventory): array
     {
         $root = realpath($context->path);
-        if ($root === false || !$inventory['complete']) {
+        if ($root === false || !$inventory['complete'] || !($inventory['module_order_known'] ?? false)) {
             return ['scopes' => [], 'complete' => false, 'gaps' => [['reason' => 'di_module_order_or_inventory_unresolved']]];
         }
         $reader = new MagentoInventoryFiles($context, $root, $this->session);

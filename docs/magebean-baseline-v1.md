@@ -4,7 +4,7 @@
 **Baseline version:** 1  
 **Documentation revision:** 2026-11-03
 
-**Scope:** 99 Magebean requirements
+**Scope:** 100 Magebean requirements
 
 ## Scope and authority
 
@@ -32,13 +32,13 @@ For profile selection and execution, use the [automated-only profile contract](m
 | MB-C06 — Cache & Indexing Health | 4 |
 | MB-C07 — Logging & Monitoring | 3 |
 | MB-C08 — Cron Job Reliability | 3 |
-| MB-C09 — Extension Vulnerability Management | 7 |
+| MB-C09 — Extension Vulnerability Management | 8 |
 | MB-C10 — Abandoned Extensions Removal | 4 |
 | MB-C11 — Composer Dependency Hygiene | 5 |
 | MB-C12 — Third-party Config Security | 4 |
 | MB-C20 — Module Structure and Integration | 16 |
 | MB-C21 — Module Reliability and Performance | 2 |
-| **Total Magebean rules** | **99** |
+| **Total Magebean rules** | **100** |
 
 ## Magebean requirement inventory
 
@@ -682,6 +682,16 @@ Entries mirror the Magebean catalog, grouped by control. Profile membership is p
 - **Target modes:** LOCAL
 - **Native profiles:** hardening, owasp
 
+
+
+#### MB-0828 — Composer dependency matches in local OSV snapshot
+
+- **Revision:** 1
+- **Criterion:** Collected Composer lock versions have no applicable active advisory in the required local OSV snapshot.
+- **Severity:** high
+- **Catalog coverage:** PARTIAL
+- **Target modes:** LOCAL
+- **Native profiles:** development, prelaunch
 
 ### MB-C10 — Abandoned Extensions Removal
 

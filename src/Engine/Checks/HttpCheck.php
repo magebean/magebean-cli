@@ -96,6 +96,9 @@ final class HttpCheck
 
     private function baseUrl(): string
     {
+        if (($this->ctx->get('meta', [])['launch_profile'] ?? null) === 'prelaunch') {
+            return $this->ctx->url;
+        }
         if (strtoupper((string)($this->ctx->get('meta',[])['target_mode']??'LOCAL')) !== 'REMOTE'
             && \Magebean\Engine\ScanTargetResolver::isMagentoRoot($this->ctx->path)) {
             return $this->resolvedBaseUrl ??= (string)($this->magento->configuredBaseUrl()['url'] ?? '');
@@ -121,6 +124,7 @@ final class HttpCheck
 
     private function fetch(string $url, string $method = 'GET', array $headers = [], int $timeoutMs = 8000, bool $follow = true, ?string $requestBody = null): array
     {
+        if (($this->ctx->get('meta', [])['launch_profile'] ?? null) === 'prelaunch') $follow = false;
         return $this->collectors->http->fetch($url, $method, $headers, $timeoutMs, $follow, $requestBody, function (bool $ok): void {
             $this->bump($ok);
         });

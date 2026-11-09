@@ -86,6 +86,8 @@ When neither `--path` nor `--url` is supplied, Magebean searches for a Magento r
 | `module-source` | Opt-in PHP target, method contract, framework constraint and request flow checks. |
 | `module-lifecycle` | Opt-in declarative schema, setup patch and cron/queue handler checks. |
 | `module-reliability` | Opt-in reliability and performance observations. |
+| `development` | Offline checkout and module source audit. |
+| `prelaunch` | Local release candidate and explicit staging endpoint. |
 | `FILE` | Custom profile selecting internal identities. |
 
 `rules:list` reports actual selected counts. Human and capability filters reduce execution selection and do not increase the underlying unique inventory.
@@ -490,3 +492,5 @@ Missing source/runtime/artifact evidence remains UNKNOWN. Partial technical obse
 
 The OWASP deployment profile has 31 automated requirements by default and 38 requiring explicit human evidence. Broad heuristic checks require `--include-manual-review`; reviewed bounded criteria can conclude PASS/FAIL. Git history is replaced in this deployment profile by existing MB-0730, with MB-0072 retained globally. Missing runtime/API evidence includes concrete collection guidance rather than instructions to fix a tool implementation gate. See [the 33-item security review](owasp-scan-quality-review.md).
 
+
+`audit` is an alias of `scan`. Both commands accept the same options and return the same exit codes. For example, `php magebean.phar audit --profile development` is equivalent to `php magebean.phar scan --profile development`.

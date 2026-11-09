@@ -25,14 +25,16 @@ try{
     $report=PharReleaseGuard::inspect($candidate,$root.'/composer.lock');
     $version=buildRun([PHP_BINARY,$candidate,'--version']);if(!str_contains($version,'Magebean'))throw new RuntimeException('CLI version smoke test failed.');
     $list=buildRun([PHP_BINARY,$candidate,'list','--raw']);foreach(['scan','rules:list','agent:status','agent:doctor','agent:tick']as$command)if(!str_contains($list,$command))throw new RuntimeException('Missing command: '.$command);
+    $auditHelp = buildRun([PHP_BINARY, $candidate, 'audit', '--help', '--no-ansi']);
+    if (!str_contains($auditHelp, '--profile')) throw new RuntimeException('Audit alias smoke test failed.');
     $profiles=json_decode((string)file_get_contents('src/Rules/requirements/internal-profiles.json'),true)['profiles'];
     $definitions=array_column(json_decode((string)file_get_contents('src/Rules/requirements/magebean-catalog.json'),true)['requirements'],null,'id');
-    foreach(['basic','hardening','owasp-top-10-2025','module-integrity','module-source','module-lifecycle','module-reliability']as$profile){
+    foreach(['basic','hardening','owasp-top-10-2025','module-integrity','module-source','module-lifecycle','module-reliability','development','prelaunch']as$profile){
         $expected=count(array_filter($profiles[$profile]['requirement_ids'],static fn(string$id):bool=>empty($definitions[$id]['applicability']['capability'])&&in_array('LOCAL',$definitions[$id]['target_modes'],true)));
         $listing=buildRun([PHP_BINARY,$candidate,'rules:list','--profile='.$profile,'--no-ansi']);
         if(!str_contains($listing,'Total Rules Listed: '.$expected."\n"))throw new RuntimeException('Profile smoke test failed: '.$profile);
     }
-    $report['smoke_tests']=['version','commands','basic','hardening','owasp-top-10-2025','module-integrity','module-source','module-lifecycle','module-reliability'];
+    $report['smoke_tests']=['version','commands','basic','hardening','owasp-top-10-2025','module-integrity','module-source','module-lifecycle','module-reliability','development','prelaunch'];
     $runtime=json_decode(buildRun([PHP_BINARY,$root.'/tools/smoke-phar.php',$candidate]),true,512,JSON_THROW_ON_ERROR);
     $report['runtime_smoke']=$runtime;
     $fixture = buildRun([PHP_BINARY, $root.'/tests/MagentoModuleIntegrityProfileTest.php', $candidate]);
@@ -40,6 +42,11 @@ try{
         throw new RuntimeException('Packaged module audit fixture did not complete.');
     }
     $report['smoke_tests'][] = 'module-audit-end-to-end';
+    $fixture = buildRun([PHP_BINARY, $root.'/tests/DevelopmentPrelaunchProfileTest.php', $candidate]);
+    if (!str_contains($fixture, 'Development and prelaunch profiles passed')) {
+        throw new RuntimeException('Packaged development/prelaunch fixture did not complete.');
+    }
+    $report['smoke_tests'][] = 'development-prelaunch-end-to-end';
     if(is_file($output)&&!copy($output,$build.'/previous-'.basename($output)))throw new RuntimeException('Cannot preserve previous release.');
     chmod($candidate,0755);
     if(!rename($candidate,$output))throw new RuntimeException('Cannot publish validated candidate.');

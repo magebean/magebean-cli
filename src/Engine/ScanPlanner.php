@@ -11,11 +11,13 @@ final class ScanPlanner
     {
         $diagnostic ??= static function (ScanDiagnostic $d): void {};
         $options = $request->options;
+        $launchProfile = in_array(strtolower(trim((string) ($options['profile'] ?? ''))), ['development', 'prelaunch'], true);
         $requested = self::ids($options['rules'] ?? '');
         $moduleSelection = $options['modules'] ?? null;
         $modules = $moduleSelection === null ? [] : MagentoModuleIntegrityCheck::moduleNames(array_map('trim', explode(',', $moduleSelection)));
         $internal = array_filter($requested, static fn(string $id): bool => (preg_match('/^MB-[0-9]{4,}$/D', $id) === 1));
         if ($modules !== [] && $requested !== [] && $internal === []) throw new \RuntimeException('--modules requires module audit criteria.');
+        if ($launchProfile && $requested !== [] && $internal === []) throw new \RuntimeException('Development and prelaunch require canonical Magebean rule IDs.');
         if ($requested !== [] && $internal === []) return (new LegacyScanPlanner())->planCli($request, $registry, $diagnostic);
         foreach ($internal as $id) MagebeanRetirement::reject($id);
         if ($internal !== [] && count($internal) !== count($requested)) throw new \RuntimeException('Select internal requirement IDs separately from deprecated legacy execution IDs.');
@@ -33,6 +35,7 @@ final class ScanPlanner
         }
         $usesLegacyPolicy=array_filter($legacyPolicyIds,static fn(string $id):bool=>preg_match('/^MB-R[0-9]+$/D',$id)===1||str_starts_with($id,'OWASP-ASVS:'))!==[];
         if($usesLegacyPolicy){
+            if ($launchProfile) throw new \RuntimeException('Development and prelaunch require canonical project policy selectors.');
             if($internal!==[])throw new \RuntimeException('Use internal requirement IDs for policy when selecting internal requirements.');
             $diagnostic(new ScanDiagnostic('comment','Using the deprecated selection-policy compatibility adapter.'));
             if ($modules !== []) throw new \RuntimeException('--modules requires module audit criteria.');
@@ -40,6 +43,7 @@ final class ScanPlanner
         }
         // Existing executable custom packs retain their explicit compatibility path.
         if (!empty($config['rules']) || !empty($config['rule_files']) || !empty($config['rule_packs']) || !empty($config['rule_paths'])) {
+            if ($launchProfile) throw new \RuntimeException('Development and prelaunch do not execute legacy custom rule packs.');
             if ($internal !== []) throw new \RuntimeException('Legacy project rule packs cannot redefine internal requirements.');
             $diagnostic(new ScanDiagnostic('comment', 'Using the deprecated project-rule compatibility adapter.'));
             if ($modules !== []) throw new \RuntimeException('--modules requires module audit criteria.');
@@ -57,6 +61,12 @@ final class ScanPlanner
         if ($profile === '') $profile = $requested !== [] ? match(array_key_first($requestedFamilies)){'asvs'=>'asvs-l3','pci'=>'pci',default=>'basic'} : (in_array(strtolower((string)($options['standard'] ?? '')), ['owasp','pci'], true) ? strtolower($options['standard']) : 'basic');
         if (is_file(ProjectPath::resolve($profile, $base))) $profile = ProjectPath::resolve($profile, $base);
         if(is_file($profile)){$custom=json_decode((string)file_get_contents($profile),true,512,JSON_THROW_ON_ERROR);if(!isset($custom['requirement_ids'])){if($modules!==[])throw new \RuntimeException('--modules requires module audit criteria.');if($internal!==[])throw new \RuntimeException('Internal selections require a primary requirement_ids profile.');$diagnostic(new ScanDiagnostic('comment','Using the deprecated custom-profile compatibility adapter.'));return (new LegacyScanPlanner())->planCli($request,$registry,$diagnostic);}}
+        if ($launchProfile && $requested !== []) {
+            $members = RequirementProfileCatalog::load($profile)['requirement_ids'];
+            if ($outside = array_diff($requested, $members)) {
+                throw new \RuntimeException('Rules outside the selected development/prelaunch profile: '.implode(', ', $outside).'. Select those rules without this profile.');
+            }
+        }
         $pack = RequirementCatalog::forProfile($profile, $caps, $mode);
         $activeProfile = $pack['profile'];
         if($requestedFamilies!==[]&&!isset($requestedFamilies[$activeProfile['family']]))throw new \RuntimeException('Selected requirements do not belong to the profile family; choose a profile from the same source.');

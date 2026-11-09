@@ -152,6 +152,8 @@ References: [Adobe declarative schema](https://developer.adobe.com/commerce/php/
 
 ## Phase 8 release qualification
 
+The checksums in this section describe the Phase 8 snapshot. Later profile builds have their own manifests under build/.
+
 The CLI suite passed all 125 test files under PHP 8.4.27 on WSL. Both PHAR builds passed the production dependency allowlist, listing and runtime smoke tests, and the module audit fixture. The build now runs that fixture against the candidate before replacing the local artifact. Variant-specific manifests are written under build/.
 
 The aggregate was compared against all three authoritative catalogs. It contains 724 active requirements across 11 profiles. The 60 archived Magebean definitions match their original definitions and retain reserved IDs. ASVS and PCI requirements, aggregate slices and profile definitions match the original baseline.

@@ -13843,20 +13843,32 @@
       "obligation_count": 1,
       "alignments": [],
       "family": "magebean"
+    },
+    {
+      "id": "MB-0828",
+      "allocation_key": "magebean/development/local-osv-snapshot",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion",
+      "criterion": "Collected Composer lock versions have no applicable active advisory in the required local OSV snapshot.",
+      "reviewer": "development-prelaunch",
+      "limitations": "Requires a nonempty OSV JSON advisory list at .magebean/osv-db.json. Coverage is limited to the supplied snapshot and supported advisory ranges.",
+      "obligation_count": 1,
+      "alignments": [],
+      "family": "magebean"
     }
   ],
   "counts": {
-    "active_internal_requirements": 724,
-    "historical_allocations": 827,
+    "active_internal_requirements": 725,
+    "historical_allocations": 828,
     "retired_identity_count": 103,
     "families": {
-      "magebean": 99,
+      "magebean": 100,
       "asvs": 345,
       "pci": 280
     },
     "asvs_alignment_references": 345,
     "pci_alignment_references": 280,
-    "accepted_scoped_criteria": 99,
+    "accepted_scoped_criteria": 100,
     "human_evidence_required": 625
   }
 }

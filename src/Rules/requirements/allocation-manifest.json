@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "next_id": 828,
+  "next_id": 829,
   "allocations": [
     {
       "id": "MB-0001",
@@ -5136,6 +5136,12 @@
     {
       "id": "MB-0827",
       "allocation_key": "magebean/module-operations-v1/loop-query",
+      "revision": 1,
+      "verdict": "accepted_scoped_criterion"
+    },
+    {
+      "id": "MB-0828",
+      "allocation_key": "magebean/development/local-osv-snapshot",
       "revision": 1,
       "verdict": "accepted_scoped_criterion"
     }

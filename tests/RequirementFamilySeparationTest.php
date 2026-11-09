@@ -7,7 +7,7 @@ function familyAssert(bool $ok,string $message):void{global $count;++$count;if(!
 $aggregate=RequirementCatalog::read('internal-catalog')['requirements'];
 $loaded=RequirementCatalog::loadAll()['rules'];
 $all=[];
-foreach(['magebean'=>99,'asvs'=>345,'pci'=>280] as $family=>$expected){
+foreach(['magebean'=>100,'asvs'=>345,'pci'=>280] as $family=>$expected){
     $catalog=RequirementCatalog::read($family.'-catalog');
     familyAssert(($catalog['family']??null)===$family,'Physical catalog declares family '.$family);
     familyAssert(count($catalog['requirements'])===$expected,'Independent family inventory '.$family);
@@ -43,7 +43,7 @@ foreach($all as $r){
     familyAssert($r['criterion']===$original['criterion'],'Independent source criterion retained verbatim '.$r['id']);
     familyAssert($r['source_metadata']===$original['source_metadata'],'Document provenance retained '.$r['id']);
 }
-$profileFamilies=['module-lifecycle'=>'magebean','module-reliability'=>'magebean','module-source'=>'magebean','module-integrity'=>'magebean','basic'=>'magebean','hardening'=>'magebean','owasp-top-10-2025'=>'magebean','asvs-l1'=>'asvs','asvs-l2'=>'asvs','asvs-l3'=>'asvs','pci-dss-v4.0.1'=>'pci'];
+$profileFamilies=['development'=>'magebean','prelaunch'=>'magebean','module-lifecycle'=>'magebean','module-reliability'=>'magebean','module-source'=>'magebean','module-integrity'=>'magebean','basic'=>'magebean','hardening'=>'magebean','owasp-top-10-2025'=>'magebean','asvs-l1'=>'asvs','asvs-l2'=>'asvs','asvs-l3'=>'asvs','pci-dss-v4.0.1'=>'pci'];
 foreach(RequirementProfileCatalog::all() as $profile){
     familyAssert(isset($profileFamilies[$profile['id']]),'Only supported customer profiles are exposed');
     $family=$profileFamilies[$profile['id']];

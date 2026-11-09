@@ -27,7 +27,8 @@ final class MagentoModuleInventory
         }
         $files = new MagentoInventoryFiles($context, $root, $this->session);
         $php = new MagentoStaticPhp();
-        $config = $files->read('app/etc/config.php', true);
+        $sourceCheckout = ($context->get('meta', [])['launch_profile'] ?? null) === 'development';
+        $config = $files->read('app/etc/config.php', !$sourceCheckout);
         try {
             $states = $config === null ? null : $php->moduleStates($config);
         } catch (Error) {
@@ -214,6 +215,7 @@ final class MagentoModuleInventory
             ];
             if ($enabled) $files->gap('app/etc/config.php', 'enabled_module_source_unresolved', $name);
         }
+        $out['module_order_known'] = $states !== null;
         $out['module_order'] = array_keys(array_filter($states ?? []));
         $out['complete'] = $files->complete;
         $out['gaps'] = $files->gaps;

@@ -5,9 +5,9 @@ use Magebean\Engine\{RequirementCatalog,RequirementDefinitionValidator,Requireme
 use Magebean\Engine\Checks\CheckRegistry;
 $pack=RequirementCatalog::loadAll();$index=array_column($pack['rules'],null,'id');$registry=CheckRegistry::fromContext(new Context('/unused',''));$n=0;
 $assert=static function(bool $ok,string $message)use(&$n):void{++$n;if(!$ok)throw new RuntimeException($message);};
-$assert(count($index)===724,'Current inventory includes fresh scoped source and production automation definitions');
+$assert(count($index)===725,'Current inventory includes fresh scoped source and production automation definitions');
 $allocation=RequirementCatalog::read('allocation-manifest');
-$assert(count($allocation['allocations'])===827&&$allocation['next_id']===828,'Automation additions allocate fresh identities without reusing historical IDs');
+$assert(count($allocation['allocations'])===828&&$allocation['next_id']===829,'Automation additions allocate fresh identities without reusing historical IDs');
 foreach($index as$r)$assert(RequirementDefinitionValidator::validate($r,$registry)===[],'Valid structural contract '.$r['id']);
 foreach(['MB-0002','MB-0062','MB-0063','MB-0072']as$id){$r=$index[$id];$assert($r['human_evidence']['required']===false,'Bounded predicate remains automatic '.$id);$assert(isset($r['criterion_history'])&&count($r['criterion_history'])>0,'Previous criterion retained '.$id);$assert(RequirementAssessmentEvaluator::evaluate($r,fn()=>CheckResult::of(CheckOutcome::Pass,'Observed bounded predicate'))->outcome===RequirementOutcome::Pass,'Verified predicate can pass '.$id);$assert(RequirementAssessmentEvaluator::evaluate($r,fn()=>CheckResult::of(CheckOutcome::Unknown,'Collection incomplete'))->outcome===RequirementOutcome::Unknown,'Missing evidence cannot become clean '.$id);}
 foreach(['MB-0062','MB-0063']as$id)foreach($index[$id]['checks']as$c)$assert(($c['args']['strict_scope']??false)===true,'Maintenance scope requires complete status '.$id);
