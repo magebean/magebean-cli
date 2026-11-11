@@ -16,6 +16,7 @@ final class FindingsConsoleRenderer
 
     public function render(OutputInterface $out,array $result,string $path):void
     {
+        $detailed=!empty($result['meta']['rules_filter']);
         $risks=array_values(array_filter($result['risk_findings']??[],static fn(array $f):bool=>($f['risk_observation']['needs_attention']??false)===true));
         $issues=$result['collection_issues']??[];
         $covered=[];
@@ -23,7 +24,13 @@ final class FindingsConsoleRenderer
         $issues=array_values(array_filter($issues,static fn(array $i):bool=>!isset($covered[($i['id']??'').'|'.($i['check']??'')])&&!isset($covered[($i['id']??'').'|requirement_assessment'])));
         $order=['critical'=>0,'high'=>1,'medium'=>2,'low'=>3,'info'=>4];
         usort($risks,static fn(array $a,array $b):int=>($order[strtolower($a['severity']??'low')]??4)<=>($order[strtolower($b['severity']??'low')]??4));
-        $detailed=!empty($result['meta']['rules_filter']);
+        if (!$detailed) {
+            foreach ($risks as &$finding) {
+                $finding['risk_observation']['findings'] = array_values(array_filter($finding['risk_observation']['findings'] ?? [], static fn(array $o): bool => ($o['kind'] ?? '') !== 'collection_issue'));
+            }
+            unset($finding);
+            $risks = array_values(array_filter($risks, static fn(array $f): bool => $f['risk_observation']['findings'] !== []));
+        }
         $out->writeln('');
         $this->line($out, 'MAGEBEAN  /  Audit', '', 'fg=cyan;options=bold');
         $this->line($out, 'CLI '.Application::VERSION, '', 'fg=gray');
@@ -48,9 +55,11 @@ final class FindingsConsoleRenderer
         if(!empty($result['coverage_summary'])){
             $c=$result['coverage_summary'];
             $this->line($out, sprintf('%d / %d rules executed', $c['executed'], $c['inventory']), '  Coverage  ', 'fg=gray');
-            if (!empty($c['not_evaluated'])) $this->line($out, $c['not_evaluated'].' rules not evaluated', '            ', 'fg=gray');
+            if ($detailed && !empty($c['not_evaluated'])) $this->line($out, $c['not_evaluated'].' rules not evaluated', '            ', 'fg=gray');
         }
-        if($issues||!$covered)$this->line($out, (string)count($issues), '  Scan collection issues  ', 'fg='.($issues?'yellow':'gray'));
+        if($detailed&&($issues||!$covered))$this->line($out, (string)count($issues), '  Scan collection issues  ', 'fg='.($issues?'yellow':'gray'));
+        $out->writeln('');
+        $this->rule($out);
         foreach ($result['findings'] ?? [] as $finding) {
             $risk = $finding['risk_observation'] ?? [];
             foreach ($risk['observations'] ?? [] as $observation) {
@@ -58,18 +67,18 @@ final class FindingsConsoleRenderer
                 $this->line($out, 'Information · '.$observation['message'].($symbol !== '' ? ' '.$symbol : ''), '  ', 'fg=gray');
             }
             foreach ($risk['detector_runs'] ?? [] as $run) {
-                if ($run['suppressed_count'] > 0) {
+                if ($detailed && $run['suppressed_count'] > 0) {
                     $this->line($out, $run['detector'].' · '.$run['suppressed_count'].' suppressed', '  ', 'fg=gray');
                     if ($detailed) foreach ($run['suppressions'] as $suppression) $this->line($out, $suppression, '    ');
                 }
             }
-            if (!empty($risk['findings_truncated']) || !empty($risk['collection_gaps_truncated'])) {
+            if ($detailed && (!empty($risk['findings_truncated']) || !empty($risk['collection_gaps_truncated']))) {
                 $this->line($out, ($finding['id'] ?? '').' · Observation output truncated.', '  ', 'fg=yellow');
             }
         }
         if(!$risks){$out->writeln('');$this->line($out,'No risk observations requiring attention were collected.','','fg=green');}
         foreach($risks as$i=>$finding){
-            $out->writeln('');$this->rule($out);
+            $out->writeln('');
             $severity=strtolower($finding['severity']??'low');
             $this->line($out,sprintf('%02d  %s  %s',$i+1,strtoupper($severity),$finding['id']??''),'',$this->severityStyle($severity).';options=bold');
             foreach($finding['risk_observation']['findings']as$observation){
@@ -110,10 +119,10 @@ final class FindingsConsoleRenderer
                 $out->writeln('');$this->line($out,$label,'  ','fg=cyan;options=bold');
                 foreach($detailed?$steps:array_slice($steps,0,1)as$step)$this->line($out,$step,'    - ');
             }
-            if(!empty($finding['risk_observation']['collection_gaps'])&&!array_filter($finding['risk_observation']['findings'],static fn(array $o):bool=>($o['kind']??'')==='collection_issue'))$this->line($out,'Additional collection issues are listed separately.','  ','fg=yellow');
+            if($detailed&&!empty($finding['risk_observation']['collection_gaps'])&&!array_filter($finding['risk_observation']['findings'],static fn(array $o):bool=>($o['kind']??'')==='collection_issue'))$this->line($out,'Additional collection issues are listed separately.','  ','fg=yellow');
         }
-        if($issues){
-            $out->writeln('');$this->rule($out);$this->line($out,'Scan collection issues','','fg=yellow;options=bold');
+        if($detailed&&$issues){
+            $out->writeln('');$this->line($out,'Scan collection issues','','fg=yellow;options=bold');
             foreach($issues as$issue){
                 $this->line($out,($issue['id']??'').'  '.($issue['message']??$issue['title']??'Observation unavailable'),'  ');
                 foreach($issue['risk_observation']['collection_gaps']??$issue['collection_gaps']??[]as$gap)$this->line($out,$gap['message']??$gap['reason_code']??'Observation unavailable','    ');

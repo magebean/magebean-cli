@@ -15,5 +15,5 @@ if($result['coverage_summary']['inventory']!==$inventory||$result['coverage_summ
 foreach($result['not_evaluated_requirements']as$omitted)if($omitted['reason_code']!=='CAPABILITY_CONTEXT_MISSING')throw new RuntimeException('Missing capability must have an explicit technical omission reason');
 if(!empty($result['evidence_tasks']))throw new RuntimeException('Machine context must not create human evidence tasks');
 $output=new BufferedOutput();(new ScanConsoleRenderer())->renderPrettySummary($output,$result,sys_get_temp_dir());$text=$output->fetch();
-if(!str_contains($text,'Scan coverage incomplete')||str_contains($text,'external evidence'))throw new RuntimeException('Coverage guidance must describe missing technical context');
+if(str_contains($text,'rules not evaluated')||str_contains($text,'external evidence'))throw new RuntimeException('Overview hides missing-context messages while result metadata retains omissions');
 echo "AutomatedCoverageContextTest: PASS\n";

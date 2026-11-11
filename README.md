@@ -366,3 +366,5 @@ The CLI is free to use and extend under MIT; professional audit services are off
 ASVS counts above are requirement findings, including 12 native partial evidence implementations (missing evidence still returns UNKNOWN). Canonical selectors require a profile, for example `scan --profile=asvs-l2 --rules=OWASP-ASVS:5.0.0:6.2.1`. Explicit MB-R selections retain legacy execution. See [runtime migration and dashboard compatibility](docs/requirement-migration.md).
 
 The former ASVS L1 implementation gaps now have native checks; see [ASVS native evidence](docs/asvs-native-evidence.md) for scope, required account artifacts and human confirmation.
+
+For agency project handovers, use `audit --profile takeover`. See the [Takeover profile guide](docs/magebean-takeover-profile.md).

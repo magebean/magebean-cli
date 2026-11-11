@@ -70,6 +70,7 @@ final class MagentoModuleIntegrityCheck
             $analysis = $this->collectors->magentoAnalysis->collect($this->context, $names, [
                 'validate_schemas' => true,
                 'schema_kinds' => self::SCHEMA_KINDS,
+                'dependency_symbols' => $kind === 'rest-service',
             ]);
             foreach ($analysis['gaps'] as $gap) {
                 if ($kind !== 'xml' && $gap['reason'] === 'schema_unavailable') continue;
@@ -100,7 +101,7 @@ final class MagentoModuleIntegrityCheck
                 'action' => 'Verify the installed module metadata, local source access, and selected module scope.',
             ];
         }
-        return MagebeanDetectorAnalysis::result('magento-module-'.$kind, '1.0', $findings, array_values($diagnostics));
+        return MagebeanDetectorAnalysis::result('magento-module-'.$kind, '1.1', $findings, array_values($diagnostics));
     }
 
     private function identity(array $modules, array $registeredRoots): array
@@ -170,6 +171,7 @@ final class MagentoModuleIntegrityCheck
         $informational = [];
         $byName = array_column($modules, null, 'identity');
         $inventory = $analysis['inventory'];
+        $sourceDeclarations = ($this->context->get('meta', [])['launch_profile'] ?? '') === 'development';
         $acl = $kind === 'rest-acl' ? $this->acl($inventory, $gaps) : [];
         foreach ($analysis['documents'] as $file => $document) {
             $module = $byName[$document['module']] ?? null;
@@ -187,7 +189,7 @@ final class MagentoModuleIntegrityCheck
                 $gaps[] = ['reason' => 'webapi_document_unresolved', 'file' => $file];
                 continue;
             }
-            if ($kind !== 'rest-service' && $module['state'] !== 'enabled') {
+            if (!$sourceDeclarations && $kind !== 'rest-service' && $module['state'] !== 'enabled') {
                 if ($module['state'] !== 'disabled') $gaps[] = ['reason' => 'module_enablement_unavailable', 'file' => $file];
                 continue;
             }
@@ -217,8 +219,8 @@ final class MagentoModuleIntegrityCheck
                     foreach ($route['resources'] as $resource) {
                         $ref = $resource['ref'];
                         if (in_array($ref, ['anonymous', 'self'], true) || isset($acl[$ref])) continue;
-                        $findings[] = self::finding($module, 'undeclared-acl-reference', 'REST route references an ACL resource absent from the collected enabled declarations.',
-                            'The named resource was not found in the static global ACL files of the installed enabled modules.',
+                        $findings[] = self::finding($module, 'undeclared-acl-reference', $sourceDeclarations ? 'REST source declaration references an ACL resource absent from the collected declarations.' : 'REST route references an ACL resource absent from the collected enabled declarations.',
+                            $sourceDeclarations ? 'The named resource was not found in collected source ACL files; module activation and runtime access are not established.' : 'The named resource was not found in the static global ACL files of the installed enabled modules.',
                             'Check the resource ID and the module that declares it.',
                             [['file' => $file, 'line' => $resource['line']]], 'security', 'suspected', 'medium', 'webapi_rest', $ref,
                             ['Runtime or generated ACL additions can change the effective resource tree.']);
@@ -229,7 +231,7 @@ final class MagentoModuleIntegrityCheck
                             'The route declares anonymous access and its path contains an export, download, or privileged-resource segment.',
                             'Verify intended guest access and enforce the relevant resource or object checks.',
                             $location, 'security', 'suspected', 'medium', 'webapi_rest', $subject,
-                            ['Runtime API restrictions, service checks and intended public access may affect exposure.']);
+                            ['Module activation, runtime API restrictions, service checks and intended public access may affect exposure.']);
                     } else {
                         $informational[] = self::finding($module, 'anonymous-route', 'REST route declares anonymous access.',
                             'This route explicitly references the framework anonymous resource.', '', $location,
@@ -253,7 +255,7 @@ final class MagentoModuleIntegrityCheck
         $reader = new MagentoInventoryFiles($this->context, $root, $this->collectors->session);
         $paths = [];
         foreach ($inventory['modules'] as $module) {
-            if ($module['state'] === 'enabled') $paths[] = $module['root'].'/etc/acl.xml';
+            if (($this->context->get('meta', [])['launch_profile'] ?? '') === 'development' || $module['state'] === 'enabled') $paths[] = $module['root'].'/etc/acl.xml';
         }
         $resources = [];
         foreach (array_unique($paths) as $path) {

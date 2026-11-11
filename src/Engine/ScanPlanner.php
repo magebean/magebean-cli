@@ -49,7 +49,7 @@ final class ScanPlanner
             if ($modules !== []) throw new \RuntimeException('--modules requires module audit criteria.');
             return (new LegacyScanPlanner())->planCli($request, $registry, $diagnostic);
         }
-        $caps = is_array($config['capabilities'] ?? null) ? $config['capabilities'] : [];
+        $caps = self::normalizeCapabilities($config['capabilities'] ?? []);
         foreach (self::ids($options['capabilities'] ?? '') as $cap) $caps[strtolower($cap)] = true;
         $profile = trim((string)($options['profile'] ?? ''));
         $requestedFamilies=[];
@@ -244,6 +244,25 @@ final class ScanPlanner
             $definition['checks'] = array_merge(...array_column($definition['obligations'], 'checks'));
         }
         return $matched;
+    }
+
+    /** Lists and maps share one canonical shape before additive CLI enables. */
+    private static function normalizeCapabilities(mixed $raw): array
+    {
+        if (!is_array($raw)) return [];
+        $caps = [];
+        if (array_is_list($raw)) {
+            foreach ($raw as $name) {
+                if (!is_string($name) || trim($name) === '') continue;
+                $caps[strtolower(trim($name))] = true;
+            }
+        } else {
+            foreach ($raw as $name => $enabled) {
+                if (!is_string($name) || trim($name) === '') continue;
+                $caps[strtolower(trim($name))] = filter_var($enabled, FILTER_VALIDATE_BOOLEAN);
+            }
+        }
+        return $caps;
     }
 
     private static function ids(mixed $raw): array

@@ -4,6 +4,8 @@ namespace Magebean\Engine\Checks;
 
 use Magebean\Engine\{Context,CheckOutcome,CheckResult,SourceInspectionIssue};
 use Magebean\Engine\Collectors\BoundedSourceInventory;
+use PhpParser\{Node, NodeFinder, NodeTraverser, ParserFactory};
+use PhpParser\NodeVisitor\NameResolver;
 
 /** Exact syntactic policies, not evidence of global exploitability or absence of vulnerabilities. */
 final class AutomatedSourcePolicyCheck
@@ -41,17 +43,19 @@ final class AutomatedSourcePolicyCheck
             foreach($raw as $token){$value=is_array($token)?$token[1]:$token;$start=is_array($token)?$token[2]:$line;$line+=substr_count($value,"\n");if(is_array($token)&&in_array($token[0],[T_WHITESPACE,T_COMMENT,T_DOC_COMMENT,T_OPEN_TAG,T_CLOSE_TAG],true))continue;$tokens[]=['id'=>is_array($token)?$token[0]:null,'text'=>$value,'line'=>$start];}
             $violate=function(int $line,string $construct)use(&$evidence,$file):void{if(count($evidence['violations'])<100)$evidence['violations'][]=['file'=>$file['file'],'line'=>$line,'construct'=>$construct];else $evidence['violations_truncated']=true;};
             $uncertain=function(int $line,string $reason)use(&$gaps,$file):void{if(count($gaps)<100)$gaps[]=['file'=>$file['file'],'line'=>$line,'reason'=>$reason];};
+            if ($kind === 'csrf_unconditional_bypass' || isset(self::BANS[$kind])) {
+                try {
+                    $nodes = (new ParserFactory())->createForNewestSupportedVersion()->parse($file['content']) ?? [];
+                    $nodes = (new NodeTraverser(new NameResolver(null, ['preserveOriginalNames' => true])))->traverse($nodes);
+                    $this->resolvedPolicies($kind, $nodes, $violate, $uncertain);
+                } catch (\PhpParser\Error) {
+                    $uncertain(1, 'source_name_resolution_unavailable');
+                }
+            }
             foreach($tokens as $i=>$token){
                 if(($i&255)===0&&microtime(true)>$deadline){$gaps[]=['file'=>$file['file'],'reason'=>'analysis_deadline_exceeded'];break 2;}
                 $text=strtolower($token['text']);$prev=$tokens[$i-1]['text']??'';$next=$tokens[$i+1]['text']??'';
-                if($kind==='csrf_unconditional_bypass'){
-                    if($token['id']===T_FUNCTION&&strtolower($tokens[$i+1]['text']??'')==='validateforcsrf'){
-                        $open=null;
-                        for($j=$i+2;$j<count($tokens);$j++){if($tokens[$j]['text']==='{'){$open=$j;break;}if($tokens[$j]['text']===';')break;}
-                        if($open!==null&&strtolower($tokens[$open+1]['text']??'')==='return'&&strtolower($tokens[$open+2]['text']??'')==='true'&&($tokens[$open+3]['text']??'')===';'&&($tokens[$open+4]['text']??'')==='}')$violate($token['line'],'unconditional_csrf_acceptance');
-                    }
-                    continue;
-                }
+                if($kind==='csrf_unconditional_bypass')continue;
                 if($kind==='direct_request_logging'){
                     if($next==='('&&in_array($prev,['->','?->','::'],true)&&in_array($text,['log','debug','info','notice','warning','error','critical','alert','emergency'],true)){
                         $depth=1;
@@ -98,7 +102,7 @@ final class AutomatedSourcePolicyCheck
                 if(!in_array($token['id'],[T_STRING,T_NAME_FULLY_QUALIFIED,T_NAME_QUALIFIED],true))continue;
                 $name=ltrim($text,'\\');
                 if(str_contains($name,'\\'))continue;
-                if(in_array($name,self::BANS[$kind],true))$violate($token['line'],$name);
+                // Native identity is resolved from the AST above; lexical spelling cannot distinguish namespace-local functions.
                 if(in_array($name,['call_user_func','call_user_func_array','forward_static_call','forward_static_call_array'],true))$uncertain($token['line'],'indirect_dispatch');
                 if($kind==='dynamic_execution'&&$name==='assert'&&($tokens[$i+2]['id']??null)!==T_VARIABLE)$uncertain($token['line'],'assertion_expression_requires_version_resolution');
             }
@@ -115,6 +119,40 @@ final class AutomatedSourcePolicyCheck
             return CheckResult::of(CheckOutcome::Unknown,'[UNKNOWN] '.$message,$evidence,'SOURCE_POLICY_INCOMPLETE');
         }
         return CheckResult::of(CheckOutcome::Pass,'Every collected eligible source file satisfies the declared '.$kind.' syntax policy.',$evidence,'SOURCE_POLICY_SATISFIED');
+    }
+
+    private function resolvedPolicies(string $kind, array $nodes, callable $violate, callable $uncertain): void
+    {
+        $finder = new NodeFinder();
+        if ($kind === 'csrf_unconditional_bypass') {
+            foreach ($finder->findInstanceOf($nodes, Node\Stmt\ClassMethod::class) as $method) {
+                if (strtolower($method->name->toString()) !== 'validateforcsrf') continue;
+                $body = array_values(array_filter($method->stmts ?? [], static fn(Node $n): bool => !$n instanceof Node\Stmt\Nop));
+                if (count($body) === 1 && $body[0] instanceof Node\Stmt\Return_
+                    && $body[0]->expr instanceof Node\Expr\ConstFetch
+                    && strtolower($body[0]->expr->name->toString()) === 'true') $violate($method->getStartLine(), 'unconditional_csrf_acceptance');
+            }
+            return;
+        }
+        $declared = [];
+        foreach ($finder->findInstanceOf($nodes, Node\Stmt\Function_::class) as $function) {
+            if (isset($function->namespacedName)) $declared[strtolower($function->namespacedName->toString())] = true;
+        }
+        foreach ($finder->findInstanceOf($nodes, Node\Expr\FuncCall::class) as $call) {
+            if (!$call->name instanceof Node\Name || $call->isFirstClassCallable()) continue;
+            $name = strtolower($call->name->toString());
+            $original = $call->name->getAttribute('originalName', $call->name);
+            // Aliases retain the existing explicit collection gap until the complete alias scope is supported.
+            if (!in_array(strtolower(ltrim($original->toString(), '\\')), self::BANS[$kind], true)) continue;
+            if (isset($declared[$name])) continue;
+            if ($call->name instanceof Node\Name\FullyQualified) {
+                if (in_array($name, self::BANS[$kind], true)) $violate($call->getStartLine(), $name);
+                continue;
+            }
+            $candidate = $call->name->getAttribute('namespacedName');
+            if ($candidate instanceof Node\Name && isset($declared[strtolower($candidate->toString())])) continue;
+            $uncertain($call->getStartLine(), 'native_function_namespace_resolution_unavailable');
+        }
     }
 
     private function emptyOptionalCustomScope(array $inventory):bool

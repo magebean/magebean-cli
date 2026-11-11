@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace Magebean\Engine\Checks;
 
 use Magebean\Engine\Context;
+use Magebean\Engine\Collectors\CollectorSet;
 
 final class FilesystemCheck
 {
     private Context $ctx;
-    public function __construct(Context $ctx)
+    public function __construct(Context $ctx, private ?CollectorSet $collectors = null)
     {
         $this->ctx = $ctx;
+        $this->collectors ??= new CollectorSet();
     }
 
     public function noWorldWritable(array $args): array
@@ -270,10 +272,15 @@ final class FilesystemCheck
     }
 
     /** Enumerate every directory without silently suppressing inaccessible children. */
-    private function strictPathInventory(array $roots): array
+    /** Every directory and leaf consumes the same bounded traversal budget. Links are never followed. */
+    private function strictPathInventory(array $roots, array $args = []): array
     {
+        $limit = max(1, min(200000, (int)($args['max_entries'] ?? 50000)));
+        $deadline = microtime(true) + max(1, min(15000, (int)($args['max_duration_ms'] ?? 5000))) / 1000;
         $paths = []; $gaps = []; $pending = $roots; $seen = [];
         while ($pending !== []) {
+            $this->collectors->session->checkpoint();
+            if (count($paths) >= $limit || microtime(true) > $deadline) { $gaps[] = 'traversal_budget_exceeded'; break; }
             $path = array_pop($pending);
             if (isset($seen[$path])) continue;
             $seen[$path] = true;
@@ -284,9 +291,14 @@ final class FilesystemCheck
                 continue;
             }
             if (!is_dir($path)) continue;
-            $children = @scandir($path);
-            if ($children === false) { $gaps[] = $path; continue; }
-            foreach ($children as $child) if ($child !== '.' && $child !== '..') $pending[] = $path . DIRECTORY_SEPARATOR . $child;
+            try {
+                $children = new \FilesystemIterator($path, \FilesystemIterator::SKIP_DOTS);
+                foreach ($children as $child) {
+                    $this->collectors->session->checkpoint();
+                    if (count($pending)+count($paths) >= $limit || microtime(true) > $deadline) { $gaps[] = 'traversal_budget_exceeded'; break; }
+                    $pending[] = $child->getPathname();
+                }
+            } catch (\UnexpectedValueException) { $gaps[] = $path; }
         }
         return [$paths, array_values(array_unique($gaps))];
     }
@@ -315,7 +327,7 @@ final class FilesystemCheck
         if ($webroot === false || !is_dir($webroot)) return [null, '[UNKNOWN] Configured webroot is unavailable', ['webroot' => $relative]];
         $forbidden = array_values($args['forbidden_paths'] ?? ['var/log', 'var/report']);
         if ($forbidden === []) return [null, '[UNKNOWN] No forbidden log/report paths configured'];
-        [$paths, $gaps] = $this->strictPathInventory([$webroot]);
+        [$paths, $gaps] = $this->strictPathInventory([$webroot], $args);
         $targets = []; $matches = [];
         foreach ($forbidden as $item) {
             $target = realpath($this->ctx->abs((string)$item));
@@ -626,8 +638,8 @@ final class FilesystemCheck
             return [false, 'Compiled DI directories missing: ' . implode(', ', $missing), $evidence];
         }
 
-        $metadataCount = $this->countPhpFiles($metadataAbs);
-        $codeCount = $this->countPhpFiles($codeAbs);
+        $metadataCount = $this->countPhpFiles($metadataAbs, $args);
+        $codeCount = $this->countPhpFiles($codeAbs, $args);
         if ($metadataCount === null || $codeCount === null) {
             return [null, '[UNKNOWN] Unable to inspect generated DI directories', $evidence];
         }
@@ -712,18 +724,17 @@ final class FilesystemCheck
         $rel = (string)($args['static_path'] ?? 'pub/static');
         $root = $this->ctx->abs($rel);
         if (!is_dir($root)) return [false, 'Published static directory is missing', ['path' => $rel]];
-        $checked = []; $unknown = [];
-        try {
-            $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS));
-            foreach ($it as $file) {
-                $relative = substr($file->getPathname(), strlen($root) + 1);
-                if (!preg_match('~^(?:frontend|adminhtml)/.+\.(?:css|js|woff2?|ttf|svg|png|jpe?g|gif|webp)$~i', $relative)) continue;
-                if (!$file->isFile() || !$file->isReadable()) { $unknown[] = $relative; continue; }
-                if ($file->getSize() > 0) $checked[] = $relative;
-            }
-        } catch (\UnexpectedValueException $e) { return [null, '[UNKNOWN] Cannot enumerate published static artifacts', ['path' => $rel]]; }
-        if ($checked !== []) return [true, 'Nonempty published frontend/admin static artifacts are present', ['path' => $rel, 'artifacts' => array_slice($checked, 0, 20), 'count' => count($checked)]];
-        if ($unknown !== []) return [null, '[UNKNOWN] Static artifacts exist but cannot be read', ['unreadable' => $unknown]];
+        [$paths, $gaps] = $this->strictPathInventory([$root], $args);
+        $checked = []; $unknown = $gaps;
+        foreach ($paths as $path) {
+            $this->collectors->session->checkpoint();
+            $relative = substr($path, strlen($root) + 1);
+            if (!preg_match('~^(?:frontend|adminhtml)/.+\.(?:css|js|woff2?|ttf|svg|png|jpe?g|gif|webp)$~i', $relative)) continue;
+            if (!is_file($path) || !is_readable($path)) { $unknown[] = $relative; continue; }
+            if (filesize($path) > 0) $checked[] = $relative;
+        }
+        if ($checked !== []) return [true, 'Nonempty published frontend/admin static artifacts are present', ['path' => $rel, 'artifacts' => array_slice($checked, 0, 20), 'count' => count($checked), 'coverage_gaps' => $gaps]];
+        if ($unknown !== []) return [null, '[UNKNOWN] Static artifact inventory is incomplete or cannot be read', ['coverage_gaps' => $unknown]];
         return [false, 'No nonempty published frontend/admin static artifacts found', ['path' => $rel]];
     }
 
@@ -795,27 +806,17 @@ final class FilesystemCheck
         return [$ok, "mtime age {$age}s (max {$max}s) for $rel"];
     }
 
-    private function countPhpFiles(string $root): ?int
+    private function countPhpFiles(string $root, array $args = []): ?int
     {
-        try {
-            $count = 0;
-            $iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS),
-                \RecursiveIteratorIterator::LEAVES_ONLY
-            );
-            foreach ($iterator as $file) {
-                if (!$file->isFile()) {
-                    continue;
-                }
-                if (strtolower(pathinfo($file->getFilename(), PATHINFO_EXTENSION)) === 'php') {
-                    if (!$file->isReadable()) return null;
-                    $count++;
-                }
-            }
-            return $count;
-        } catch (\UnexpectedValueException) {
-            return null;
+        [$paths, $gaps] = $this->strictPathInventory([$root], $args);
+        $count = 0;
+        foreach ($paths as $path) {
+            $this->collectors->session->checkpoint();
+            if (!is_file($path) || strtolower(pathinfo($path, PATHINFO_EXTENSION)) !== 'php') continue;
+            if (!is_readable($path)) return null;
+            ++$count;
         }
+        return $gaps === [] ? $count : null;
     }
 
     private function countFiles(string $root, array $ignoredBasenames): ?int
@@ -847,23 +848,18 @@ final class FilesystemCheck
     private function strictNoWorldWritable(array $args): array
     {
         $root = $this->ctx->abs($args['path'] ?? '.');
-        $pending = [$root]; $gaps = []; $count = 0;
-        while ($pending !== []) {
-            $path = array_pop($pending);
+        [$paths, $inventoryGaps] = $this->strictPathInventory([$root], $args);
+        $gaps = array_map(static fn(string $path):array => ['path'=>$path,'reason'=>'inventory_incomplete'], $inventoryGaps);
+        $count = 0;
+        foreach ($paths as $path) {
+            $this->collectors->session->checkpoint();
             clearstatcache(true, $path);
             $stat = @lstat($path);
             if ($stat === false) { $gaps[] = ['path' => $path, 'reason' => 'stat_unavailable']; continue; }
             $type = $stat['mode'] & 0170000;
             if ($type === 0120000) { $gaps[] = ['path' => $path, 'reason' => 'symlink_target_not_assessed']; continue; }
             ++$count;
-            if (($stat['mode'] & 0002) !== 0) {
-                return [false, 'World-writable entry found: ' . $path, ['path' => $path, 'mode' => sprintf('%o', $stat['mode'] & 0777), 'entries_assessed' => $count]];
-            }
-            if ($type === 0040000) {
-                $entries = @scandir($path);
-                if ($entries === false) { $gaps[] = ['path' => $path, 'reason' => 'directory_unreadable']; continue; }
-                foreach ($entries as $entry) if ($entry !== '.' && $entry !== '..') $pending[] = $path . DIRECTORY_SEPARATOR . $entry;
-            }
+            if (($stat['mode'] & 0002) !== 0) return [false, 'World-writable entry found: ' . $path, ['path' => $path, 'mode' => sprintf('%o', $stat['mode'] & 0777), 'entries_assessed' => $count, 'coverage_gaps' => $gaps]];
         }
         if ($gaps !== []) return [null, '[UNKNOWN] Filesystem permission assessment is incomplete', ['entries_assessed' => $count, 'gaps' => $gaps]];
         return [true, 'No world-writable entries found in the fully traversed deployment path', ['entries_assessed' => $count, 'root' => $root]];

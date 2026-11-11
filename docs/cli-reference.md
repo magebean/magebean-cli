@@ -494,3 +494,7 @@ The OWASP deployment profile has 31 automated requirements by default and 38 req
 
 
 `audit` is an alias of `scan`. Both commands accept the same options and return the same exit codes. For example, `php magebean.phar audit --profile development` is equivalent to `php magebean.phar scan --profile development`.
+
+Agency handover: `audit --profile takeover --path=/var/www/magento` selects 78 automated Magebean requirements. See [Takeover audit](magebean-takeover-profile.md).
+
+The default findings overview displays observed issues and omits collection failures, missing-context messages and analysis-budget notices. Use --rules for collection details. Structured report data and incomplete-execution exit codes are retained.

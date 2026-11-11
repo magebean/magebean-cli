@@ -46,7 +46,7 @@ final class ScanTargetResolver
                 );
             }
 
-            $this->assertMagento2Root($magentoRoot);
+            $this->assertMagento2Root($magentoRoot, true);
             $projectPath = (string)$magentoRoot;
             $projectUrl = (string)$this->autoDetectBaseUrl($projectPath);
         }
@@ -55,21 +55,17 @@ final class ScanTargetResolver
     }
     public function resolveProfile(string $profile, bool $hasPath, bool $hasUrl, string $path, string $url): ResolvedScanTarget
     {
+        if ($profile === 'prelaunch') {
+            $target = $this->resolve(true, $hasUrl, $hasPath ? $path : (string)getcwd(), $url);
+            return new ResolvedScanTarget($target->path, $target->url, $target->mode, $profile);
+        }
         if ($profile === 'development' && $hasUrl) {
             throw new \RuntimeException('Development uses a local source checkout. Use prelaunch with a staging URL for HTTP checks.');
         }
         if ($hasPath && $path === '') throw new \RuntimeException('--path requires a non-empty value.');
-        $origin = $hasUrl ? $this->normalizeRemoteUrl($url) : '';
         $root = realpath($hasPath ? $path : (string) getcwd());
         if ($root === false || !is_dir($root)) throw new \RuntimeException('Magento project path is unavailable.');
         for ($depth = 0; $depth <= 4; ++$depth) {
-            if ($profile === 'prelaunch') {
-                $candidate = $this->findMagentoRoot($root);
-                if ($candidate !== null) {
-                    $this->assertMagento2Root($candidate, true);
-                    return new ResolvedScanTarget($candidate, $origin, self::MODE_LOCAL, $profile);
-                }
-            } else {
                 $text = @file_get_contents($root.'/composer.json', false, null, 0, 1048577);
                 $manifest = is_string($text) && strlen($text) <= 1048576 ? json_decode($text, true) : null;
                 foreach (['magento/framework', 'magento/product-community-edition', 'magento/product-enterprise-edition', 'magento/magento-cloud-metapackage'] as $package) {
@@ -77,7 +73,6 @@ final class ScanTargetResolver
                         return new ResolvedScanTarget($root, '', self::MODE_LOCAL, $profile);
                     }
                 }
-            }
             $parent = dirname($root);
             if ($parent === $root) break;
             $root = $parent;

@@ -1524,9 +1524,9 @@
         },
         {
             "id": "MB-0030",
-            "revision": 3,
+            "revision": 4,
             "title": "Sensitive cookies use Secure, HttpOnly, and SameSite",
-            "criterion": "Sensitive session/admin cookies actually emitted by successful same-host HTTPS responses on the configured probe paths have exact Secure and HttpOnly attributes and SameSite=Lax or Strict. This assesses observed cookie emissions, not unobserved authenticated sessions.",
+            "criterion": "Cookies matching the configured session/admin cookie-name list and emitted by successful same-host HTTPS responses on the configured probe paths have unambiguous Secure, HttpOnly and SameSite=Lax or Strict attributes. Cookie names alone do not classify authentication sensitivity outside this explicit list; unobserved authenticated sessions are not assessed.",
             "control": "MB-C04",
             "severity": "high",
             "alignments": [],
@@ -1545,6 +1545,14 @@
                                     "/",
                                     "/customer/account/login",
                                     "/checkout/cart"
+                                ],
+                                "sensitive_cookies": [
+                                    "phpsessid",
+                                    "admin",
+                                    "adminhtml",
+                                    "backend",
+                                    "frontend",
+                                    "frontend_cid"
                                 ]
                             }
                         }
@@ -1574,6 +1582,14 @@
                             "/",
                             "/customer/account/login",
                             "/checkout/cart"
+                        ],
+                        "sensitive_cookies": [
+                            "phpsessid",
+                            "admin",
+                            "adminhtml",
+                            "backend",
+                            "frontend",
+                            "frontend_cid"
                         ]
                     }
                 }
@@ -1596,6 +1612,14 @@
                                             "/",
                                             "/customer/account/login",
                                             "/checkout/cart"
+                                        ],
+                                        "sensitive_cookies": [
+                                            "phpsessid",
+                                            "admin",
+                                            "adminhtml",
+                                            "backend",
+                                            "frontend",
+                                            "frontend_cid"
                                         ]
                                     }
                                 }
@@ -1608,6 +1632,11 @@
                 {
                     "revision": 2,
                     "criterion": "Sensitive cookies use Secure, HttpOnly, and SameSite; assess only the collected Magento deployment scope."
+                },
+                {
+                    "revision": 3,
+                    "criterion": "Sensitive session/admin cookies actually emitted by successful same-host HTTPS responses on the configured probe paths have exact Secure and HttpOnly attributes and SameSite=Lax or Strict. This assesses observed cookie emissions, not unobserved authenticated sessions.",
+                    "reason": "Prelaunch QA: explicit cookie-name scope and unambiguous attribute evidence."
                 }
             ],
             "family": "magebean",
@@ -1632,7 +1661,7 @@
             ],
             "finding_guidance": {
                 "version": 2,
-                "interpretation": "Assessed requirement: Sensitive session/admin cookies actually emitted by successful same-host HTTPS responses on the configured probe paths have exact Secure and HttpOnly attributes and SameSite=Lax or Strict. This assesses observed cookie emissions, not unobserved authenticated sessions. Interpret only the reported resources and collected scope; the finding is not proof of exploitation or of the state of unobserved components.",
+                "interpretation": "Assessed requirement: Cookies matching the configured session/admin cookie-name list and emitted by successful same-host HTTPS responses on the configured probe paths have unambiguous Secure, HttpOnly and SameSite=Lax or Strict attributes. Cookie names alone do not classify authentication sensitivity outside this explicit list; unobserved authenticated sessions are not assessed. Interpret only the reported resources and collected scope; the finding is not proof of exploitation or of the state of unobserved components.",
                 "risk": "An insufficiently protected sensitive cookie may be exposed to cleartext transport, unintended script access or cross-site use. Required attributes depend on the actual cookie purpose and browser flow.",
                 "triage": [
                     "Use the exact reported URL, response status, redirect chain and header/cookie/certificate value. Identify whether Magento, the origin, reverse proxy or CDN produced the response before changing configuration; do not infer every route from one response.",
@@ -1657,7 +1686,7 @@
                         "/customer/account/login",
                         "/checkout/cart"
                     ],
-                    "criterion": "Sensitive session/admin cookies actually emitted by successful same-host HTTPS responses on the configured probe paths have exact Secure and HttpOnly attributes and SameSite=Lax or Strict. This assesses observed cookie emissions, not unobserved authenticated sessions."
+                    "criterion": "Cookies matching the configured session/admin cookie-name list and emitted by successful same-host HTTPS responses on the configured probe paths have unambiguous Secure, HttpOnly and SameSite=Lax or Strict attributes. Cookie names alone do not classify authentication sensitivity outside this explicit list; unobserved authenticated sessions are not assessed."
                 }
             }
         },
@@ -8697,9 +8726,9 @@
         },
         {
             "id": "MB-0812",
-            "revision": 1,
+            "revision": 2,
             "title": "REST ACL references are declared in collected context",
-            "criterion": "Selected enabled modules’ global webapi.xml resource references resolve to an enabled static global ACL declaration or the special anonymous or self resource.",
+            "criterion": "In development, selected modules’ global webapi.xml resource references resolve to collected static global ACL declarations or anonymous/self; activation is not established. Other profiles assess selected enabled modules against enabled ACL declarations.",
             "control": "MB-C20",
             "severity": "medium",
             "alignments": [],
@@ -8747,7 +8776,7 @@
             ],
             "finding_guidance": {
                 "version": 2,
-                "interpretation": "Selected enabled modules’ global webapi.xml resource references resolve to an enabled static global ACL declaration or the special anonymous or self resource.",
+                "interpretation": "In development, selected modules’ global webapi.xml resource references resolve to collected static global ACL declarations or anonymous/self; activation is not established. Other profiles assess selected enabled modules against enabled ACL declarations.",
                 "risk": "Missing references are suspected because runtime and generated ACL additions can affect the tree.",
                 "triage": [
                     "Review the exact reported declaration and its owning module."
@@ -8765,15 +8794,22 @@
                         "magento_module_integrity"
                     ],
                     "declared_resources": [],
-                    "criterion": "Selected enabled modules’ global webapi.xml resource references resolve to an enabled static global ACL declaration or the special anonymous or self resource."
+                    "criterion": "In development, selected modules’ global webapi.xml resource references resolve to collected static global ACL declarations or anonymous/self; activation is not established. Other profiles assess selected enabled modules against enabled ACL declarations."
                 }
-            }
+            },
+            "criterion_history": [
+                {
+                    "revision": 1,
+                    "criterion": "Selected enabled modules’ global webapi.xml resource references resolve to an enabled static global ACL declaration or the special anonymous or self resource.",
+                    "reason": "Development QA: distinguish source declarations, bounded dependency context and effective runtime configuration."
+                }
+            ]
         },
         {
             "id": "MB-0813",
-            "revision": 1,
+            "revision": 2,
             "title": "Review sensitive anonymous REST declarations",
-            "criterion": "Flag selected enabled modules’ global webapi.xml routes that declare anonymous access and have an export, download, credentials, permissions, roles, or secrets path segment.",
+            "criterion": "Flag selected modules’ global webapi.xml anonymous routes with export, download, credentials, permissions, roles, or secrets path segments. Development inspects source declarations without claiming activation; other profiles require enabled modules.",
             "control": "MB-C20",
             "severity": "medium",
             "alignments": [],
@@ -8821,7 +8857,7 @@
             ],
             "finding_guidance": {
                 "version": 2,
-                "interpretation": "Flag selected enabled modules’ global webapi.xml routes that declare anonymous access and have an export, download, credentials, permissions, roles, or secrets path segment.",
+                "interpretation": "Flag selected modules’ global webapi.xml anonymous routes with export, download, credentials, permissions, roles, or secrets path segments. Development inspects source declarations without claiming activation; other profiles require enabled modules.",
                 "risk": "This is a bounded heuristic. Runtime restrictions, alternate guards and business intent can make the route benign.",
                 "triage": [
                     "Review the exact reported declaration and its owning module."
@@ -8839,9 +8875,16 @@
                         "magento_module_integrity"
                     ],
                     "declared_resources": [],
-                    "criterion": "Flag selected enabled modules’ global webapi.xml routes that declare anonymous access and have an export, download, credentials, permissions, roles, or secrets path segment."
+                    "criterion": "Flag selected modules’ global webapi.xml anonymous routes with export, download, credentials, permissions, roles, or secrets path segments. Development inspects source declarations without claiming activation; other profiles require enabled modules."
                 }
-            }
+            },
+            "criterion_history": [
+                {
+                    "revision": 1,
+                    "criterion": "Flag selected enabled modules’ global webapi.xml routes that declare anonymous access and have an export, download, credentials, permissions, roles, or secrets path segment.",
+                    "reason": "Development QA: distinguish source declarations, bounded dependency context and effective runtime configuration."
+                }
+            ]
         },
         {
             "id": "MB-0814",
@@ -8919,9 +8962,9 @@
         },
         {
             "id": "MB-0815",
-            "revision": 1,
+            "revision": 2,
             "title": "DI preferences resolve to compatible concrete targets",
-            "criterion": "Effective preferences in supported DI stages resolve to compatible concrete PHP classes within the indexed symbol scope.",
+            "criterion": "Preferences resolve to compatible concrete PHP classes in bounded indexed symbol context. Development without effective module order inspects each source declaration independently; effective merged DI is not established.",
             "control": "MB-C20",
             "severity": "medium",
             "alignments": [],
@@ -8969,7 +9012,7 @@
             ],
             "finding_guidance": {
                 "version": 2,
-                "interpretation": "Effective preferences in supported DI stages resolve to compatible concrete PHP classes within the indexed symbol scope.",
+                "interpretation": "Preferences resolve to compatible concrete PHP classes in bounded indexed symbol context. Development without effective module order inspects each source declaration independently; effective merged DI is not established.",
                 "risk": "Static declaration analysis only. Unresolved symbols and unsupported runtime or generated behavior are collection gaps.",
                 "triage": [
                     "Check the reported DI declaration and its area override."
@@ -8987,15 +9030,22 @@
                         "magento_module_integrity"
                     ],
                     "declared_resources": [],
-                    "criterion": "Effective preferences in supported DI stages resolve to compatible concrete PHP classes within the indexed symbol scope."
+                    "criterion": "Preferences resolve to compatible concrete PHP classes in bounded indexed symbol context. Development without effective module order inspects each source declaration independently; effective merged DI is not established."
                 }
-            }
+            },
+            "criterion_history": [
+                {
+                    "revision": 1,
+                    "criterion": "Effective preferences in supported DI stages resolve to compatible concrete PHP classes within the indexed symbol scope.",
+                    "reason": "Development QA: distinguish source declarations, bounded dependency context and effective runtime configuration."
+                }
+            ]
         },
         {
             "id": "MB-0816",
-            "revision": 1,
+            "revision": 2,
             "title": "DI virtual types resolve to concrete classes",
-            "criterion": "Effective virtual type chains in supported DI stages are acyclic and resolve to concrete classes within the indexed symbol scope.",
+            "criterion": "Virtual type chains are acyclic and resolve to concrete classes in bounded indexed symbol context. Development without effective module order inspects each source declaration independently; cross-file effective resolution may remain unavailable.",
             "control": "MB-C20",
             "severity": "medium",
             "alignments": [],
@@ -9043,7 +9093,7 @@
             ],
             "finding_guidance": {
                 "version": 2,
-                "interpretation": "Effective virtual type chains in supported DI stages are acyclic and resolve to concrete classes within the indexed symbol scope.",
+                "interpretation": "Virtual type chains are acyclic and resolve to concrete classes in bounded indexed symbol context. Development without effective module order inspects each source declaration independently; cross-file effective resolution may remain unavailable.",
                 "risk": "Static declaration analysis only. Unresolved symbols and unsupported runtime or generated behavior are collection gaps.",
                 "triage": [
                     "Check the reported DI declaration and its area override."
@@ -9061,15 +9111,22 @@
                         "magento_module_integrity"
                     ],
                     "declared_resources": [],
-                    "criterion": "Effective virtual type chains in supported DI stages are acyclic and resolve to concrete classes within the indexed symbol scope."
+                    "criterion": "Virtual type chains are acyclic and resolve to concrete classes in bounded indexed symbol context. Development without effective module order inspects each source declaration independently; cross-file effective resolution may remain unavailable."
                 }
-            }
+            },
+            "criterion_history": [
+                {
+                    "revision": 1,
+                    "criterion": "Effective virtual type chains in supported DI stages are acyclic and resolve to concrete classes within the indexed symbol scope.",
+                    "reason": "Development QA: distinguish source declarations, bounded dependency context and effective runtime configuration."
+                }
+            ]
         },
         {
             "id": "MB-0817",
-            "revision": 1,
+            "revision": 2,
             "title": "DI constructor arguments match supported signatures",
-            "criterion": "Named DI arguments match indexed constructor parameters. Array arguments match the supported parameter types.",
+            "criterion": "Named DI arguments match indexed constructor parameters and supported array parameter types. Development without module order evaluates per-file declarations, not effective merged DI.",
             "control": "MB-C20",
             "severity": "medium",
             "alignments": [],
@@ -9117,7 +9174,7 @@
             ],
             "finding_guidance": {
                 "version": 2,
-                "interpretation": "Named DI arguments match indexed constructor parameters. Array arguments match the supported parameter types.",
+                "interpretation": "Named DI arguments match indexed constructor parameters and supported array parameter types. Development without module order evaluates per-file declarations, not effective merged DI.",
                 "risk": "Static declaration analysis only. Unresolved symbols and unsupported runtime or generated behavior are collection gaps.",
                 "triage": [
                     "Check the reported DI declaration and its area override."
@@ -9135,15 +9192,22 @@
                         "magento_module_integrity"
                     ],
                     "declared_resources": [],
-                    "criterion": "Named DI arguments match indexed constructor parameters. Array arguments match the supported parameter types."
+                    "criterion": "Named DI arguments match indexed constructor parameters and supported array parameter types. Development without module order evaluates per-file declarations, not effective merged DI."
                 }
-            }
+            },
+            "criterion_history": [
+                {
+                    "revision": 1,
+                    "criterion": "Named DI arguments match indexed constructor parameters. Array arguments match the supported parameter types.",
+                    "reason": "Development QA: distinguish source declarations, bounded dependency context and effective runtime configuration."
+                }
+            ]
         },
         {
             "id": "MB-0818",
-            "revision": 1,
+            "revision": 2,
             "title": "DI plugins target interceptable declarations",
-            "criterion": "Enabled directly configured plugins use concrete plugin classes and supported hooks on interceptable target methods.",
+            "criterion": "Enabled directly declared plugins use concrete plugin classes and supported hooks on interceptable target methods. Development without module order checks source declarations independently, without asserting effective runtime plugin activation.",
             "control": "MB-C20",
             "severity": "medium",
             "alignments": [],
@@ -9191,7 +9255,7 @@
             ],
             "finding_guidance": {
                 "version": 2,
-                "interpretation": "Enabled directly configured plugins use concrete plugin classes and supported hooks on interceptable target methods.",
+                "interpretation": "Enabled directly declared plugins use concrete plugin classes and supported hooks on interceptable target methods. Development without module order checks source declarations independently, without asserting effective runtime plugin activation.",
                 "risk": "Static declaration analysis only. Unresolved symbols and unsupported runtime or generated behavior are collection gaps.",
                 "triage": [
                     "Check the reported DI declaration and its area override."
@@ -9209,9 +9273,16 @@
                         "magento_module_integrity"
                     ],
                     "declared_resources": [],
-                    "criterion": "Enabled directly configured plugins use concrete plugin classes and supported hooks on interceptable target methods."
+                    "criterion": "Enabled directly declared plugins use concrete plugin classes and supported hooks on interceptable target methods. Development without module order checks source declarations independently, without asserting effective runtime plugin activation."
                 }
-            }
+            },
+            "criterion_history": [
+                {
+                    "revision": 1,
+                    "criterion": "Enabled directly configured plugins use concrete plugin classes and supported hooks on interceptable target methods.",
+                    "reason": "Development QA: distinguish source declarations, bounded dependency context and effective runtime configuration."
+                }
+            ]
         },
         {
             "id": "MB-0819",
@@ -9659,9 +9730,9 @@
         },
         {
             "id": "MB-0825",
-            "revision": 1,
+            "revision": 2,
             "title": "Cron and queue declarations reference public handlers",
-            "criterion": "Supported global cron and queue declarations refer to public methods on uniquely indexed handler symbols.",
+            "criterion": "Supported global cron and queue declarations refer to public concrete methods resolved in bounded handler and dependency symbol context. Abstract/interface construction or unresolved inheritance is incomplete coverage, not a confirmed runtime defect.",
             "control": "MB-C20",
             "severity": "medium",
             "alignments": [],
@@ -9709,7 +9780,7 @@
             ],
             "finding_guidance": {
                 "version": 2,
-                "interpretation": "Supported global cron and queue declarations refer to public methods on uniquely indexed handler symbols.",
+                "interpretation": "Supported global cron and queue declarations refer to public concrete methods resolved in bounded handler and dependency symbol context. Abstract/interface construction or unresolved inheritance is incomplete coverage, not a confirmed runtime defect.",
                 "risk": "Bounded static analysis. Runtime setup, handler dispatch, failure behavior and performance are outside the supported predicate.",
                 "triage": [
                     "Review the reported declaration or source location in context."
@@ -9727,9 +9798,16 @@
                         "magento_module_integrity"
                     ],
                     "declared_resources": [],
-                    "criterion": "Supported global cron and queue declarations refer to public methods on uniquely indexed handler symbols."
+                    "criterion": "Supported global cron and queue declarations refer to public concrete methods resolved in bounded handler and dependency symbol context. Abstract/interface construction or unresolved inheritance is incomplete coverage, not a confirmed runtime defect."
                 }
-            }
+            },
+            "criterion_history": [
+                {
+                    "revision": 1,
+                    "criterion": "Supported global cron and queue declarations refer to public methods on uniquely indexed handler symbols.",
+                    "reason": "Development QA: distinguish source declarations, bounded dependency context and effective runtime configuration."
+                }
+            ]
         },
         {
             "id": "MB-0826",
@@ -9881,7 +9959,7 @@
         },
         {
             "id": "MB-0828",
-            "revision": 1,
+            "revision": 2,
             "title": "Composer dependency matches in local OSV snapshot",
             "criterion": "Collected Composer lock versions have no applicable active advisory in the required local OSV snapshot.",
             "control": "MB-C09",
@@ -9927,9 +10005,9 @@
             "family": "magebean",
             "lane": "security",
             "remediation": [
-                "Review the advisory and the locked dependency version.",
-                "Update or mitigate the dependency and refresh the local advisory snapshot.",
-                "Rerun the same profile against the refreshed lock and snapshot."
+                "If local advisory auditing is intended, supply a trusted OSV JSON snapshot and enable --capabilities=local_advisory_snapshot. Magebean does not create or distribute .magebean/osv-db.json.",
+                "Correct malformed Composer lock metadata before interpreting advisory results. Missing or invalid data is incomplete coverage, not a clean dependency assessment.",
+                "Rerun MB-0828 with --capabilities=local_advisory_snapshot after validating the snapshot and lock data; retain the reported scope and do not interpret zero matches as full vulnerability coverage."
             ],
             "finding_guidance": {
                 "version": 2,
@@ -9953,6 +10031,9 @@
                     "declared_resources": [],
                     "criterion": "Collected Composer lock versions have no applicable active advisory in the required local OSV snapshot."
                 }
+            },
+            "applicability": {
+                "capability": "local_advisory_snapshot"
             }
         }
     ]

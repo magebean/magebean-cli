@@ -25,7 +25,7 @@ final class MagentoModuleAnalysis
         }
         $moduleNames = array_values(array_unique($moduleNames));
         sort($moduleNames, SORT_STRING);
-        $limits = array_intersect_key($limits, array_flip(['max_files', 'max_file_bytes', 'max_total_bytes', 'timeout_seconds', 'validate_schemas', 'schema_kinds']));
+        $limits = array_intersect_key($limits, array_flip(['max_files', 'max_file_bytes', 'max_total_bytes', 'timeout_seconds', 'validate_schemas', 'schema_kinds', 'dependency_symbols']));
         ksort($limits);
         $load = fn(): array => $this->index($context, $moduleNames, $limits);
         $key = 'magento-module-analysis:'.hash('sha256', serialize([$context->path, $moduleNames, $limits]));
@@ -74,6 +74,11 @@ final class MagentoModuleAnalysis
         }
         unset($file);
         $php = (new MagentoPhpSymbolIndex())->index($sources['files'], $this->session);
+        if (($limits['dependency_symbols'] ?? false) === true) {
+            $dependencies = (new MagentoDependencySymbols($this->session))->expand($context, $php['symbols'], $sources['files']);
+            $php['symbols'] = $dependencies['symbols'];
+            array_push($php['gaps'], ...$dependencies['gaps']);
+        }
         $root = realpath($context->path);
         $schemaFiles = ($limits['validate_schemas'] ?? false) && $root !== false
             ? new MagentoInventoryFiles($context, $root, $this->session) : null;

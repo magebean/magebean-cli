@@ -4,6 +4,9 @@ namespace Magebean\Engine\Collectors;
 /** Always fresh: repeated probes and transport counts retain their semantics. */
 final class HttpCollector
 {
+    private const MAX_BODY_BYTES = 1048576;
+    private const MAX_HEADER_BYTES = 65536;
+
     public function __construct(private readonly ?CollectionSession $session = null) {}
     public function fetch(string $url, string $method = 'GET', array $headers = [], int $timeoutMs = 8000, bool $follow = true, ?string $requestBody = null, ?callable $observe = null): array
     {
@@ -23,30 +26,44 @@ final class HttpCollector
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_HEADER, true);
+            $body = ''; $headerRaw = ''; $headerBytes = 0; $limit = null;
+            curl_setopt($ch, CURLOPT_HEADERFUNCTION, function ($handle, string $line) use (&$headerRaw, &$headerBytes, &$body, &$limit): int {
+                $this->session?->checkpoint();
+                $headerBytes += strlen($line);
+                if ($headerBytes > self::MAX_HEADER_BYTES) { $limit = 'headers'; return 0; }
+                // Discard the previous response body and headers when a redirect/informational response ends.
+                if (preg_match('~^HTTP/\S+\s+\d{3}\b~i', $line)) { $headerRaw = ''; $body = ''; }
+                $headerRaw .= $line;
+                return strlen($line);
+            });
+            curl_setopt($ch, CURLOPT_WRITEFUNCTION, function ($handle, string $chunk) use (&$body, &$limit): int {
+                $this->session?->checkpoint();
+                if (strlen($body) + strlen($chunk) > self::MAX_BODY_BYTES) { $limit = 'body'; return 0; }
+                $body .= $chunk;
+                return strlen($chunk);
+            });
             curl_setopt($ch, CURLOPT_TIMEOUT_MS, $timeoutMs);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, $follow);
             curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
             curl_setopt($ch, CURLOPT_USERAGENT, 'Magebean-CLI/1.0');
             if ($ctxHeaders) curl_setopt($ch, CURLOPT_HTTPHEADER, $ctxHeaders);
             if ($requestBody !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, $requestBody);
-            $resp = curl_exec($ch);
-            if ($resp === false) {
-                $err = curl_error($ch);
-                curl_close($ch);
+            try {
+                $resp = curl_exec($ch);
+                $error = curl_error($ch);
+                $status = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+                $finalUrl = (string)curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+            } finally { curl_close($ch); }
+            if ($limit !== null) {
                 $observe(false);
-                return $this->transportFailure($url, $err, 'curl');
+                return $this->responseLimit($url, $limit, 'curl');
             }
-            $status   = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-            $hdrSize  = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-            $hdrRaw   = substr((string)$resp, 0, (int)$hdrSize);
-            $body     = substr((string)$resp, (int)$hdrSize);
-            $finalUrl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
-            curl_close($ch);
+            if ($resp === false) {
+                $observe(false);
+                return $this->transportFailure($url, $error, 'curl');
+            }
             $observe(true);
-            $headersAssoc = $this->parseHeaders($hdrRaw);
-            return [true, '', ['status' => $status, 'headers' => $headersAssoc, 'body' => $body, 'final_url' => $finalUrl]];
+            return [true, '', ['status' => $status, 'headers' => $this->parseHeaders($headerRaw), 'body' => $body, 'final_url' => $finalUrl, 'body_complete' => true, 'headers_complete' => true]];
         }
 
         // Fallback streams
@@ -63,27 +80,68 @@ final class HttpCollector
         ];
         $context = stream_context_create($opts);
         error_clear_last();
-        $body = @file_get_contents($url, false, $context);
+        $stream = @fopen($url, 'rb', false, $context);
         $streamError = error_get_last();
+        if ($stream === false) {
+            $observe(false);
+            return $this->transportFailure($url, (string)($streamError['message'] ?? 'Stream request failed'), 'stream');
+        }
+        $body = ''; $limit = null; $readFailed = false;
+        try {
+            $metadata = stream_get_meta_data($stream);
+            $responseHeaders = (array)($metadata['wrapper_data'] ?? []);
+            $headerBytes = 0;
+            foreach ($responseHeaders as $line) {
+                $headerBytes += strlen($line) + 2;
+                if ($headerBytes > self::MAX_HEADER_BYTES) { $limit = 'headers'; break; }
+            }
+            while ($limit === null && !feof($stream)) {
+                $this->session?->checkpoint();
+                $chunk = @fread($stream, min(8192, self::MAX_BODY_BYTES + 1 - strlen($body)));
+                if ($chunk === false) { $readFailed = true; break; }
+                $body .= $chunk;
+                if (strlen($body) > self::MAX_BODY_BYTES) { $limit = 'body'; break; }
+                if ($chunk === '') break;
+            }
+            $metadata = stream_get_meta_data($stream);
+            $readFailed = $readFailed || !empty($metadata['timed_out']) || ($limit === null && !feof($stream));
+        } finally { fclose($stream); }
+        if ($limit !== null) {
+            $observe(false);
+            return $this->responseLimit($url, $limit, 'stream');
+        }
+        if ($readFailed) {
+            $observe(false);
+            return $this->transportFailure($url, 'Stream response incomplete or timed out', 'stream');
+        }
         $hdrs = [];
         $status = 0;
         $finalUrl = $url;
-        if (isset($http_response_header) && is_array($http_response_header)) {
-            $hdrs = $this->parseHeaders(implode("\r\n", $http_response_header));
-            foreach ($http_response_header as $line) {
+        if ($responseHeaders !== []) {
+            $hdrs = $this->parseHeaders(implode("\r\n", $responseHeaders));
+            foreach ($responseHeaders as $line) {
                 if (preg_match('~^HTTP/\S+\s+(\d{3})~', $line, $m)) $status = (int)$m[1];
                 elseif ($follow && $status >= 300 && $status < 400 && stripos($line, 'Location:') === 0) {
                     $finalUrl = $this->redirectUrl($finalUrl, trim(substr($line, 9)));
                 }
             }
         }
-        if ($body === false) {
-            $observe(false);
-            return $this->transportFailure($url, (string)($streamError['message'] ?? 'Stream request failed'), 'stream');
-        }
         $observe(true);
-        return [true, '', ['status' => $status, 'headers' => $hdrs, 'body' => $body, 'final_url' => $finalUrl]];
+        return [true, '', ['status' => $status, 'headers' => $hdrs, 'body' => $body, 'final_url' => $finalUrl, 'body_complete' => true, 'headers_complete' => true]];
     }
+    private function responseLimit(string $url, string $part, string $backend): array
+    {
+        $failure = $this->transportFailure($url, 'Response '.$part.' exceeded the bounded collection budget', $backend);
+        $failure[2]['reason_code'] = 'HTTP_RESPONSE_LIMIT_EXCEEDED';
+        $failure[2]['limit_part'] = $part;
+        $failure[2]['max_body_bytes'] = self::MAX_BODY_BYTES;
+        $failure[2]['max_header_bytes'] = self::MAX_HEADER_BYTES;
+        $failure[2]['body_complete'] = false;
+        $failure[2]['headers_complete'] = false;
+        $failure[2]['action'] = 'Inspect the endpoint response size and rerun against a representative bounded page. No clean result is available from the incomplete response.';
+        return $failure;
+    }
+
     private function transportFailure(string $url, string $error, string $backend): array
     {
         $kind = 'HTTP_TRANSPORT_FAILED';

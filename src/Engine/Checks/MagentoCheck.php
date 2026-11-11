@@ -150,7 +150,10 @@ final class MagentoCheck
         foreach (['.user.ini', 'pub/.user.ini', 'php.ini', 'pub/php.ini'] as $relative) {
             $absolute = $this->ctx->abs($relative);
             if (!is_file($absolute)) continue;
-            $ini = @parse_ini_file($absolute, false, INI_SCANNER_RAW);
+            $this->collectors->session->checkpoint();
+            $text = @file_get_contents($absolute, false, null, 0, 1048577);
+            if (!is_string($text) || strlen($text) > 1048576) return [null, '[UNKNOWN] Project PHP ini cannot be read within bounds', ['file' => $relative]];
+            $ini = @parse_ini_string($text, false, INI_SCANNER_RAW);
             if ($ini === false) return [null, '[UNKNOWN] Project PHP ini cannot be read', ['file' => $relative]];
             $xdebugMode = isset($ini['xdebug.mode']) ? strtolower(trim((string)$ini['xdebug.mode'])) : null;
             if ($xdebugMode !== null) {
@@ -158,7 +161,13 @@ final class MagentoCheck
                 if ($modes === [] || array_diff($modes, ['off','develop','coverage','debug','gcstats','profile','trace']) !== []) return [null, '[UNKNOWN] Project Xdebug mode declaration is malformed', ['file' => $relative]];
                 if (array_diff($modes, ['off']) !== []) return [false, 'Project Xdebug mode enables debugging features', ['file' => $relative, 'modes' => $modes]];
             }
-            if (isset($ini['zend_extension']) && stripos((string)$ini['zend_extension'], 'xdebug') !== false && $xdebugMode !== 'off') return [false, 'Project declares Xdebug without an explicit disabled mode', ['file' => $relative]];
+            // zend_extension is repeatable in PHP; parse_ini_string retains only its last occurrence.
+            foreach (preg_split('/\R/', $text) ?: [] as $line) {
+                if (!preg_match('/^\s*zend_extension\s*=/i', $line)) continue;
+                $declaration = @parse_ini_string($line, false, INI_SCANNER_RAW);
+                if ($declaration === false) return [null, '[UNKNOWN] Project PHP extension declaration cannot be parsed', ['file' => $relative]];
+                if (isset($declaration['zend_extension']) && stripos((string)$declaration['zend_extension'], 'xdebug') !== false && $xdebugMode !== 'off') return [false, 'Project declares Xdebug without an explicit disabled mode', ['file' => $relative]];
+            }
             foreach (['display_errors', 'display_startup_errors'] as $flag) {
                 if (!array_key_exists($flag, $ini)) continue;
                 $normalized = strtolower(trim((string)$ini[$flag]));

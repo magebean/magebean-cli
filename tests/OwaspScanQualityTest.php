@@ -16,7 +16,7 @@ try{
  qualityAssert(count($assembled['execution_errors'])===1&&!$assembled['meta']['scan_complete'],'Default automated OWASP collection failure is incomplete execution');
  qualityAssert((new \Magebean\Engine\ScanExitPolicy())->code($assembled)===3,'Incomplete automated OWASP exits3 rather than clean0');
  qualityAssert($assembled['execution_errors'][0]['id']==='MB-0027'&&$assembled['summary']['failed']===0,'TLS collection failure is not HSTS vulnerability');
- $out=new BufferedOutput();(new \Magebean\Console\ScanConsoleRenderer())->renderPrettySummary($out,$assembled,$root);$text=$out->fetch();qualityAssert(str_contains($text,'Needs attention')&&$assembled['summary']['needs_attention']===1&&str_contains($text,'Trust the site CA')&&!str_contains($text,'INCONCLUSIVE'),'Automated console names errors and actions');
+ $out=new BufferedOutput();(new \Magebean\Console\ScanConsoleRenderer())->renderPrettySummary($out,$assembled,$root);$text=$out->fetch();qualityAssert(str_contains($text,'need attention')&&$assembled['summary']['needs_attention']===1&&!str_contains($text,'Trust the site CA')&&!str_contains($text,'INCONCLUSIVE'),'Automated console names errors and actions');
  $ids=array_column($plan->pack['rules'],'id');qualityAssert(in_array('MB-0730',$ids,true)&&!in_array('MB-0072',$ids,true),'Deployment scope has no Git-history prerequisite');
  $index=array_column(RequirementCatalog::loadAll()['rules'],null,'id');
  foreach(['0009','0014','0027','0034','0042','0055','0056','0057','0059','0061','0069','0070'] as$suffix){
@@ -32,7 +32,7 @@ try{
  }
  $finding=['id'=>'MB-0027','status'=>'UNKNOWN','reason_code'=>'REQUIREMENT_EVIDENCE_INCOMPLETE','title'=>'HSTS','message'=>'HTTP error: SSL certificate problem: self-signed certificate'];
  $finding['collection_guidance']=RequirementDiagnostics::forFinding($finding);qualityAssert($finding['collection_guidance']['category']==='tls_trust'&&str_contains($finding['collection_guidance']['action'],'Keep TLS verification enabled'),'TLS guidance preserves verification');
- $out=new BufferedOutput();(new \Magebean\Console\ScanConsoleRenderer())->renderPrettySummary($out,['findings'=>[$finding],'summary'=>['total'=>1,'passed'=>0],'meta'=>[]],$root);qualityAssert(str_contains($out->fetch(),'Trust the site CA'),'Default console shows actionable TLS guidance');
+ $out=new BufferedOutput();(new \Magebean\Console\ScanConsoleRenderer())->renderPrettySummary($out,['findings'=>[$finding],'summary'=>['total'=>1,'passed'=>0],'meta'=>['rules_filter'=>['MB-0027']]],$root);qualityAssert(str_contains($out->fetch(),'Trust the site CA'),'Explicit rule detail shows actionable TLS guidance');
  qualityAssert(RequirementDiagnostics::forFinding(['reason_code'=>'REQUIREMENT_BINDING_UNVALIDATED'])['owner']==='magebean','Tool coverage is owned by tool, not deployment client');
  $knownHttp=RequirementDiagnostics::forFinding(['id'=>'MB-0030','message'=>'http://magento.local/: Cookie probe needs a successful same-host HTTPS response']);
  qualityAssert($knownHttp['category']==='https_response_required'&&!str_contains($knownHttp['action'],'Provide --url=https://your-store'),'Known reachable HTTP site is not mislabeled as missing URL');

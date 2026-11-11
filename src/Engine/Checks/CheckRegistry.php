@@ -28,7 +28,7 @@ final class CheckRegistry
         $collectors ??= new CollectorSet();
         $registry->collectors = $collectors;
 
-        $fs = new FilesystemCheck($ctx);
+        $fs = new FilesystemCheck($ctx, $collectors);
         $phpc = new PhpConfigCheck($ctx, $collectors);
         $comp = new ComposerCheck($ctx, $collectors);
         $mage = new MagentoCheck($ctx, $collectors);
@@ -44,7 +44,7 @@ final class CheckRegistry
         $deployment = new DeploymentStateCheck($ctx, $collectors);
         $installedCron = new InstalledCronCheck($ctx);
         $basicPractice = new BasicPracticeCheck($ctx);
-        $basicExposure = new BasicExposureCheck($ctx);
+        $basicExposure = new BasicExposureCheck($ctx, null, $collectors);
         $automatedSource = new AutomatedSourcePolicyCheck($ctx, new \Magebean\Engine\Collectors\BoundedSourceInventory($collectors->session));
         $dependencyPolicy = new DependencyPolicyCheck($ctx);
         $productionRuntime = new ProductionRuntimeCheck($ctx);

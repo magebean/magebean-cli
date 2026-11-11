@@ -6,7 +6,7 @@ The active catalog separates three sources of assessment criteria:
 
 | Family | Authority | Profiles | Requirements |
 |---|---|---|---:|
-| `magebean` | Magebean deployment and application security criteria | Basic, Hardening, OWASP Top 10, Module Integrity, Module Source, Module Lifecycle, Module Reliability, Development, Prelaunch | 100 |
+| `magebean` | Magebean deployment and application security criteria | Basic, Hardening, OWASP Top 10, Module Integrity, Module Source, Module Lifecycle, Module Reliability, Development, Prelaunch, Takeover | 100 |
 | `asvs` | OWASP ASVS 5.0.0, one requirement per document clause | ASVS L1 / L2 / L3 | 345 |
 | `pci` | PCI DSS 4.0.1, one requirement per document clause | PCI readiness | 280 |
 
@@ -21,5 +21,5 @@ The active inventory is 725. Source-family separation restored independent sourc
 Earlier automation/profile audit artifacts describe the catalog at their recorded revision. Their counts and cross-family unions are superseded by this source-family model; they remain historical evidence, not the current inventory contract.
 The current native Magebean profile contract is automated-only: Basic 37, Hardening 79 and OWASP 51, without manual checklists. Default LOCAL selection is 37/67/41 respectively; the remaining members require explicit machine context or strict policy capabilities. Fifty previous mixed-profile members retain their original definitions in the automation engineering backlog, outside executable profiles. New narrower observations do not certify those broader original criteria. See [the automated-only contract](magebean-automated-only-profiles.md). ASVS/PCI evidence workflows remain separate.
 
-Deploy the CLI catalog and Console importer together, then re-import the catalog into Console. Verify thirteen customer profiles and family membership after import. Existing assessments retain their historical requirement revisions.
+Deploy the CLI catalog and Console importer together, then re-import the catalog into Console. Verify fourteen customer profiles and family membership after import. Existing assessments retain their historical requirement revisions.
 

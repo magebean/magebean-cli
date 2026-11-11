@@ -31,3 +31,5 @@ ASVS and PCI DSS are separate source families, not chapters of the Magebean base
 [Requirement migration](requirement-migration.md), [ASVS migration](asvs-requirement-migration.md), review ledgers, QA reports and automation-feasibility artifacts document implementation work at their recorded revisions. Historical counts, legacy MB-R examples and earlier profile contracts do not override the current source-family catalogs or automated-only profile contract. They remain useful as engineering evidence and compatibility history.
 
 Documentation changes must preserve the distinction between a Magebean criterion, an official standard clause, a reusable check and a profile selection. Use current `MB-…` identities in user examples; label legacy selectors explicitly when discussing compatibility.
+
+- [Agency takeover profile](magebean-takeover-profile.md)

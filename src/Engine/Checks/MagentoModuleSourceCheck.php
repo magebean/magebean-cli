@@ -11,7 +11,7 @@ use PhpParser\{Error, Modifiers, Node, NodeFinder};
 final class MagentoModuleSourceCheck
 {
     private const INPUTS = ['_GET', '_POST', '_REQUEST', '_COOKIE'];
-    private const COMMANDS = ['exec', 'shell_exec', 'system', 'passthru', 'popen'];
+    private const COMMANDS = ['exec', 'shell_exec', 'system', 'passthru', 'popen', 'proc_open', 'pcntl_exec'];
 
     public function __construct(private readonly Context $context, private readonly CollectorSet $collectors) {}
 
@@ -54,28 +54,34 @@ final class MagentoModuleSourceCheck
             $diagnostics[$message] = [
                 'message' => $message,
                 'action' => $gap['reason'] === 'target_php_unresolved'
-                    ? 'Declare the deployed PHP version (8.1–8.4) in Composer config.platform.php.'
+                    ? 'Declare the analysis target PHP version (8.1–8.4) in Composer config.platform.php.'
                     : 'Verify the selected module source and installed package metadata.',
             ];
         }
-        return MagebeanDetectorAnalysis::result('magento-module-'.$kind, '1.0', $findings, array_values($diagnostics));
+        return MagebeanDetectorAnalysis::result('magento-module-'.$kind, '1.1', $findings, array_values($diagnostics));
     }
 
     private function contracts(array $modules, array &$findings, array &$gaps): void
     {
         $byName = array_column(array_filter($modules, static fn(array $module): bool => $module['identity'] !== null), null, 'identity');
         if ($byName === []) return;
-        $analysis = $this->collectors->magentoAnalysis->collect($this->context, array_keys($byName));
+        $analysis = $this->collectors->magentoAnalysis->collect($this->context, array_keys($byName), ['dependency_symbols' => true]);
         foreach ($analysis['gaps'] as $gap) {
             if ($gap['reason'] !== 'xml_parse_unavailable') $gaps[] = $gap;
         }
         foreach ($analysis['symbols'] as $rows) {
-            if (count($rows) !== 1) continue;
+            if (count($rows) !== 1) {
+                foreach ($rows as $row) if (isset($byName[$row['module'] ?? ''])) $gaps[] = ['reason' => 'child_contract_symbol_ambiguous', 'file' => $row['file']];
+                continue;
+            }
             $child = $rows[0];
-            if (!isset($byName[$child['module']])) continue;
+            if (!isset($byName[$child['module'] ?? ''])) continue;
             foreach (array_merge($child['extends'], $child['implements']) as $parent) {
                 $candidates = $analysis['symbols'][strtolower(ltrim($parent, '\\'))] ?? [];
-                if (count($candidates) !== 1) continue;
+                if (count($candidates) !== 1) {
+                    $gaps[] = ['reason' => 'parent_contract_unresolved', 'file' => $child['file']];
+                    continue;
+                }
                 foreach ($candidates[0]['methods'] as $name => $required) {
                     $method = $child['methods'][$name] ?? null;
                     if ($method === null || $name === '__construct' || $required['visibility'] !== 'public') continue;
@@ -136,13 +142,21 @@ final class MagentoModuleSourceCheck
                 }
                 continue;
             }
+            $declaredFunctions = [];
+            foreach ($finder->findInstanceOf($nodes, Node\Stmt\Function_::class) as $function) {
+                if (isset($function->namespacedName)) $declaredFunctions[strtolower($function->namespacedName->toString())] = true;
+            }
             $blocks = [$nodes];
             foreach ($finder->find($nodes, static fn(Node $n): bool => $n instanceof Node\FunctionLike || $n instanceof Node\Stmt\Namespace_) as $scope) {
                 if ($scope instanceof Node\Expr\ArrowFunction) continue;
                 $blocks[] = $scope instanceof Node\Stmt\Namespace_ ? $scope->stmts : ($scope->getStmts() ?? []);
             }
             foreach ($blocks as $statements) {
-                foreach (self::flows($statements) as [$sink, $line, $sourceLine]) {
+                foreach (self::flows($statements, $declaredFunctions) as [$sink, $line, $sourceLine, $unresolved]) {
+                    if ($unresolved) {
+                        $gaps[] = ['reason' => $unresolved, 'file' => $path];
+                        continue;
+                    }
                     $findings[] = self::finding($modules[$root], $path, $line, $sink,
                         $sink === 'command' ? 'Request input reaches a command call.' : 'Request input reaches query text.',
                         'A request superglobal at line '.$sourceLine.' reaches a supported call directly or through one local assignment.',
@@ -188,22 +202,55 @@ final class MagentoModuleSourceCheck
         };
     }
 
-    private static function flows(array $statements): iterable
+    private static function flows(array $statements, array $declaredFunctions = []): iterable
     {
         $locals = [];
         foreach ($statements as $statement) {
             $expr = $statement instanceof Node\Stmt\Expression || $statement instanceof Node\Stmt\Return_ ? $statement->expr : null;
             $assignment = $expr instanceof Node\Expr\Assign && $expr->var instanceof Node\Expr\Variable && is_string($expr->var->name);
             $call = $assignment ? $expr->expr : $expr;
-            $arg = $call instanceof Node\Expr\CallLike && !$call->isFirstClassCallable() ? ($call->args[0] ?? null) : null;
-            if ($arg instanceof Node\Arg && !$arg->unpack && $arg->name === null) {
-                $sink = self::sink($call);
-                $source = $sink !== null ? self::source($arg->value, $locals) : null;
-                if ($source !== null) yield [$sink, $call->getStartLine(), $source];
+            if ($call instanceof Node\Expr\CallLike && !$call->isFirstClassCallable()) {
+                [$sink, $unresolved] = self::flowSink($call, $declaredFunctions);
+                $arg = self::textArgument($call, $sink);
+                $source = $arg !== null && $sink !== null ? self::source($arg->value, $locals) : null;
+                if ($source !== null) yield [$sink, $call->getStartLine(), $source, $unresolved];
+                elseif ($sink !== null && $arg === null) {
+                    foreach ($call->args as $unsupported) {
+                        if ($unsupported instanceof Node\Arg && ($source = self::source($unsupported->value, $locals)) !== null) {
+                            yield [$sink, $call->getStartLine(), $source, 'request_sink_argument_binding_unavailable'];
+                            break;
+                        }
+                    }
+                }
             }
             // Track one hop only. Drop state at calls, branches and other unsupported statements.
             $locals = $assignment && ($line = self::source($expr->expr, [])) !== null ? [$expr->var->name => $line] : [];
         }
+    }
+
+    private static function flowSink(Node\Expr\CallLike $call, array $declaredFunctions): array
+    {
+        if ($call instanceof Node\Expr\FuncCall && $call->name instanceof Node\Name) {
+            $name = strtolower($call->name->toString());
+            if (isset($declaredFunctions[$name])) return [null, false];
+            if ($call->name instanceof Node\Name\FullyQualified) return [in_array($name, self::COMMANDS, true) ? 'command' : null, false];
+            $candidate = $call->name->getAttribute('namespacedName');
+            if ($candidate instanceof Node\Name && isset($declaredFunctions[strtolower($candidate->toString())])) return [null, false];
+            return [in_array($name, self::COMMANDS, true) ? 'command' : null, 'request_sink_namespace_resolution_unavailable'];
+        }
+        return [self::sink($call), false];
+    }
+
+    private static function textArgument(Node\Expr\CallLike $call, ?string $sink): ?Node\Arg
+    {
+        if ($sink === null) return null;
+        foreach ($call->args as $position => $arg) {
+            if (!$arg instanceof Node\Arg || $arg->unpack) return null;
+            if ($arg->name === null) return $position === 0 ? $arg : null;
+            // Native command APIs have stable parameter names. SQL receiver signatures are unknown.
+            if ($sink === 'command' && in_array(strtolower($arg->name->name), ['command', 'path'], true)) return $arg;
+        }
+        return null;
     }
 
     private static function sink(Node\Expr\CallLike $call): ?string

@@ -26,6 +26,7 @@ final class MagentoModuleLifecycleCheck
         if ($selected !== []) {
             $analysis = $this->collectors->magentoAnalysis->collect($this->context, array_keys($selected), [
                 'validate_schemas' => $kind === 'declarative-schema', 'schema_kinds' => ['db_schema'],
+                'dependency_symbols' => $kind !== 'declarative-schema',
             ]);
             foreach ($analysis['gaps'] as $gap) {
                 if ($gap['reason'] === 'xml_parse_unavailable') {
@@ -61,9 +62,9 @@ final class MagentoModuleLifecycleCheck
         foreach ($gaps as $gap) {
             $detail = implode(' · ', array_filter([$gap['file'] ?? '', $gap['subject'] ?? '']));
             $message = str_replace('_', ' ', $gap['reason']).($detail !== '' ? ' · '.$detail : '');
-            $diagnostics[$message] = ['message' => $message, 'action' => 'Verify the declaration, local schema and source for referenced classes. Select their modules if needed.'];
+            $diagnostics[$message] = ['message' => $message, 'action' => 'Verify the declaration, local schema and installed dependency source for referenced classes. Ensure Composer metadata and required source files are readable.'];
         }
-        return MagebeanDetectorAnalysis::result('magento-module-'.$kind, '1.0', $findings, array_values($diagnostics));
+        return MagebeanDetectorAnalysis::result('magento-module-'.$kind, '1.1', $findings, array_values($diagnostics));
     }
 
     private function patches(array $symbols, array $patchFiles, array $modules, array &$gaps): array
@@ -71,6 +72,7 @@ final class MagentoModuleLifecycleCheck
         $findings = [];
         $graph = [];
         $patches = [];
+        $selectedPatchClasses = array_fill_keys(array_map(static fn(array $definition): string => strtolower($definition['expected_class']), $patchFiles), true);
         foreach ($patchFiles as $file => $definition) {
             $expected = $definition['expected_class'];
             $key = strtolower($expected);
@@ -132,6 +134,12 @@ final class MagentoModuleLifecycleCheck
                         'Patch dependency is incompatible with the patch kind.',
                         'The referenced symbol is not a concrete class implementing the expected patch interface.',
                         'Reference a concrete compatible setup patch.', $dependency);
+                    continue;
+                }
+                if (!isset($selectedPatchClasses[$target])) {
+                    // Dependency context proves the referenced type, not its complete
+                    // patch graph. Do not silently certify cycles through external code.
+                    $gaps[] = ['reason' => 'patch_dependency_graph_unobserved', 'file' => $patch['file'], 'subject' => $dependency];
                     continue;
                 }
                 $graph[$key][] = $target;
@@ -212,8 +220,14 @@ final class MagentoModuleLifecycleCheck
                     continue;
                 }
                 $symbol = $rows[0];
-                $entry = $symbol['methods'][strtolower($method)] ?? null;
-                if ($entry === null && ($symbol['extends'] !== [] || $symbol['traits'] !== [] || $symbol['implements'] !== [])) {
+                // A declared interface/abstract type can be supplied by DI. Static public
+                // visibility alone does not establish an instantiable handler target.
+                if (($symbol['kind'] ?? 'class') !== 'class' || !empty($symbol['abstract'])) {
+                    $gaps[] = ['reason' => 'handler_construction_unresolved', 'file' => $file, 'subject' => $class.'::'.$method];
+                    continue;
+                }
+                [$entry, $complete] = self::handlerMethod($symbol, strtolower($method), $symbols);
+                if (!$complete) {
                     $gaps[] = ['reason' => 'handler_inheritance_unresolved', 'file' => $file, 'subject' => $class.'::'.$method];
                     continue;
                 }
@@ -225,6 +239,25 @@ final class MagentoModuleLifecycleCheck
             }
         }
         return $findings;
+    }
+
+    /** Resolve a concrete inherited method without loading customer classes. */
+    private static function handlerMethod(array $symbol, string $method, array $symbols, array $seen = []): array
+    {
+        $name = strtolower($symbol['name']);
+        if (isset($seen[$name]) || count($seen) >= 128) return [null, false];
+        $seen[$name] = true;
+        $entry = $symbol['methods'][$method] ?? null;
+        if ($entry !== null) return [$entry, empty($entry['abstract'])];
+        // Trait adaptation/precedence is outside this resolver's supported scope.
+        if ($symbol['traits'] !== []) return [null, false];
+        foreach ($symbol['extends'] as $parent) {
+            $rows = $symbols[strtolower(ltrim($parent, '\\'))] ?? [];
+            if (count($rows) !== 1) return [null, false];
+            [$entry, $complete] = self::handlerMethod($rows[0], $method, $symbols, $seen);
+            if (!$complete || $entry !== null) return [$entry, $complete];
+        }
+        return [null, $symbol['implements'] === []];
     }
 
     private static function finding(array $module, string $file, int $line, string $key, string $message, string $reasoning, string $remediation, ?string $symbol = null): array

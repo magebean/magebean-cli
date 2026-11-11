@@ -3,21 +3,32 @@ declare(strict_types=1);
 namespace Magebean\Engine\Checks;
 
 use Magebean\Engine\Context;
+use Magebean\Engine\Collectors\CollectorSet;
 
 /** Bounded observations; never execute uploaded code or retain response contents. */
 final class BasicExposureCheck
 {
-    public function __construct(private Context $ctx, private mixed $probe = null) {}
+    public function __construct(private Context $ctx, private mixed $probe = null, private ?CollectorSet $collectors = null) { $this->collectors ??= new CollectorSet(); }
 
     public function mediaExecutableFiles(array $args): array
     {
-        $root = realpath($this->ctx->abs('pub/media'));
-        if ($root === false || !is_readable($root)) return [null, '[UNKNOWN] Readable pub/media inventory unavailable', []];
+        $project = realpath($this->ctx->path);
+        if ($project === false) return [null, '[UNKNOWN] Readable project inventory unavailable', []];
+        $cursor = $project;
+        foreach (['pub', 'media'] as $part) {
+            $cursor .= DIRECTORY_SEPARATOR.$part;
+            if (is_link($cursor)) return [null, '[UNKNOWN] Media root or ancestor is a symlink; its target is not assessed', ['collection_gaps' => ['media_root_symlink']]];
+        }
+        $root = realpath($cursor);
+        if ($root === false || !is_dir($root) || !is_readable($root)) return [null, '[UNKNOWN] Readable pub/media inventory unavailable', []];
         $limit = max(1, min(50000, (int)($args['max_entries'] ?? 10000)));
+        $deadline = microtime(true) + max(1, min(15000, (int)($args['max_duration_ms'] ?? 5000))) / 1000;
         $seen = 0; $gaps = []; $found = [];
         try {
-            $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS));
+            $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::SELF_FIRST);
             foreach ($it as $file) {
+                $this->collectors->session->checkpoint();
+                if (microtime(true) > $deadline) { $gaps[] = 'time_budget'; break; }
                 if (++$seen > $limit) { $gaps[] = 'entry_budget'; break; }
                 $relative = substr($file->getPathname(), strlen($root) + 1);
                 if ($file->isLink()) { $gaps[] = $relative; continue; }

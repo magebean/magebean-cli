@@ -25,7 +25,7 @@ final class MagentoDiCheck
             }
         }
         if ($configuration['complete'] && $hasDeclarations) {
-            $symbols = $this->collectors->magentoAnalysis->collect($this->context, array_keys($selected));
+            $symbols = $this->collectors->magentoAnalysis->collect($this->context, array_keys($selected), ['dependency_symbols' => true]);
             foreach ($symbols['gaps'] as $gap) {
                 if ($gap['reason'] !== 'xml_parse_unavailable') $gaps[] = $gap;
             }
@@ -48,7 +48,9 @@ final class MagentoDiCheck
                     $module = $selected[$row['module']];
                     $findings[] = [
                         'key' => $kind.'-'.$reason, 'message' => str_replace('_', ' ', ucfirst($reason)).'.',
-                        'reasoning' => 'The supported DI declaration and indexed PHP symbols conflict in the '.$area.' scope.',
+                        'reasoning' => !empty($configuration['declaration_only'])
+                            ? 'This source declaration conflicts with indexed PHP symbols in isolation; module activation and effective merged DI are not established.'
+                            : 'The supported DI declaration and indexed PHP symbols conflict in the '.$area.' scope.',
                         'remediation' => 'Correct the DI declaration and verify the affected area on the installed Magento version.',
                         'confidence' => 'confirmed', 'category' => 'correctness', 'severity' => 'medium',
                         'locations' => [['file' => $row['file'], 'line' => $row['line']]],
@@ -61,9 +63,9 @@ final class MagentoDiCheck
         $diagnostics = [];
         foreach ($gaps as $gap) {
             $message = str_replace('_', ' ', $gap['reason']).(!empty($gap['file']) ? ' · '.$gap['file'] : '');
-            $diagnostics[$message] = ['message' => $message, 'action' => 'Verify local configuration and select any module that supplies a referenced PHP symbol.'];
+            $diagnostics[$message] = ['message' => $message, 'action' => 'Verify local source access, Composer autoload mappings and installed dependency metadata for the referenced PHP symbol.'];
         }
-        return MagebeanDetectorAnalysis::result('magento-module-'.$kind, '1.0', $findings, array_values($diagnostics));
+        return MagebeanDetectorAnalysis::result('magento-module-'.$kind, '1.1', $findings, array_values($diagnostics));
     }
 
     private static function entries(string $kind, array $table): iterable

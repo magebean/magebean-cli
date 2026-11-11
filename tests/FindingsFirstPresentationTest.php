@@ -56,8 +56,10 @@ try {
     $overview['risk_findings'][] = $anotherRisk;
     [$multipleText] = $render($overview);
     $assert(substr_count($multipleText, 'scan --profile=') === 1 && !str_contains($multipleText, 'Details:'), 'One shared details command replaces repeated per-issue hints');
-    $assert(strpos($multipleText, '--rules=MB-risk') > strpos($multipleText, 'Source file unreadable'), 'Shared details guidance follows findings and collection issues');
+    $assert(strpos($multipleText, '--rules=MB-risk') > strpos($multipleText, 'MB-second'), 'Shared details guidance follows findings and collection issues');
     $assert(!str_contains($text, 'For issue details and remediation'), 'Explicit rule details omit the overview hint');
+    $assert(!str_contains($overviewText, 'Scan collection issues') && !str_contains($overviewText, 'Source file unreadable'), 'Overview silently omits collection gaps');
+    $assert(!str_contains($collectionOverview, 'MB-risk') && !str_contains($collectionOverview, 'Scan collection issues'), 'Collection-only observations do not become overview findings');
     $assert(str_contains($overviewHtml, 'Remediation guidance'), 'HTML export keeps remediation independently of CLI detail selection');
     $assert(str_contains($html, '&lt;script&gt;alert(1)&lt;/script&gt;') && !str_contains($html, '<script>alert(1)</script>'), 'HTML escapes finding data');
     $cleanResult = $result; $cleanResult['risk_findings'] = []; $cleanResult['collection_issues'] = []; $cleanResult['summary']['needs_attention'] = 0;

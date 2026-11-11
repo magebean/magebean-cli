@@ -20,6 +20,29 @@ final class MagentoDiConfiguration
     private function read(Context $context, array $inventory): array
     {
         $root = realpath($context->path);
+        if ($root !== false && ($context->get('meta', [])['launch_profile'] ?? '') === 'development'
+            && (!($inventory['module_order_known'] ?? false) || !$inventory['complete'])) {
+            // Source files are independent declarations, never an invented enabled-module merge order.
+            $reader = new MagentoInventoryFiles($context, $root, $this->session);
+            $scopes = [];
+            foreach ($inventory['modules'] as $module) {
+                if (!is_string($module['root'] ?? null)) continue;
+                foreach (array_merge(['global'], self::AREAS) as $area) {
+                    $file = $module['root'].'/etc/'.($area === 'global' ? '' : $area.'/').'di.xml';
+                    $source = $reader->read($file);
+                    if ($source === null) continue;
+                    $doc = MagentoXmlIndex::parse($source);
+                    if ($doc === null || $doc->documentElement->nodeName !== 'config') {
+                        $reader->gap($file, 'di_xml_unresolved');
+                        continue;
+                    }
+                    $table = [];
+                    self::overlay($table, $doc, $file, $module['identity']);
+                    $scopes['declaration:'.$file] = $table;
+                }
+            }
+            return ['scopes' => $scopes, 'complete' => $reader->complete, 'gaps' => $reader->gaps, 'declaration_only' => true];
+        }
         if ($root === false || !$inventory['complete'] || !($inventory['module_order_known'] ?? false)) {
             return ['scopes' => [], 'complete' => false, 'gaps' => [['reason' => 'di_module_order_or_inventory_unresolved']]];
         }

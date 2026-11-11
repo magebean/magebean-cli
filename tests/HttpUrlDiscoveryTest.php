@@ -46,6 +46,10 @@ try{
  $target=$resolver->resolve(true,true,$root,'https://unrelated.example/');
  $assert($target->mode==='LOCAL'&&$target->url==='https://canonical.example/store','Confirmed Magento path uses store config even when --url is supplied');
  $assert((new HttpCheck(new Context($root,'https://unrelated.example/')))->runtimeBaseUrl()==='https://canonical.example/store','Individual checks cannot override confirmed local store URL');
+ $prelaunch=$resolver->resolveProfile('prelaunch',true,true,$root,'https://unrelated.example/');
+ $assert($prelaunch->url===$target->url && $prelaunch->mode===$target->mode,'Prelaunch delegates URL selection to the shared local resolver');
+ $preContext=new Context($root,'https://unrelated.example/','',['meta'=>['launch_profile'=>'prelaunch','target_mode'=>'LOCAL']]);
+ $assert((new HttpCheck($preContext))->runtimeBaseUrl()===$target->url,'HTTP consumers use the same configured URL for prelaunch');
  $assert($resolver->resolve(false,true,'','https://external.example/')->url==='https://external.example','External scan still accepts explicit URL');
  echo "HttpUrlDiscoveryTest: $n assertions passed\n";
 }finally{if(is_file($root.'/bin/magento'))unlink($root.'/bin/magento');if(is_dir($root.'/bin'))rmdir($root.'/bin');if(is_file($root.'/composer.json'))unlink($root.'/composer.json');unlink($root.'/app/etc/config.php');rmdir($root.'/app/etc');rmdir($root.'/app');rmdir($root);}

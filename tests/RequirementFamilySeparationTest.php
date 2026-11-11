@@ -43,7 +43,7 @@ foreach($all as $r){
     familyAssert($r['criterion']===$original['criterion'],'Independent source criterion retained verbatim '.$r['id']);
     familyAssert($r['source_metadata']===$original['source_metadata'],'Document provenance retained '.$r['id']);
 }
-$profileFamilies=['development'=>'magebean','prelaunch'=>'magebean','module-lifecycle'=>'magebean','module-reliability'=>'magebean','module-source'=>'magebean','module-integrity'=>'magebean','basic'=>'magebean','hardening'=>'magebean','owasp-top-10-2025'=>'magebean','asvs-l1'=>'asvs','asvs-l2'=>'asvs','asvs-l3'=>'asvs','pci-dss-v4.0.1'=>'pci'];
+$profileFamilies=['takeover'=>'magebean','development'=>'magebean','prelaunch'=>'magebean','module-lifecycle'=>'magebean','module-reliability'=>'magebean','module-source'=>'magebean','module-integrity'=>'magebean','basic'=>'magebean','hardening'=>'magebean','owasp-top-10-2025'=>'magebean','asvs-l1'=>'asvs','asvs-l2'=>'asvs','asvs-l3'=>'asvs','pci-dss-v4.0.1'=>'pci'];
 foreach(RequirementProfileCatalog::all() as $profile){
     familyAssert(isset($profileFamilies[$profile['id']]),'Only supported customer profiles are exposed');
     $family=$profileFamilies[$profile['id']];

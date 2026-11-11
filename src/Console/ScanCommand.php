@@ -130,7 +130,7 @@ HELP;
             // HTML report output is disabled, so the HTML-only detail option is hidden for now.
             // ->addOption('detail', null, InputOption::VALUE_NONE, 'Include Details column in HTML report')
             ->addOption('standard', null, InputOption::VALUE_OPTIONAL, 'Legacy report selector: magebean (default) | owasp | pci | cwe; prefer --profile', 'magebean')
-            ->addOption('profile', null, InputOption::VALUE_OPTIONAL, 'Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | module-integrity | module-source | module-lifecycle | module-reliability | development | prelaunch | custom JSON')
+            ->addOption('profile', null, InputOption::VALUE_OPTIONAL, 'Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | module-integrity | module-source | module-lifecycle | module-reliability | development | prelaunch | takeover | custom JSON')
             ->addOption('modules', null, InputOption::VALUE_REQUIRED, 'Comma-separated Magento module names for module audit criteria')
             ->addOption('include-manual-review', null, InputOption::VALUE_NONE, 'Include human manual-review rules (excluded by default)')
             ->addOption('capabilities', null, InputOption::VALUE_OPTIONAL, 'Comma-separated application capabilities used to activate contextual profile rules')
@@ -175,12 +175,12 @@ HELP;
             $projectUrl = $target->url;
 
             $out->writeln(sprintf('<info>Target mode:</info> %s', $targetMode));
-            if (!$launchProfile && $hasPath && $hasUrl) $out->writeln('<comment>Local Magento store configuration supplies the runtime URL; --url is ignored.</comment>');
+            if ($profile !== 'development' && $targetMode === 'LOCAL' && $hasUrl) $out->writeln('<comment>Local Magento store configuration supplies the runtime URL; --url is ignored.</comment>');
 
             if ($profile === 'prelaunch') {
                 $out->writeln('Local release candidate: '.\Symfony\Component\Console\Formatter\OutputFormatter::escape($projectPath));
                 $out->writeln($projectUrl === ''
-                    ? '<comment>Runtime coverage unavailable. Supply --url for staging checks.</comment>'
+                    ? '<comment>Runtime coverage unavailable. Check the store base URL configuration and scanner read access.</comment>'
                     : 'Tested endpoint: '.\Symfony\Component\Console\Formatter\OutputFormatter::escape($projectUrl));
                 if ($projectUrl !== '') $out->writeln('Local and HTTP evidence are separate. A matching deployed build was not verified.');
                 $lock = $projectPath.'/composer.lock';

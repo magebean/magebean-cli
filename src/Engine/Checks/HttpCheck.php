@@ -96,9 +96,6 @@ final class HttpCheck
 
     private function baseUrl(): string
     {
-        if (($this->ctx->get('meta', [])['launch_profile'] ?? null) === 'prelaunch') {
-            return $this->ctx->url;
-        }
         if (strtoupper((string)($this->ctx->get('meta',[])['target_mode']??'LOCAL')) !== 'REMOTE'
             && \Magebean\Engine\ScanTargetResolver::isMagentoRoot($this->ctx->path)) {
             return $this->resolvedBaseUrl ??= (string)($this->magento->configuredBaseUrl()['url'] ?? '');
@@ -205,7 +202,14 @@ final class HttpCheck
             $url = $this->joinUrl(preg_replace('~^https://~i', 'http://', $base), $path);
             [$ok, $msg, $ev] = $this->fetch($url, 'GET', [], (int)($args['timeout_ms'] ?? 8000), false);
             $status = (int)($ev['status'] ?? 0);
-            $location = $this->hget(array_change_key_case((array)($ev['headers'] ?? []), CASE_LOWER), 'location');
+            $locations = array_change_key_case((array)($ev['headers'] ?? []), CASE_LOWER)['location'] ?? [];
+            $locations = is_array($locations) ? $locations : [$locations];
+            if (count($locations) > 1) {
+                $checked[] = ['request_url' => $url, 'status' => $status, 'location_count' => count($locations), 'reason' => 'Duplicate Location headers are ambiguous'];
+                $unknown = true;
+                continue;
+            }
+            $location = (string)($locations[0] ?? '');
             $parts = parse_url($location);
             $valid = is_array($parts) && strtolower((string)($parts['scheme'] ?? '')) === 'https' &&
                 strtolower((string)($parts['host'] ?? '')) === strtolower((string)parse_url($url, PHP_URL_HOST)) && !isset($parts['user']) && !isset($parts['pass']);
@@ -388,24 +392,22 @@ final class HttpCheck
         if (in_array($lname, $clientReadable, true)) {
             return null;
         }
-        if (!in_array($lname, $sensitive, true) && !str_contains($lname, 'sess') && !str_contains($lname, 'admin')) {
+        if (!in_array($lname, $sensitive, true)) {
             return null;
         }
 
         $attributes = array_map(static fn(string $part): string => strtolower(trim($part)), array_slice($parts, 1));
         $hasSecure = in_array('secure', $attributes, true);
         $hasHttpOnly = in_array('httponly', $attributes, true);
-        $sameSite = null;
-        foreach ($parts as $part) {
-            $part = trim($part);
-            if (stripos($part, 'samesite=') === 0) {
-                $sameSite = strtolower(substr($part, 9));
-                break;
-            }
+        $sameSites = [];
+        foreach (array_slice($parts, 1) as $part) {
+            if (preg_match('/^\s*samesite\s*=\s*(.*?)\s*$/iD', $part, $match)) $sameSites[] = strtolower($match[1]);
         }
-
+        $ambiguous = count($sameSites) > 1;
+        $sameSite = count($sameSites) === 1 ? $sameSites[0] : null;
         $sameSiteOk = $sameSite !== null && in_array($sameSite, $allowedSameSite, true);
-        $ok = $hasSecure && $hasHttpOnly && $sameSiteOk;
+        // Known missing flag violations remain actionable even when SameSite itself is ambiguous.
+        $ok = !$hasSecure || !$hasHttpOnly ? false : ($ambiguous ? null : $sameSiteOk);
         $missing = [];
         if (!$hasSecure) {
             $missing[] = 'secure';
@@ -413,7 +415,7 @@ final class HttpCheck
         if (!$hasHttpOnly) {
             $missing[] = 'httponly';
         }
-        if (!$sameSiteOk) {
+        if (!$sameSiteOk && !$ambiguous) {
             $missing[] = 'samesite';
         }
 
@@ -422,6 +424,7 @@ final class HttpCheck
             'secure' => $hasSecure,
             'httponly' => $hasHttpOnly,
             'samesite' => $sameSite,
+            'ambiguous_samesite' => $ambiguous,
             'ok' => $ok,
             'missing' => $missing,
         ];
@@ -505,7 +508,8 @@ final class HttpCheck
                 }
                 $assessment['page_url'] = $url;
                 $observedSensitive[] = $assessment;
-                if (!$assessment['ok']) {
+                if ($assessment['ambiguous_samesite']) $incomplete[] = ['url' => $url, 'reason' => 'Duplicate SameSite cookie attributes are ambiguous'];
+                if ($assessment['ok'] === false) {
                     $allOk = false;
                     $failures[] = $assessment;
                 }
@@ -518,6 +522,7 @@ final class HttpCheck
             'failures' => $failures,
             'allowed_samesite' => $allowedSameSite,
             'client_readable_cookies' => $clientReadable,
+            'sensitivity_scope' => 'explicit configured cookie names only; other authentication cookies are not classified',
             'incomplete_paths' => $incomplete,
         ];
         if ($successful === 0) {
@@ -558,7 +563,7 @@ final class HttpCheck
             $checked[] = ['path'=>$p, 'status'=>$ev['status']??null, 'final_url'=>$ev['final_url']??null];
             $status = (int)($ev['status'] ?? 0);
             $headers = array_change_key_case((array)($ev['headers'] ?? []), CASE_LOWER);
-            $b = strtolower(substr((string)($ev['body'] ?? ''), 0, 8192));
+            $b = strtolower((string)($ev['body'] ?? ''));
             $contentType = strtolower($this->hget($headers, 'content-type'));
 
             $matchedSignature = null;

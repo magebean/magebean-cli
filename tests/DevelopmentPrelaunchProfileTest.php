@@ -46,35 +46,37 @@ try {
             launchAssert($catalog[$id]['family'] === 'magebean' && !RequirementPolicy::requiresHuman($catalog[$id]), 'Profile stays automated and Magebean-owned.');
         }
         [$exit, $listing] = $cli(['rules:list', '--profile='.$profile]);
-        launchAssert($exit === 0 && str_contains($listing, 'Total Rules Listed: '.$count), $listing);
+        launchAssert($exit === 0 && str_contains($listing, 'Total Rules Listed: '.($count-1)), $listing);
     }
 
     [$auditExit, $auditOut] = $cli(['audit', '--profile=development', '--rules=MB-0822']);
     [$exit, $out] = $cli(['scan', '--profile=development', '--rules=MB-0822']);
     launchAssert($exit === 1 && str_contains($out, 'Fixture_Example') && str_contains($out, 'Request input reaches a command call'), $out);
     launchAssert($auditExit === $exit && str_contains($auditOut, 'Fixture_Example') && str_contains($auditOut, 'Request input reaches a command call'), $auditOut);
-    [$exit, $out] = $cli(['scan', '--profile=development', '--path=.', '--rules=MB-0828']);
+    [$exit, $out] = $cli(['rules:list', '--profile=development', '--capabilities=local_advisory_snapshot']);
+    launchAssert($exit === 0 && str_contains($out, 'Total Rules Listed: 28'), $out);
+    [$exit, $out] = $cli(['scan', '--profile=development', '--path=.', '--rules=MB-0828', '--capabilities=local_advisory_snapshot']);
     launchAssert($exit === 3 && str_contains($out, 'advisory snapshot unavailable'), $out);
     $put('.magebean/osv-db.json', '[{"id":"FIXTURE-001","affected":[{"package":{"ecosystem":"Packagist","name":"magento/framework"},"versions":["103.0.1"]}]}]');
-    [$exit, $out] = $cli(['scan', '--profile=development', '--path=.', '--rules=MB-0828']);
+    [$exit, $out] = $cli(['scan', '--profile=development', '--path=.', '--rules=MB-0828', '--capabilities=local_advisory_snapshot']);
     launchAssert($exit === 0, $out);
     $put('.magebean/osv-db.json', '[{"id":"FIXTURE-001","affected":[{}]}]');
-    [$exit, $out] = $cli(['scan', '--profile=development', '--path=.', '--rules=MB-0828']);
+    [$exit, $out] = $cli(['scan', '--profile=development', '--path=.', '--rules=MB-0828', '--capabilities=local_advisory_snapshot']);
     launchAssert($exit === 3 && str_contains($out, 'invalid affected package'), $out);
     $put('.magebean/osv-db.json', '[{"id":"FIXTURE-001","withdrawn":"2024-01-01T00:00:00Z","affected":[{"package":{"ecosystem":"Packagist","name":"magento/framework"},"versions":["103.0.6"]}]}]');
-    [$exit, $out] = $cli(['scan', '--profile=development', '--path=.', '--rules=MB-0828']);
+    [$exit, $out] = $cli(['scan', '--profile=development', '--path=.', '--rules=MB-0828', '--capabilities=local_advisory_snapshot']);
     launchAssert($exit === 0, $out);
     [$exit, $out] = $cli(['scan', '--profile=development', '--path=.', '--rules=MB-0031']);
     launchAssert($exit === 1 && str_contains($out, 'outside the selected'), $out);
     [$exit, $out] = $cli(['scan', '--profile=development', '--path=.']);
-    launchAssert($exit === 3 && str_contains($out, 'Request input reaches a command call') && !str_contains($out, 'Deployment mode is not production'), $out);
+    launchAssert($exit === 3 && str_contains($out, 'Running 27 audit rules') && str_contains($out, 'Request input reaches a command call') && !str_contains($out, 'Deployment mode is not production') && !str_contains($out, 'Local advisory snapshot unavailable'), $out);
 
     $put('bin/magento', '<?php throw new RuntimeException("Do not bootstrap the fixture");');
     $put('app/etc/config.php', '<?php return ["modules" => ["Fixture_Example" => 1]];');
     $put('app/etc/env.php', '<?php return ["MAGE_MODE" => "developer", "system" => ["default" => ["web" => ["secure" => ["base_url" => "http://127.0.0.1:1/"]]]]];');
     $args = ['scan', '--profile=prelaunch', '--path=.', '--rules=MB-0031,MB-0779'];
     [$exit, $out] = $cli($args);
-    launchAssert($exit === 3 && str_contains($out, 'Runtime coverage unavailable') && str_contains($out, 'MB-0031'), $out);
+    launchAssert($exit === 3 && str_contains($out, 'Tested endpoint: http://127.0.0.1:1') && str_contains($out, 'MB-0031'), $out);
 
     $socket = stream_socket_server('tcp://127.0.0.1:0');
     if ($socket === false) throw new RuntimeException('Cannot allocate a loopback fixture port.');
@@ -93,11 +95,13 @@ try {
         }
         usleep(20000);
     }
-    [$exit, $out] = $cli([...$args, '--url=http://'.$host]);
-    launchAssert($exit === 1 && str_contains($out, 'Tested endpoint: http://'.$host)
-        && str_contains($out, 'MB-0031') && !str_contains($out, 'is ignored'), $out);
+    $put('app/etc/env.php', '<?php return '.var_export(['MAGE_MODE'=>'developer', 'system'=>['default'=>['web'=>['secure'=>['base_url'=>'http://'.$host.'/']]]]], true).';');
+    [$exit, $out] = $cli([...$args, '--url=http://127.0.0.1:1']);
+    launchAssert($exit === 1 && str_contains($out, 'Tested endpoint: http://'.$host) && str_contains($out, 'is ignored'), 'Local store configuration is authoritative for prelaunch: '.$out);
+    [$exit, $out] = $cli($args);
+    launchAssert($exit === 1 && str_contains($out, 'Tested endpoint: http://'.$host) && !str_contains($out, 'Runtime URL unavailable'), 'Prelaunch discovers the configured endpoint without --url: '.$out);
     [$exit, $out] = $cli(['scan', '--profile=prelaunch', '--path=.', '--url=http://'.$host]);
-    launchAssert($exit === 3 && str_contains($out, 'Running 52 audit rules') && str_contains($out, 'MB-0031'), $out);
+    launchAssert($exit === 3 && str_contains($out, 'Running 51 audit rules') && str_contains($out, 'MB-0031'), $out);
     proc_terminate($server);
     proc_close($server);
     $server = null;

@@ -29,12 +29,12 @@ try{
     if (!str_contains($auditHelp, '--profile')) throw new RuntimeException('Audit alias smoke test failed.');
     $profiles=json_decode((string)file_get_contents('src/Rules/requirements/internal-profiles.json'),true)['profiles'];
     $definitions=array_column(json_decode((string)file_get_contents('src/Rules/requirements/magebean-catalog.json'),true)['requirements'],null,'id');
-    foreach(['basic','hardening','owasp-top-10-2025','module-integrity','module-source','module-lifecycle','module-reliability','development','prelaunch']as$profile){
+    foreach(['basic','hardening','owasp-top-10-2025','module-integrity','module-source','module-lifecycle','module-reliability','development','prelaunch','takeover']as$profile){
         $expected=count(array_filter($profiles[$profile]['requirement_ids'],static fn(string$id):bool=>empty($definitions[$id]['applicability']['capability'])&&in_array('LOCAL',$definitions[$id]['target_modes'],true)));
         $listing=buildRun([PHP_BINARY,$candidate,'rules:list','--profile='.$profile,'--no-ansi']);
         if(!str_contains($listing,'Total Rules Listed: '.$expected."\n"))throw new RuntimeException('Profile smoke test failed: '.$profile);
     }
-    $report['smoke_tests']=['version','commands','basic','hardening','owasp-top-10-2025','module-integrity','module-source','module-lifecycle','module-reliability','development','prelaunch'];
+    $report['smoke_tests']=['version','commands','basic','hardening','owasp-top-10-2025','module-integrity','module-source','module-lifecycle','module-reliability','development','prelaunch','takeover'];
     $runtime=json_decode(buildRun([PHP_BINARY,$root.'/tools/smoke-phar.php',$candidate]),true,512,JSON_THROW_ON_ERROR);
     $report['runtime_smoke']=$runtime;
     $fixture = buildRun([PHP_BINARY, $root.'/tests/MagentoModuleIntegrityProfileTest.php', $candidate]);
@@ -47,6 +47,8 @@ try{
         throw new RuntimeException('Packaged development/prelaunch fixture did not complete.');
     }
     $report['smoke_tests'][] = 'development-prelaunch-end-to-end';
+    echo buildRun([PHP_BINARY, $root.'/tests/TakeoverProfileTest.php', $candidate]);
+    $report['smoke_tests'][] = 'takeover-profile';
     if(is_file($output)&&!copy($output,$build.'/previous-'.basename($output)))throw new RuntimeException('Cannot preserve previous release.');
     chmod($candidate,0755);
     if(!rename($candidate,$output))throw new RuntimeException('Cannot publish validated candidate.');

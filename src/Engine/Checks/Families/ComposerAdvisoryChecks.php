@@ -506,6 +506,13 @@ final class ComposerAdvisoryChecks extends ComposerSupport
             return [null, "[UNKNOWN] composer.lock not found"];
         }
 
+        if (!empty($args['require_explicit_snapshot']) || !empty($args['strict_scope'])) {
+            $scopeError = $this->validateLockScope($lockFile);
+            if ($scopeError !== null) {
+                return [null, '[UNKNOWN] '.$scopeError, ['reason_code' => 'COMPOSER_LOCK_SCOPE_INVALID']];
+            }
+        }
+
         $installed = $this->readLockPackages($lockFile);
         if (!$installed || !is_array($installed)) {
             return [null, "[UNKNOWN] Unable to parse composer.lock"];
