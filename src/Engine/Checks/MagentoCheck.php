@@ -155,6 +155,7 @@ final class MagentoCheck
             if (!is_string($text) || strlen($text) > 1048576) return [null, '[UNKNOWN] Project PHP ini cannot be read within bounds', ['file' => $relative]];
             $ini = @parse_ini_string($text, false, INI_SCANNER_RAW);
             if ($ini === false) return [null, '[UNKNOWN] Project PHP ini cannot be read', ['file' => $relative]];
+            if ((isset($ini['zend_extension']) && !is_string($ini['zend_extension'])) || (isset($ini['xdebug.mode']) && !is_string($ini['xdebug.mode']))) return [null, '[UNKNOWN] Project Xdebug or extension declaration is malformed', ['file' => $relative]];
             $xdebugMode = isset($ini['xdebug.mode']) ? strtolower(trim((string)$ini['xdebug.mode'])) : null;
             if ($xdebugMode !== null) {
                 $modes = array_map('trim', explode(',', $xdebugMode));

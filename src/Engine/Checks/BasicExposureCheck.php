@@ -21,23 +21,28 @@ final class BasicExposureCheck
         }
         $root = realpath($cursor);
         if ($root === false || !is_dir($root) || !is_readable($root)) return [null, '[UNKNOWN] Readable pub/media inventory unavailable', []];
-        $limit = max(1, min(50000, (int)($args['max_entries'] ?? 10000)));
-        $deadline = microtime(true) + max(1, min(15000, (int)($args['max_duration_ms'] ?? 5000))) / 1000;
-        $seen = 0; $gaps = []; $found = [];
-        try {
-            $it = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::SELF_FIRST);
-            foreach ($it as $file) {
+        $limit = max(1, min(200000, (int)($args['max_entries'] ?? 10000)));
+        $deadline = microtime(true) + max(1, min(30000, (int)($args['max_duration_ms'] ?? 5000))) / 1000;
+        $seen = 0; $gaps = []; $found = []; $pending = [$root];
+        while ($pending !== []) {
+            $this->collectors->session->checkpoint();
+            if (microtime(true) > $deadline) { $gaps[] = 'time_budget'; break; }
+            $directory = array_pop($pending);
+            try { $entries = new \FilesystemIterator($directory, \FilesystemIterator::SKIP_DOTS); }
+            catch (\UnexpectedValueException) { $gaps[] = 'unreadable_subtree'; continue; }
+            foreach ($entries as $file) {
                 $this->collectors->session->checkpoint();
-                if (microtime(true) > $deadline) { $gaps[] = 'time_budget'; break; }
-                if (++$seen > $limit) { $gaps[] = 'entry_budget'; break; }
+                if (microtime(true) > $deadline) { $gaps[] = 'time_budget'; break 2; }
+                if (++$seen > $limit) { $gaps[] = 'entry_budget'; break 2; }
                 $relative = substr($file->getPathname(), strlen($root) + 1);
                 if ($file->isLink()) { $gaps[] = $relative; continue; }
+                if ($file->isDir()) { $pending[] = $file->getPathname(); continue; }
                 if (!$file->isFile()) continue;
                 if (!is_readable($file->getPathname())) { $gaps[] = $relative; continue; }
                 if (preg_match('~\.(?:php\d*|phtml|pht|phar)(?:\.|$)~i', $relative)) $found[] = $relative;
-                if (count($found) >= 50) break;
+                if (count($found) >= 50) break 2;
             }
-        } catch (\UnexpectedValueException $e) { $gaps[] = 'unreadable_subtree'; }
+        }
         $ev = ['scope'=>'pub/media filenames; server execution policy requires separate evidence', 'entries'=>$seen, 'files'=>$found, 'collection_gaps'=>array_slice($gaps,0,50)];
         if ($found) return [false, 'Executable PHP-like filenames found in media', $ev];
         if ($gaps) return [null, '[UNKNOWN] Media filename inventory incomplete', $ev];

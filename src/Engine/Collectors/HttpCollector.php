@@ -17,6 +17,8 @@ final class HttpCollector
             if ($remaining === 0) throw new \Magebean\Engine\ScanDeadlineExceeded('Scan deadline exceeded before HTTP request.');
             $timeoutMs = $timeoutMs > 0 ? min($timeoutMs, $remaining) : $remaining;
         }
+        $timeoutMs = $timeoutMs > 0 ? $timeoutMs : 8000;
+        $requestEnd = microtime(true) + $timeoutMs / 1000;
         $observe ??= static function (bool $ok): void {};
         $ctxHeaders = [];
         foreach ($headers as $k => $v) $ctxHeaders[] = is_int($k) ? $v : ($k . ': ' . $v);
@@ -74,7 +76,7 @@ final class HttpCollector
                 'ignore_errors' => true,
                 'follow_location' => $follow ? 1 : 0,
                 'max_redirects' => 5,
-                'timeout'       => max(1, (int)ceil($timeoutMs / 1000)),
+                'timeout'       => max(0.001, $timeoutMs / 1000),
                 'content'       => $requestBody ?? '',
             ]
         ];
@@ -86,7 +88,7 @@ final class HttpCollector
             $observe(false);
             return $this->transportFailure($url, (string)($streamError['message'] ?? 'Stream request failed'), 'stream');
         }
-        $body = ''; $limit = null; $readFailed = false;
+        $body = ''; $limit = null; $readFailed = microtime(true) >= $requestEnd;
         try {
             $metadata = stream_get_meta_data($stream);
             $responseHeaders = (array)($metadata['wrapper_data'] ?? []);
@@ -95,10 +97,14 @@ final class HttpCollector
                 $headerBytes += strlen($line) + 2;
                 if ($headerBytes > self::MAX_HEADER_BYTES) { $limit = 'headers'; break; }
             }
-            while ($limit === null && !feof($stream)) {
+            while (!$readFailed && $limit === null && !feof($stream)) {
                 $this->session?->checkpoint();
+                $remaining = $requestEnd - microtime(true);
+                if ($remaining <= 0) { $readFailed = true; break; }
+                $seconds = (int)$remaining;
+                stream_set_timeout($stream, $seconds, max(1, (int)(($remaining - $seconds) * 1000000)));
                 $chunk = @fread($stream, min(8192, self::MAX_BODY_BYTES + 1 - strlen($body)));
-                if ($chunk === false) { $readFailed = true; break; }
+                if ($chunk === false || microtime(true) >= $requestEnd) { $readFailed = true; break; }
                 $body .= $chunk;
                 if (strlen($body) > self::MAX_BODY_BYTES) { $limit = 'body'; break; }
                 if ($chunk === '') break;
@@ -124,6 +130,13 @@ final class HttpCollector
                 elseif ($follow && $status >= 300 && $status < 400 && stripos($line, 'Location:') === 0) {
                     $finalUrl = $this->redirectUrl($finalUrl, trim(substr($line, 9)));
                 }
+            }
+        }
+        if (strtoupper($method) !== 'HEAD' && !in_array($status, [204, 304], true) && !isset($hdrs['transfer-encoding']) && isset($hdrs['content-length'])) {
+            $length = $hdrs['content-length'];
+            if (!is_string($length) || !ctype_digit($length) || (float)$length !== (float)strlen($body)) {
+                $observe(false);
+                return $this->transportFailure($url, 'Stream response Content-Length was ambiguous or incomplete', 'stream');
             }
         }
         $observe(true);

@@ -271,12 +271,11 @@ final class FilesystemCheck
         return [true, 'Log and report paths are not exposed under webroot', ['webroot' => $webrootRel, 'checked' => $forbidden]];
     }
 
-    /** Enumerate every directory without silently suppressing inaccessible children. */
     /** Every directory and leaf consumes the same bounded traversal budget. Links are never followed. */
     private function strictPathInventory(array $roots, array $args = []): array
     {
-        $limit = max(1, min(200000, (int)($args['max_entries'] ?? 50000)));
-        $deadline = microtime(true) + max(1, min(15000, (int)($args['max_duration_ms'] ?? 5000))) / 1000;
+        $limit = max(1, min(1000000, (int)($args['max_entries'] ?? 200000)));
+        $deadline = microtime(true) + max(1, min(30000, (int)($args['max_duration_ms'] ?? 10000))) / 1000;
         $paths = []; $gaps = []; $pending = $roots; $seen = [];
         while ($pending !== []) {
             $this->collectors->session->checkpoint();
@@ -291,14 +290,13 @@ final class FilesystemCheck
                 continue;
             }
             if (!is_dir($path)) continue;
-            try {
-                $children = new \FilesystemIterator($path, \FilesystemIterator::SKIP_DOTS);
-                foreach ($children as $child) {
-                    $this->collectors->session->checkpoint();
-                    if (count($pending)+count($paths) >= $limit || microtime(true) > $deadline) { $gaps[] = 'traversal_budget_exceeded'; break; }
-                    $pending[] = $child->getPathname();
-                }
-            } catch (\UnexpectedValueException) { $gaps[] = $path; }
+            try { $children = new \FilesystemIterator($path, \FilesystemIterator::SKIP_DOTS); }
+            catch (\UnexpectedValueException) { $gaps[] = $path; continue; }
+            foreach ($children as $child) {
+                $this->collectors->session->checkpoint();
+                if (count($pending)+count($paths) >= $limit || microtime(true) > $deadline) { $gaps[] = 'traversal_budget_exceeded'; break; }
+                $pending[] = $child->getPathname();
+            }
         }
         return [$paths, array_values(array_unique($gaps))];
     }
