@@ -39,220 +39,70 @@ final class ComposerAdvisoryChecks extends ComposerSupport
 
     public function auditApi(array $args): array
     {
-        $lockFile = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
-        if (!is_file($lockFile)) {
-            return [null, '[UNKNOWN] composer.lock not found'];
+        $selection=$this->dependencySelection($args);
+        $versions=[];
+        foreach ($selection['packages'] as $name=>$record) $versions[$name]=ltrim($record['version'],'vV');
+        ksort($versions);
+        $selected=$versions;
+        $packageScope=(string)($args['package_scope']??'all');
+        if ($packageScope==='adobe_core') $selected=array_filter($selected,fn(string $v,string $n):bool=>$this->isAdobeCorePackage($n),ARRAY_FILTER_USE_BOTH);
+        if (is_array($args['package_names']??null)) $selected=array_intersect_key($selected,array_fill_keys($args['package_names'],true));
+        if ($selected===[]) {
+            // An empty *supported subset* is clean; an empty or broken inventory is not.
+            $subset=$versions!==[] && $selection['complete'] && is_array($args['package_names']??null);
+            return $this->withDependencyProvenance([$subset?true:null,$subset?'No selected dependencies in the observed inventory':'[UNKNOWN] composer.lock/installed metadata cannot establish the requested advisory scope'],$selection);
         }
-
-        if (!empty($args['strict_scope'])) {
-            $scopeError = $this->validateLockScope($lockFile);
-            if ($scopeError !== null) {
-                return [null, '[UNKNOWN] ' . $scopeError];
+        $endpoint=trim((string)($args['endpoint']??$this->ctx->get('osv_api_url','https://api.magebean.com/v1/osv/advisories')));
+        if (!$this->isAllowedAdvisoryEndpoint($endpoint)) return $this->withDependencyProvenance([null,'[UNKNOWN] Invalid OSV API endpoint; HTTPS is required',['endpoint'=>$endpoint]],$selection);
+        $timeoutMs=max(1000,(int)($args['timeout_ms']??10000));
+        $batchSize=max(1,min(1000,(int)($args['batch_size']??500)));
+        $token=trim((string)($args['token']??$this->ctx->get('osv_api_token',getenv('MAGEBEAN_OSV_API_TOKEN')?:'')));
+        $packages=[];
+        // Query the shared inventory; rule-specific subsets are evaluated against the same observed feed.
+        foreach ($versions as $name=>$version) $packages[]=['name'=>$name,'version'=>$version];
+        $advisories=[]; $responses=[]; $gaps=[];
+        foreach (array_chunk($packages,$batchSize) as $batchIndex=>$batch) {
+            $payload=['schema_version'=>'magebean-osv-request-v1','ecosystem'=>'Packagist','packages'=>$batch,
+                'client'=>['name'=>'magebean-cli','version'=>(string)($args['client_version']??'dev')]];
+            $requestEndpoint=$endpoint;
+            [$ok,$message,$response]=$this->postJson($requestEndpoint,$payload,$timeoutMs,$token);
+            if (!$ok && !empty($args['allow_private_http_fallback']) && $token==='' && $this->canFallbackToPrivateHttp($endpoint)) {
+                $requestEndpoint='http://'.substr($endpoint,strlen('https://'));
+                [$ok,$message,$response]=$this->postJson($requestEndpoint,$payload,$timeoutMs,$token);
             }
-        }
-
-        $installed = $this->readLockPackages($lockFile);
-        if (!$installed || !is_array($installed)) {
-            return [null, '[UNKNOWN] Unable to parse composer.lock'];
-        }
-
-        $installedVers = [];
-        foreach ($installed as $name => $info) {
-            $version = $info['version'] ?? null;
-            if (is_string($version) && $version !== '') {
-                $installedVers[(string)$name] = ltrim($version, 'vV');
+            $decoded=json_decode((string)($response['body']??''),true);
+            if (!$ok || ($response['status']??0)!==200 || !is_array($decoded)
+                || ($decoded['schema_version']??null)!=='magebean-osv-response-v1' || !is_array($decoded['advisories']??null)) {
+                $gaps[]=['batch'=>$batchIndex+1,'reason'=>'advisory_response_unavailable_or_invalid','status'=>$response['status']??null];
+                continue;
             }
-        }
-        $packageScope = (string)($args['package_scope'] ?? 'all');
-        if ($packageScope === 'adobe_core') {
-            $installedVers = array_filter(
-                $installedVers,
-                fn(string $version, string $name): bool => $this->isAdobeCorePackage($name),
-                ARRAY_FILTER_USE_BOTH
-            );
-        }
-        if (is_array($args['package_names'] ?? null)) {
-            $allowedPackages = array_fill_keys(array_map(
-                static fn(mixed $name): string => strtolower((string)$name),
-                $args['package_names']
-            ), true);
-            $installedVers = array_filter(
-                $installedVers,
-                static fn(string $version, string $name): bool => isset($allowedPackages[strtolower($name)]),
-                ARRAY_FILTER_USE_BOTH
-            );
-        }
-        if ($installedVers === []) {
-            $message = $packageScope === 'adobe_core'
-                ? 'No Adobe/Magento core packages found in composer.lock'
-                : 'No packages in composer.lock (nothing to audit)';
-            return [null, '[UNKNOWN] ' . $message . '; advisory scope could not be established', ['package_scope' => $packageScope, 'packages' => 0]];
-        }
-
-        $endpoint = trim((string)($args['endpoint'] ?? $this->ctx->get(
-            'osv_api_url',
-            'https://api.magebean.com/v1/osv/advisories'
-        )));
-        if (!$this->isAllowedAdvisoryEndpoint($endpoint)) {
-            return [null, '[UNKNOWN] Invalid OSV API endpoint; HTTPS is required', ['endpoint' => $endpoint]];
-        }
-
-        $timeoutMs = max(1000, (int)($args['timeout_ms'] ?? 10000));
-        $batchSize = max(1, min(1000, (int)($args['batch_size'] ?? 500)));
-        $allowPrivateHttpFallback = !empty($args['allow_private_http_fallback']);
-        $token = trim((string)($args['token'] ?? $this->ctx->get(
-            'osv_api_token',
-            getenv('MAGEBEAN_OSV_API_TOKEN') ?: ''
-        )));
-
-        $packages = [];
-        foreach ($installedVers as $name => $version) {
-            $packages[] = ['name' => $name, 'version' => $version];
-        }
-
-        $advisories = [];
-        $responses = [];
-        foreach (array_chunk($packages, $batchSize) as $batchIndex => $batch) {
-            $payload = [
-                'schema_version' => 'magebean-osv-request-v1',
-                'ecosystem' => 'Packagist',
-                'packages' => $batch,
-                'client' => [
-                    'name' => 'magebean-cli',
-                    'version' => (string)($args['client_version'] ?? 'dev'),
-                ],
-            ];
-
-            [$transportOk, $transportMessage, $response] = $this->postJson(
-                $endpoint,
-                $payload,
-                $timeoutMs,
-                $token
-            );
-            $requestEndpoint = $endpoint;
-            if (
-                !$transportOk
-                && $allowPrivateHttpFallback
-                && $token === ''
-                && $this->canFallbackToPrivateHttp($endpoint)
-            ) {
-                $requestEndpoint = 'http://' . substr($endpoint, strlen('https://'));
-                [$transportOk, $transportMessage, $response] = $this->postJson(
-                    $requestEndpoint,
-                    $payload,
-                    $timeoutMs,
-                    $token
-                );
-            }
-            if (!$transportOk) {
-                return [
-                    null,
-                    '[UNKNOWN] OSV API request failed: ' . $transportMessage,
-                    [
-                        'endpoint' => $endpoint,
-                        'request_endpoint' => $requestEndpoint,
-                        'batch' => $batchIndex + 1,
-                    ],
-                ];
-            }
-
-            $status = (int)($response['status'] ?? 0);
-            $body = (string)($response['body'] ?? '');
-            $decoded = json_decode($body, true);
-            if ($status !== 200) {
-                $apiMessage = is_array($decoded)
-                    ? (string)($decoded['error']['message'] ?? $decoded['message'] ?? '')
-                    : '';
-                $suffix = $apiMessage !== '' ? ': ' . $apiMessage : '';
-                return [
-                    null,
-                    '[UNKNOWN] OSV API returned HTTP ' . $status . $suffix,
-                    [
-                        'endpoint' => $endpoint,
-                        'request_endpoint' => $requestEndpoint,
-                        'status' => $status,
-                        'batch' => $batchIndex + 1,
-                    ],
-                ];
-            }
-
-            if (!is_array($decoded)) {
-                return [
-                    null,
-                    '[UNKNOWN] OSV API returned invalid JSON',
-                    ['endpoint' => $endpoint, 'batch' => $batchIndex + 1],
-                ];
-            }
-            if (($decoded['schema_version'] ?? null) !== 'magebean-osv-response-v1') {
-                return [
-                    null,
-                    '[UNKNOWN] Unsupported OSV API response schema',
-                    [
-                        'endpoint' => $endpoint,
-                        'schema_version' => $decoded['schema_version'] ?? null,
-                        'batch' => $batchIndex + 1,
-                    ],
-                ];
-            }
-            if (!array_key_exists('advisories', $decoded) || !is_array($decoded['advisories'])) {
-                return [
-                    null,
-                    '[UNKNOWN] OSV API response is missing advisories array',
-                    ['endpoint' => $endpoint, 'batch' => $batchIndex + 1],
-                ];
-            }
-
             foreach ($decoded['advisories'] as $advisory) {
-                if (!is_array($advisory) || !is_array($advisory['affected'] ?? null) || $advisory['affected'] === []) {
-                    return [null, '[UNKNOWN] OSV API returned a malformed advisory', ['endpoint' => $endpoint, 'batch' => $batchIndex + 1]];
+                if (!is_array($advisory) || !is_array($advisory['affected']??null) || $advisory['affected']===[]) {
+                    $gaps[]=['batch'=>$batchIndex+1,'reason'=>'malformed_advisory']; continue;
                 }
-                $key = (string)($advisory['id'] ?? hash('sha256', json_encode($advisory)));
-                if (!isset($advisories[$key])) {
-                    $advisories[$key] = $advisory;
-                    continue;
-                }
-
-                $existingAffected = is_array($advisories[$key]['affected'] ?? null)
-                    ? $advisories[$key]['affected']
-                    : [];
-                $newAffected = is_array($advisory['affected'] ?? null)
-                    ? $advisory['affected']
-                    : [];
-                $advisories[$key]['affected'] = array_merge($existingAffected, $newAffected);
+                $key=(string)($advisory['id']??hash('sha256',json_encode($advisory)));
+                if (!isset($advisories[$key])) $advisories[$key]=$advisory;
+                else $advisories[$key]['affected']=array_merge($advisories[$key]['affected'],$advisory['affected']);
             }
-            $responses[] = [
-                'batch' => $batchIndex + 1,
-                'request_endpoint' => $requestEndpoint,
-                'packages' => count($batch),
-                'advisories' => count($decoded['advisories']),
-                'dataset_revision' => $decoded['meta']['dataset_revision'] ?? null,
-            ];
+            $responses[]=['batch'=>$batchIndex+1,'request_endpoint'=>$requestEndpoint,'packages'=>count($batch),
+                'advisories'=>count($decoded['advisories']),'response_sha256'=>hash('sha256',(string)$response['body']),'dataset_revision'=>$decoded['meta']['dataset_revision']??null];
         }
-
-        $sourceEvidence = [
-            'source' => 'magebean_osv_api',
-            'package_scope' => $packageScope,
-            'endpoint' => $endpoint,
-            'packages' => count($installedVers),
-            'responses' => $responses,
-        ];
-
-        if ($advisories === []) {
-            return [
-                true,
-                'No vulnerable packages according to Magebean OSV API (' . count($installedVers) . ' pkgs)',
-                $sourceEvidence,
-            ];
-        }
-
-        return $this->evaluateOsvAdvisories(
-            array_values($advisories),
-            $installedVers,
-            $sourceEvidence
-        );
+        $source=['source'=>'magebean_osv_api','package_scope'=>$packageScope,'endpoint'=>$endpoint,
+            'packages'=>count($selected),'responses'=>$responses,'feed_gaps'=>$gaps,'observed_at'=>gmdate(DATE_ATOM)];
+        $result=$advisories===[] ? [true,'No vulnerable packages according to the collected Magebean OSV API response',$source]
+            : $this->evaluateOsvAdvisories(array_values($advisories),$selected,$source);
+        if ($gaps!==[] && $result[0]!==false) $result=[null,'[UNKNOWN] Advisory feed coverage incomplete',$result[2]??$source];
+        return $this->withDependencyProvenance($result,$selection);
     }
 
     public function adobeSecurityPatchesApi(array $args): array
+    {
+        // The criterion explicitly assesses the Composer-locked Magento release and local patch files.
+        $selection=$this->dependencySelection(array_replace($args,['dependency_scope'=>'locked']));
+        return $this->withDependencyProvenance($this->adobeSecurityPatchesLocked($args),$selection);
+    }
+
+    private function adobeSecurityPatchesLocked(array $args): array
     {
         $lockFile = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
         if (!is_file($lockFile)) {
@@ -452,6 +302,11 @@ final class ComposerAdvisoryChecks extends ComposerSupport
 
     public function fixVersionApi(array $args): array
     {
+        return $this->withDependencyProvenance($this->fixVersionApiObserved($args),$this->dependencySelection($args));
+    }
+
+    private function fixVersionApiObserved(array $args): array
+    {
         $result = $this->auditApi($args);
         $status = $result[0] ?? null;
         if ($status !== false) {
@@ -501,38 +356,15 @@ final class ComposerAdvisoryChecks extends ComposerSupport
 
     public function auditOffline(array $args): array
     {
-        $lockFile = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
-        if (!is_file($lockFile)) {
-            return [null, "[UNKNOWN] composer.lock not found"];
-        }
-
-        if (!empty($args['require_explicit_snapshot']) || !empty($args['strict_scope'])) {
-            $scopeError = $this->validateLockScope($lockFile);
-            if ($scopeError !== null) {
-                return [null, '[UNKNOWN] '.$scopeError, ['reason_code' => 'COMPOSER_LOCK_SCOPE_INVALID']];
-            }
-        }
-
-        $installed = $this->readLockPackages($lockFile);
-        if (!$installed || !is_array($installed)) {
-            return [null, "[UNKNOWN] Unable to parse composer.lock"];
-        }
-
-        $installedVers = [];
-        foreach ($installed as $name => $info) {
-            $ver = $info['version'] ?? null;
-            if (is_string($ver) && $ver !== '') {
-                $installedVers[$name] = ltrim($ver, 'vV');
-            }
-        }
-        if (!$installedVers) {
-            return [true, "No packages in composer.lock (nothing to audit)"];
-        }
+        $selection=$this->dependencySelection($args);
+        $installedVers=[];
+        foreach ($selection['packages'] as $name=>$record) $installedVers[$name]=ltrim($record['version'],'vV');
+        if ($installedVers===[]) return $this->withDependencyProvenance([null,'[UNKNOWN] composer.lock/installed metadata cannot establish snapshot scope',!$selection['complete']?['reason_code'=>'COMPOSER_LOCK_SCOPE_INVALID']:[]],$selection);
 
         if (!empty($args['require_explicit_snapshot'])) {
             $relative = (string) ($args['cve_data'] ?? '');
             $path = $this->ctx->abs($relative);
-            $text = $relative !== '' && is_file($path) ? @file_get_contents($path, false, null, 0, 33554433) : false;
+            $text = $relative !== '' && is_file($path) && (@filesize($path)?:0)<=33554432 ? $this->collectors->files->read($path) : false;
             $snapshot = is_string($text) && strlen($text) <= 33554432 ? json_decode($text, true, 128) : null;
             if (!is_array($snapshot) || !array_is_list($snapshot) || $snapshot === []) {
                 return [null, '[UNKNOWN] Local advisory snapshot unavailable or invalid. Supply an OSV JSON advisory list at '.$relative.'.',
@@ -560,9 +392,9 @@ final class ComposerAdvisoryChecks extends ComposerSupport
                 return [null, '[UNKNOWN] Local advisory snapshot has no Composer package records.',
                     ['reason_code' => 'OFFLINE_ADVISORY_SNAPSHOT_INVALID']];
             }
-            $evidence = ['source' => 'offline_dataset', 'dataset' => $relative, 'snapshot_records' => count($snapshot)];
-            return $advisories === [] ? [true, 'No active advisories in the local snapshot.', $evidence]
-                : $this->evaluateOsvAdvisories($advisories, $installedVers, $evidence);
+            $evidence = ['source' => 'offline_dataset', 'dataset' => $relative, 'snapshot_records' => count($snapshot), 'snapshot_sha256'=>hash('sha256',$text), 'coverage' => 'Supplied advisory records only; absence is not a complete current advisory feed.'];
+            return $this->withDependencyProvenance($advisories === [] ? [true, 'No active advisories in the supplied snapshot.', $evidence]
+                : $this->evaluateOsvAdvisories($advisories, $installedVers, $evidence), $selection);
         }
 
         $meta = $this->ctx->get('meta', []);
@@ -612,14 +444,17 @@ final class ComposerAdvisoryChecks extends ComposerSupport
             return [null, "[UNKNOWN] No advisories parsed from CVE dataset", ['dataset' => $datasetPath, 'packages' => count($installedVers)]];
         }
 
-        return $this->evaluateOsvAdvisories(
-            $vulns,
-            $installedVers,
-            ['source' => 'offline_dataset', 'dataset' => $datasetPath]
-        );
+        return $this->withDependencyProvenance($this->evaluateOsvAdvisories(
+            $vulns, $installedVers, ['source' => 'offline_dataset', 'dataset' => $datasetPath, 'coverage' => 'Supplied advisory records only']
+        ), $selection);
     }
 
     public function kevAdvisoriesApi(array $args): array
+    {
+        return $this->withDependencyProvenance($this->kevAdvisoriesApiObserved($args),$this->dependencySelection($args));
+    }
+
+    private function kevAdvisoriesApiObserved(array $args): array
     {
         $result = $this->auditApi($args);
         $status = $result[0] ?? null;
@@ -666,7 +501,11 @@ final class ComposerAdvisoryChecks extends ComposerSupport
 
     public function advisoryLatencyApi(array $args): array
     {
-        if (($problem = $this->strictInventoryProblem($args, false)) !== null) return $problem;
+        return $this->withDependencyProvenance($this->advisoryLatencyApiObserved($args),$this->dependencySelection($args));
+    }
+
+    private function advisoryLatencyApiObserved(array $args): array
+    {
         $audit = $this->auditApi($args);
         $status = $audit[0] ?? null;
         $evidence = is_array($audit[2] ?? null) ? $audit[2] : [];
@@ -678,12 +517,18 @@ final class ComposerAdvisoryChecks extends ComposerSupport
                 true,
                 'No unresolved advisories affect installed package versions',
                 $evidence + [
+                    'publication_age_threshold_days' => max(1, (int)($args['latency_days'] ?? 30)),
                     'sla_days' => max(1, (int)($args['latency_days'] ?? 30)),
                     'open_advisories' => [],
                 ],
             ];
         }
 
+        return $this->withDependencyProvenance($this->assessAdvisoryPublicationAges($evidence, $args),$this->dependencySelection($args));
+    }
+
+    private function assessAdvisoryPublicationAges(array $evidence, array $args): array
+    {
         $slaDays = max(1, (int)($args['latency_days'] ?? 30));
         $now = time();
         $open = [];
@@ -697,16 +542,20 @@ final class ComposerAdvisoryChecks extends ComposerSupport
             $published = is_string($finding['published'] ?? null)
                 ? trim($finding['published'])
                 : '';
-            $publishedAt = $published !== '' ? strtotime($published) : false;
-            if ($publishedAt === false) {
+            $publishedDate = \Magebean\Engine\Checks\AbsoluteTimestamp::parse($published);
+            $publishedAt = $publishedDate?->getTimestamp();
+            if ($publishedAt === null || $publishedAt > $now) {
+                $finding['publication_date_issue'] = $publishedAt !== null && $publishedAt > $now ? 'future' : 'invalid_or_missing';
                 $finding['open_days'] = null;
-                $finding['sla_days'] = $slaDays;
+                $finding['sla_days'] = $slaDays; // Legacy numeric threshold alias; not an organizational SLA.
+                $finding['publication_age_threshold_days'] = $slaDays;
                 $missingPublished[] = $finding;
                 continue;
             }
 
             $finding['open_days'] = max(0, (int)floor(($now - $publishedAt) / 86400));
-            $finding['sla_days'] = $slaDays;
+            $finding['sla_days'] = $slaDays; // Legacy numeric threshold alias; not an organizational SLA.
+            $finding['publication_age_threshold_days'] = $slaDays;
             $finding['overdue'] = $finding['open_days'] > $slaDays;
             $open[] = $finding;
             if ($finding['overdue']) {
@@ -715,7 +564,9 @@ final class ComposerAdvisoryChecks extends ComposerSupport
         }
 
         $latencyEvidence = $evidence + [
-            'sla_days' => $slaDays,
+            'publication_age_threshold_days' => $slaDays,
+            'sla_days' => $slaDays, // Legacy wire alias.
+            'age_basis' => 'advisory_publication_not_discovery_or_deployment',
             'open_advisories' => $open,
             'overdue_advisories' => $overdue,
             'missing_published_date' => $missingPublished,
@@ -727,7 +578,7 @@ final class ComposerAdvisoryChecks extends ComposerSupport
                 $text = (string)($finding['package'] ?? 'unknown-package')
                     . '@' . (string)($finding['version'] ?? 'unknown-version')
                     . ' -> ' . (string)($finding['advisory'] ?? 'unknown-advisory')
-                    . ' open ' . (string)($finding['open_days'] ?? '?') . ' days';
+                    . ' published ' . (string)($finding['open_days'] ?? '?') . ' days ago';
                 if (is_string($finding['fixed'] ?? null) && $finding['fixed'] !== '') {
                     $text .= ', update to >= ' . $finding['fixed'];
                 }
@@ -742,7 +593,7 @@ final class ComposerAdvisoryChecks extends ComposerSupport
                         . ' -> ' . (string)($finding['advisory'] ?? 'unknown-advisory'),
                     $missingPublished
                 );
-                $message .= "\n    Published date unavailable for:\n    - "
+                $message .= "\n    Published date missing, invalid or future for:\n    - "
                     . implode("\n    - ", $missingDetails);
             }
             return [false, $message, $latencyEvidence];
@@ -756,7 +607,7 @@ final class ComposerAdvisoryChecks extends ComposerSupport
                     . ' -> ' . (string)($finding['advisory'] ?? 'unknown-advisory'),
                 $visible
             );
-            $message = "[UNKNOWN] Published date unavailable for unresolved advisories:\n    - "
+            $message = "[UNKNOWN] Published date missing, invalid or future for unresolved advisories:\n    - "
                 . implode("\n    - ", $details);
             return [null, $message, $latencyEvidence];
         }
@@ -764,12 +615,17 @@ final class ComposerAdvisoryChecks extends ComposerSupport
         return [
             true,
             count($open) . ' unresolved advisory match(es) remain within the '
-                . $slaDays . '-day remediation SLA',
+                . $slaDays . '-day publication-age threshold',
             $latencyEvidence,
         ];
     }
 
     public function transitiveAuditApi(array $args): array
+    {
+        return $this->withDependencyProvenance($this->transitiveAuditApiObserved($args),$this->dependencySelection($args));
+    }
+
+    private function transitiveAuditApiObserved(array $args): array
     {
         if (($problem = $this->strictInventoryProblem($args, true)) !== null) return $problem;
         $lockFile = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
@@ -800,10 +656,11 @@ final class ComposerAdvisoryChecks extends ComposerSupport
             }
         }
 
+        $selection=$this->dependencySelection($args);
         $installed = [];
         $requiredBy = [];
-        foreach (['packages', 'packages-dev'] as $section) {
-            foreach ((array)($lock[$section] ?? []) as $package) {
+        foreach ([$selection['packages']] as $records) {
+            foreach ($records as $package) {
                 if (!is_array($package) || !is_string($package['name'] ?? null)) {
                     continue;
                 }
@@ -822,14 +679,14 @@ final class ComposerAdvisoryChecks extends ComposerSupport
         $transitive = array_values(array_diff(array_keys($installed), array_keys($direct)));
         sort($transitive, SORT_STRING);
         if ($transitive === []) {
-            return [
+            return $this->withDependencyProvenance([
                 true,
                 'No transitive Composer dependencies found',
                 [
                     'direct_packages' => array_keys($direct),
                     'transitive_packages' => [],
                 ],
-            ];
+            ], $selection);
         }
 
         $args['package_names'] = $transitive;
@@ -869,13 +726,18 @@ final class ComposerAdvisoryChecks extends ComposerSupport
                 },
                 $visible
             ));
-            return [false, $message, $evidence];
+            return $this->withDependencyProvenance([false, $message, $evidence], $selection);
         }
 
         return [$result[0] ?? null, (string)($result[1] ?? ''), $evidence];
     }
 
     public function constraintsConflictApi(array $args): array
+    {
+        return $this->withDependencyProvenance($this->constraintsConflictApiObserved($args),$this->dependencySelection($args));
+    }
+
+    private function constraintsConflictApiObserved(array $args): array
     {
         if (($problem = $this->strictInventoryProblem($args, true)) !== null) return $problem;
         $composerFile = $this->ctx->abs($args['json_file'] ?? 'composer.json');

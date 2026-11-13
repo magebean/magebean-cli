@@ -8,7 +8,7 @@ use PhpParser\Error;
 
 final class MagentoModuleInventory
 {
-    public function __construct(private readonly ?CollectionSession $session = null) {}
+    public function __construct(private readonly ?CollectionSession $session = null, private readonly ?DependencyInventory $dependencies = null) {}
 
     public function collect(Context $context): array
     {
@@ -27,12 +27,18 @@ final class MagentoModuleInventory
         }
         $files = new MagentoInventoryFiles($context, $root, $this->session);
         $php = new MagentoStaticPhp();
+        $shared=$this->dependencies?->collect($context);
         $sourceCheckout = ($context->get('meta', [])['launch_profile'] ?? null) === 'development';
         $config = $files->read('app/etc/config.php', !$sourceCheckout);
         try {
             $states = $config === null ? null : $php->moduleStates($config);
         } catch (Error) {
             $states = null;
+        }
+        if ($config!==null && isset($shared['sources']['module_declarations']['sha256'])
+            && hash('sha256',$config)!==$shared['sources']['module_declarations']['sha256']) {
+            $states=null;
+            $files->gap('app/etc/config.php','module_state_changed_during_collection');
         }
         if ($config !== null && $states === null) $files->gap('app/etc/config.php', 'module_state_unresolved');
 
@@ -60,7 +66,11 @@ final class MagentoModuleInventory
         $vendor = is_string($configuredVendor) ? MagentoInventoryFiles::relative('', $configuredVendor) : null;
         if ($vendor === null) $files->gap('composer.json', 'composer_vendor_directory_unresolved');
         $metadata = $vendor === null ? null : $vendor.'/composer/installed.json';
-        $installed = $metadata === null ? null : $files->json($metadata, true);
+        $installed = $shared!==null && $metadata===($shared['installed_metadata_path']??null)
+            ? $shared['installed_metadata'] : ($metadata === null ? null : $files->json($metadata, true));
+        $out['dependency_observation']=$shared!==null ? ['observed_at'=>$shared['observed_at'],'sources'=>$shared['sources'],
+            'scope'=>'installed_metadata_and_source_declarations','runtime_reachability'=>'unverified'] : null;
+        if ($shared!==null && $installed===null) $files->gap($metadata??'composer.json',$metadata!==null && !$files->exists($metadata)?'metadata_missing':'metadata_invalid');
         $out['package_inventory_complete'] = $installed !== null && (!$hasRootManifest || $rootManifest !== null);
         $packages = $installed['packages'] ?? $installed ?? [];
         if (!is_array($packages) || !array_is_list($packages)) {

@@ -1,0 +1,412 @@
+{
+  "scope": "read-only synthetic filenames/source; samplePHPneverexecuted",
+  "results": [
+    {
+      "id": "MB-0780",
+      "case": "same_media_filename",
+      "assessment": "FAIL",
+      "observed_findings": 1,
+      "messages": [
+        "Executable PHP-like filenames found in media"
+      ],
+      "locations": [
+        [
+          "unexpected.php"
+        ]
+      ],
+      "collection_complete": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "check": "basic_media_executable_files",
+            "message": "Executable PHP-like filenames found in media",
+            "reason_code": null,
+            "kind": "observed_issue",
+            "evidence": {
+              "scope": "pub/media filenames; server execution policy requires separate evidence",
+              "entries": 1,
+              "files": [
+                "unexpected.php"
+              ],
+              "collection_gaps": []
+            },
+            "category": "security",
+            "confidence": "suspected",
+            "claim_type": "review_candidate",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "severity": "high",
+            "guidance": {
+              "claim_type": "review_candidate",
+              "impact": "The reported pattern or supported output/declaration relationship warrants review. Credential validity, executable serving, alternate authorization and actual input influence require evidence specific to this location.",
+              "action": "Investigate and change: Inspect the reported PHP-like media filenames privately without executing them. Quarantine unauthorized content and review upload validation and server execution denial; distinguish legitimate reviewed artifacts from compromise indicators.",
+              "verification": "Validate the change: Rerun the complete media filename inventory and test execution denial with an approved inert staging fixture. Filename absence alone is not server policy proof.",
+              "recheck": "Rerun MB-0780 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            }
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "FAIL"
+      },
+      "title": "Media inventory has no executable PHP-like filenames",
+      "severity": "high"
+    },
+    {
+      "id": "MB-0800",
+      "case": "same_media_filename",
+      "assessment": "FAIL",
+      "observed_findings": 1,
+      "messages": [
+        "Configured executable-content signatures found in upload inventory"
+      ],
+      "locations": [
+        []
+      ],
+      "collection_complete": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "check": "production_upload_signatures_absent",
+            "message": "Configured executable-content signatures found in upload inventory",
+            "reason_code": null,
+            "kind": "observed_issue",
+            "evidence": {
+              "scope": "configured upload paths; PHP-like filenames, explicit PHP tags and htaccess script-handler signatures",
+              "entries": 1,
+              "files_read": 1,
+              "bytes_read": 12,
+              "findings": [
+                {
+                  "path": "pub/media/unexpected.php",
+                  "signal": "php_like_extension"
+                }
+              ],
+              "collection_gaps": []
+            },
+            "category": "security",
+            "confidence": "suspected",
+            "claim_type": "review_candidate",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "severity": "medium",
+            "guidance": {
+              "claim_type": "review_candidate",
+              "impact": "The reported pattern or supported output/declaration relationship warrants review. Credential validity, executable serving, alternate authorization and actual input influence require evidence specific to this location.",
+              "action": "Quarantine the reported upload object outside the served tree for investigation; do not execute it. Determine how the PHP tag, PHP-like filename or script-handler override entered the upload path. Fix the real upload pipeline using server-derived type/extension policy, generated names, size limits and authorization; configure the delivery server so media cannot execute scripts.",
+              "verification": "Test harmless accepted and rejected upload fixtures in isolation, verify no unintended handler overrides, and rerun the complete configured upload inventory. Resolve symlinks, unreadable or oversized eligible files before interpreting a clean result.",
+              "recheck": "Rerun MB-0800 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            }
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "FAIL"
+      },
+      "title": "Upload inventory has no configured PHP or handler signatures",
+      "severity": "medium"
+    },
+    {
+      "id": "MB-0790",
+      "case": "same_request_command_location",
+      "assessment": "FAIL",
+      "observed_findings": 1,
+      "messages": [
+        "Policy: Source violates the declared shell_execution policy; see file and line evidence."
+      ],
+      "locations": [
+        []
+      ],
+      "collection_complete": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "check": "automated_source_policy",
+            "message": "Policy: Source violates the declared shell_execution policy; see file and line evidence.",
+            "reason_code": "SOURCE_POLICY_VIOLATION",
+            "kind": "observed_issue",
+            "evidence": {
+              "complete": true,
+              "gaps": [],
+              "files_read": 2,
+              "bytes_read": 236,
+              "scope": [
+                "app/code"
+              ],
+              "policy": "shell_execution",
+              "violations": [
+                {
+                  "file": "app/code/Acme/Probe/Runner.php",
+                  "line": 1,
+                  "construct": "exec",
+                  "source_sha256": "99312cf2400520f95409e95bebc861007ffaa24ff1d01c460cf054886c7884f9",
+                  "byte_offset": 66
+                }
+              ],
+              "limitations": [
+                "Exact syntactic policy only; excludes dependencies, generated code and files outside the declared scope.",
+                "No dataflow, business authorization or runtime exploitability conclusion."
+              ],
+              "analysis_gaps": [],
+              "inspection_issues": []
+            },
+            "category": "policy",
+            "confidence": "confirmed",
+            "claim_type": "observed_policy_violation",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "severity": "low",
+            "guidance": {
+              "claim_type": "observed_policy_violation",
+              "impact": "The reported file/line contains the named construct. This is a coding-policy observation; local file access, a fixed command, UI randomness or a query-named method alone does not establish data exposure or injection.",
+              "action": "Inspect each named call and argument at the reported file/line. Trace input origin, receiver identity, authorization and output use before deciding whether to replace the API or document an approved exception to this explicit coding policy.",
+              "verification": "Test the affected behavior and its real trust boundary. Replacing an API or wrapping a call does not by itself validate input or remove an exploit path.",
+              "recheck": "Rerun MB-0790 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            }
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "FAIL"
+      },
+      "title": "Custom source avoids enumerated shell/process primitives",
+      "severity": "medium"
+    },
+    {
+      "id": "MB-0822",
+      "case": "same_request_command_location",
+      "assessment": "UNKNOWN",
+      "observed_findings": 1,
+      "messages": [
+        "Request input reaches a command call."
+      ],
+      "locations": [
+        [
+          {
+            "file": "app/code/Acme/Probe/Runner.php",
+            "line": 1,
+            "byte_offset": 66,
+            "source_sha256": "99312cf2400520f95409e95bebc861007ffaa24ff1d01c460cf054886c7884f9"
+          }
+        ]
+      ],
+      "collection_complete": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "issue_key": "command",
+            "message": "Request input reaches a command call.",
+            "confidence": "suspected",
+            "category": "security",
+            "severity": "high",
+            "evidence": {
+              "subject": {
+                "module": "Acme_Probe"
+              },
+              "locations": [
+                {
+                  "file": "app/code/Acme/Probe/Runner.php",
+                  "line": 1,
+                  "byte_offset": 66,
+                  "source_sha256": "99312cf2400520f95409e95bebc861007ffaa24ff1d01c460cf054886c7884f9"
+                }
+              ],
+              "reasoning": "A request superglobal at line 1 reaches a supported call directly or through one local assignment.",
+              "remediation": "Avoid passing request data to shell commands. Use fixed operations and validate inputs.",
+              "assumptions": [
+                "Receiver type, surrounding guards and runtime execution are outside this bounded flow."
+              ]
+            },
+            "claim_type": "review_candidate",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "guidance": {
+              "claim_type": "review_candidate",
+              "impact": "The reported pattern or supported output/declaration relationship warrants review. Credential validity, executable serving, alternate authorization and actual input influence require evidence specific to this location.",
+              "action": "Review the exact reported source location and declared target.",
+              "verification": "Validate the corrected code against the intended deployment in staging.",
+              "recheck": "Rerun MB-0822 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            },
+            "detector": "magento-module-request-sinks",
+            "detector_version": "1.2",
+            "kind": "observed_issue",
+            "check": "magento_module_integrity",
+            "reason_code": null,
+            "fingerprint": "711619fbfe6e2c42d76c9393ea7e73af99827ebdfdd5ecc2e73c3e1bffc653d9"
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "UNKNOWN",
+        "detector_runs": [
+          {
+            "detector": "magento-module-request-sinks",
+            "detector_version": "1.2",
+            "complete": true,
+            "suppressed_count": 0,
+            "suppressions": []
+          }
+        ]
+      },
+      "title": "Review request data reaching command and query calls",
+      "severity": "high"
+    },
+    {
+      "id": "MB-0795",
+      "case": "same_request_logging_location",
+      "assessment": "FAIL",
+      "observed_findings": 1,
+      "messages": [
+        "Policy: Source violates the declared direct_request_logging policy; see file and line evidence."
+      ],
+      "locations": [
+        []
+      ],
+      "collection_complete": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "check": "automated_source_policy",
+            "message": "Policy: Source violates the declared direct_request_logging policy; see file and line evidence.",
+            "reason_code": "SOURCE_POLICY_VIOLATION",
+            "kind": "observed_issue",
+            "evidence": {
+              "complete": true,
+              "gaps": [],
+              "files_read": 2,
+              "bytes_read": 259,
+              "scope": [
+                "app/code"
+              ],
+              "policy": "direct_request_logging",
+              "violations": [
+                {
+                  "file": "app/code/Acme/Probe/Runner.php",
+                  "line": 1,
+                  "construct": "request_superglobal_in_log_arguments",
+                  "source_sha256": "49df3dffaf853632fe52a8d34a793c896c23f06d187fcd3804775d5f6d422669",
+                  "byte_offset": 104
+                }
+              ],
+              "limitations": [
+                "Exact syntactic policy only; excludes dependencies, generated code and files outside the declared scope.",
+                "No dataflow, business authorization or runtime exploitability conclusion."
+              ],
+              "analysis_gaps": [],
+              "inspection_issues": []
+            },
+            "category": "policy",
+            "confidence": "confirmed",
+            "claim_type": "observed_policy_violation",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "severity": "low",
+            "guidance": {
+              "claim_type": "observed_policy_violation",
+              "impact": "The reported file/line contains the named construct. This is a coding-policy observation; local file access, a fixed command, UI randomness or a query-named method alone does not establish data exposure or injection.",
+              "action": "Inspect each named call and argument at the reported file/line. Trace input origin, receiver identity, authorization and output use before deciding whether to replace the API or document an approved exception to this explicit coding policy.",
+              "verification": "Test the affected behavior and its real trust boundary. Replacing an API or wrapping a call does not by itself validate input or remove an exploit path.",
+              "recheck": "Rerun MB-0795 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            }
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "FAIL"
+      },
+      "title": "No direct request superglobals in named log method arguments",
+      "severity": "medium"
+    },
+    {
+      "id": "MB-0814",
+      "case": "same_request_logging_location",
+      "assessment": "UNKNOWN",
+      "observed_findings": 1,
+      "messages": [
+        "Policy: Named log method receives a direct request superglobal reference."
+      ],
+      "locations": [
+        [
+          {
+            "file": "app/code/Acme/Probe/Runner.php",
+            "line": 1,
+            "byte_offset": 104,
+            "source_sha256": "49df3dffaf853632fe52a8d34a793c896c23f06d187fcd3804775d5f6d422669"
+          }
+        ]
+      ],
+      "collection_complete": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "issue_key": "request-logging-policy",
+            "message": "Policy: Named log method receives a direct request superglobal reference.",
+            "confidence": "confirmed",
+            "category": "policy",
+            "severity": "low",
+            "evidence": {
+              "subject": {
+                "module": "Acme_Probe"
+              },
+              "locations": [
+                {
+                  "file": "app/code/Acme/Probe/Runner.php",
+                  "line": 1,
+                  "byte_offset": 104,
+                  "source_sha256": "49df3dffaf853632fe52a8d34a793c896c23f06d187fcd3804775d5f6d422669"
+                }
+              ],
+              "reasoning": "The existing syntactic request logging policy matched a log-like call argument in the selected source.",
+              "remediation": "Log only explicitly selected and redacted fields.",
+              "assumptions": [
+                "The method name is a policy match. Actual log delivery and data sensitivity depend on runtime behavior."
+              ]
+            },
+            "claim_type": "observed_policy_violation",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "guidance": {
+              "claim_type": "observed_policy_violation",
+              "impact": "The reported file/line contains the named construct. This is a coding-policy observation; local file access, a fixed command, UI randomness or a query-named method alone does not establish data exposure or injection.",
+              "action": "Inspect each named call and argument at the reported file/line. Trace input origin, receiver identity, authorization and output use before deciding whether to replace the API or document an approved exception to this explicit coding policy.",
+              "verification": "Test the affected behavior and its real trust boundary. Replacing an API or wrapping a call does not by itself validate input or remove an exploit path.",
+              "recheck": "Rerun MB-0814 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            },
+            "detector": "magento-module-request-logging",
+            "detector_version": "1.2",
+            "kind": "observed_issue",
+            "check": "magento_module_integrity",
+            "reason_code": null,
+            "fingerprint": "d778bd56105c15deaea22e79844983b3e94094026005f05bcbec92fd7181acb0"
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "UNKNOWN",
+        "detector_runs": [
+          {
+            "detector": "magento-module-request-logging",
+            "detector_version": "1.2",
+            "complete": true,
+            "suppressed_count": 0,
+            "suppressions": []
+          }
+        ]
+      },
+      "title": "Avoid direct request superglobals in module log calls",
+      "severity": "medium"
+    }
+  ]
+}

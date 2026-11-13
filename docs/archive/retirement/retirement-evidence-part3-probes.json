@@ -1,0 +1,538 @@
+{
+    "description": "Direct archived handlers, not requirement assessments. API and HTTP exclusions are explicit.",
+    "cases": [
+        {
+            "id": "MB-0101",
+            "case": "global grant without approvals",
+            "binding": "magento_admin_global_acl_restricted",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Unapproved Magento global Admin ACL assignments:\n    - unapproved_global_acl_user: {\"role_id\":1,\"role_name\":\"Administrators\",\"user_id\":1,\"username\":\"fixture-admin\"}\n    - unapproved_global_acl_role: {\"role_id\":1,\"role_name\":\"Administrators\"}",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0101",
+            "case": "same grant explicitly approved",
+            "binding": "magento_admin_global_acl_restricted",
+            "overrides": {
+                "approved_global_role_ids": [
+                    1
+                ],
+                "approved_global_user_ids": [
+                    1
+                ]
+            },
+            "result": "PASS",
+            "message": "Global Magento Admin ACL access is limited to approved roles and users",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0102",
+            "case": "missing account evidence",
+            "binding": "pci_vendor_default_accounts_evidence",
+            "overrides": [],
+            "result": "UNKNOWN",
+            "message": "[UNKNOWN] PCI DSS 2.2.2 vendor default account evidence file not found",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0102",
+            "case": "malformed account evidence",
+            "binding": "pci_vendor_default_accounts_evidence",
+            "overrides": [],
+            "result": "UNKNOWN",
+            "message": "[UNKNOWN] PCI DSS 2.2.2 evidence is invalid: Missing required field $.schema_version. Missing required field $.requirement. Missing required field $.assessment. Missing required field $.scope. Missing required field $.accounts.",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0731",
+            "case": "configured minimum 4",
+            "binding": "magento_admin_password_policy_strong",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Admin password policy does not meet the configured criteria",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0731",
+            "case": "configured minimum 12",
+            "binding": "magento_admin_password_policy_strong",
+            "overrides": [],
+            "result": "PASS",
+            "message": "Admin password policy meets the configured criteria",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0732",
+            "case": "rawQuery",
+            "binding": "code_raw_sql",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Potential unsafe raw SQL found in: <FIXTURE>/app/code/Fixture/Example/Subject.php:1 [raw_query_method]",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0732",
+            "case": "bound query",
+            "binding": "code_raw_sql",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Potential unsafe raw SQL found in: <FIXTURE>/app/code/Fixture/Example/Subject.php:1 [adapter_sql_method]",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0732",
+            "case": "indirect sql",
+            "binding": "code_raw_sql",
+            "overrides": [],
+            "result": "PASS",
+            "message": "No unsafe raw SQL patterns detected",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0733",
+            "case": "raw template",
+            "binding": "code_phtml_escaped_output",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Unescaped template output found in: <FIXTURE>/app/code/Fixture/Example/Subject.phtml:1",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0733",
+            "case": "html helper",
+            "binding": "code_phtml_escaped_output",
+            "overrides": [],
+            "result": "PASS",
+            "message": "PHTML output uses approved escaping helpers",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0733",
+            "case": "wrong JS context helper",
+            "binding": "code_phtml_escaped_output",
+            "overrides": [],
+            "result": "PASS",
+            "message": "PHTML output uses approved escaping helpers",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0734",
+            "case": "native unsafe",
+            "binding": "code_unserialize_safety",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Unsafe unserialize usage found in: <FIXTURE>/app/code/Fixture/Example/Subject.php:1 [medium]",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0734",
+            "case": "classes disabled",
+            "binding": "code_unserialize_safety",
+            "overrides": [],
+            "result": "PASS",
+            "message": "No unsafe native unserialize() usage detected",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0734",
+            "case": "indirect unsafe",
+            "binding": "code_unserialize_safety",
+            "overrides": [],
+            "result": "PASS",
+            "message": "No unsafe native unserialize() usage detected",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0735",
+            "case": "request command",
+            "binding": "code_command_execution_safety",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Unsafe command execution found in: <FIXTURE>/app/code/Fixture/Example/Subject.php:1 [command_function/medium]",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0735",
+            "case": "constant command",
+            "binding": "code_command_execution_safety",
+            "overrides": [],
+            "result": "PASS",
+            "message": "Command execution sinks are absent or guarded",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0735",
+            "case": "indirect command",
+            "binding": "code_command_execution_safety",
+            "overrides": [],
+            "result": "PASS",
+            "message": "Command execution sinks are absent or guarded",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0736",
+            "case": "raw JS",
+            "binding": "code_js_context_escaping",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Unescaped JavaScript-context output found in: <FIXTURE>/app/code/Fixture/Example/Subject.phtml:1 [script_php_output]",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0736",
+            "case": "JS helper",
+            "binding": "code_js_context_escaping",
+            "overrides": [],
+            "result": "PASS",
+            "message": "JavaScript-context PHP output is escaped or encoded",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0736",
+            "case": "wrong HTML helper",
+            "binding": "code_js_context_escaping",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Unescaped JavaScript-context output found in: <FIXTURE>/app/code/Fixture/Example/Subject.phtml:1 [script_php_output]",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0737",
+            "case": "named password log",
+            "binding": "code_sensitive_logging",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Sensitive data may be logged in: <FIXTURE>/app/code/Fixture/Example/Subject.php:1 [info/high]",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0737",
+            "case": "neutral payload log",
+            "binding": "code_sensitive_logging",
+            "overrides": [],
+            "result": "PASS",
+            "message": "No raw sensitive data logging detected",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0737",
+            "case": "unrelated mask comment",
+            "binding": "code_sensitive_logging",
+            "overrides": [],
+            "result": "PASS",
+            "message": "No raw sensitive data logging detected",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0743",
+            "case": "named email log",
+            "binding": "code_sensitive_logging",
+            "overrides": [],
+            "result": "PASS",
+            "message": "No raw sensitive data logging detected",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0743",
+            "case": "neutral payload log",
+            "binding": "code_sensitive_logging",
+            "overrides": [],
+            "result": "PASS",
+            "message": "No raw sensitive data logging detected",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0746",
+            "case": "gateway log",
+            "binding": "code_third_party_logging_sanitized",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Third-party sensitive logging without masking/redaction:\n    - <FIXTURE>/app/code/Fixture/Example/Subject.php:1 [info/high]",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0746",
+            "case": "unrelated redact comment",
+            "binding": "code_third_party_logging_sanitized",
+            "overrides": [],
+            "result": "PASS",
+            "message": "Third-party sensitive logging is absent or sanitized",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0738",
+            "case": "enabled extension",
+            "binding": "php_xdebug_disabled",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Xdebug configuration detected",
+            "untested_bindings": [
+                "http_no_xdebug_headers"
+            ]
+        },
+        {
+            "id": "MB-0738",
+            "case": "mode off only",
+            "binding": "php_xdebug_disabled",
+            "overrides": [],
+            "result": "PASS",
+            "message": "No Xdebug configuration detected in PHP ini files",
+            "untested_bindings": [
+                "http_no_xdebug_headers"
+            ]
+        },
+        {
+            "id": "MB-0739",
+            "case": "display_errors On",
+            "binding": "php_display_errors_disabled",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "display_errors is enabled in PHP ini configuration",
+            "untested_bindings": [
+                "http_no_stacktrace"
+            ]
+        },
+        {
+            "id": "MB-0739",
+            "case": "display_errors Off",
+            "binding": "php_display_errors_disabled",
+            "overrides": [],
+            "result": "PASS",
+            "message": "display_errors is disabled in PHP ini configuration",
+            "untested_bindings": [
+                "http_no_stacktrace"
+            ]
+        },
+        {
+            "id": "MB-0740",
+            "case": "template_hints 0",
+            "binding": "php_template_hints_disabled",
+            "overrides": [],
+            "result": "PASS",
+            "message": "Developer template hints are disabled or absent",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0742",
+            "case": "inline translation 0",
+            "binding": "php_dev_debug_config_disabled",
+            "overrides": [],
+            "result": "PASS",
+            "message": "Developer debug configuration is disabled or absent",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0745",
+            "case": "payment debug 0",
+            "binding": "php_third_party_debug_disabled",
+            "overrides": [],
+            "result": "PASS",
+            "message": "Third-party debug/verbose settings are disabled or absent",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0740",
+            "case": "template_hints 1",
+            "binding": "php_template_hints_disabled",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Developer template hints are enabled",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0742",
+            "case": "inline translation 1",
+            "binding": "php_dev_debug_config_disabled",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Developer debug configuration is enabled",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0745",
+            "case": "payment debug 1",
+            "binding": "php_third_party_debug_disabled",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Third-party debug/verbose settings enabled:\n    - app/etc/env.php:system.default.payment.fixture.debug = 1",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0741",
+            "case": "backend Cm_Cache_Backend_File",
+            "binding": "php_no_file_cache_backend",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "File-based cache backend detected",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0741",
+            "case": "backend Cm_Cache_Backend_Redis",
+            "binding": "php_no_file_cache_backend",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Cache frontend page_cache has no declared backend; Magento falls back to file storage",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0741",
+            "case": "both frontend Redis declarations",
+            "binding": "php_no_file_cache_backend",
+            "overrides": [],
+            "result": "PASS",
+            "message": "No file-based cache backend detected",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0744",
+            "case": "no lock data",
+            "binding": "composer_abandoned_api",
+            "overrides": [],
+            "result": "UNKNOWN",
+            "message": "[UNKNOWN] composer.lock not found",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0744",
+            "case": "valid library inventory unavailable status",
+            "binding": "composer_abandoned_api",
+            "overrides": {
+                "status_endpoint": "invalid"
+            },
+            "result": "UNKNOWN",
+            "message": "[UNKNOWN] Package status API request failed: Invalid package status API endpoint; HTTPS is required",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0744",
+            "case": "loopback abandoned=true archived args",
+            "binding": "composer_abandoned_api",
+            "overrides": {
+                "status_endpoint": "https://127.0.0.1:46137",
+                "timeout_ms": 1000,
+                "token": "",
+                "strict_scope": false
+            },
+            "result": "FAIL",
+            "message": "Packages marked abandoned on Packagist:\n    - fixture/library@1.0.0",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0744",
+            "case": "loopback abandoned=true active MB-0061 strict scope",
+            "binding": "composer_abandoned_api",
+            "overrides": {
+                "status_endpoint": "https://127.0.0.1:46137",
+                "timeout_ms": 1000,
+                "token": "",
+                "strict_scope": true
+            },
+            "result": "FAIL",
+            "message": "Packages marked abandoned on Packagist:\n    - fixture/library@1.0.0",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0744",
+            "case": "loopback abandoned=false archived args",
+            "binding": "composer_abandoned_api",
+            "overrides": {
+                "status_endpoint": "https://127.0.0.1:46137",
+                "timeout_ms": 1000,
+                "token": "",
+                "strict_scope": false
+            },
+            "result": "PASS",
+            "message": "No installed packages in the requested Composer type scope are marked abandoned",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0744",
+            "case": "loopback abandoned=false active MB-0061 strict scope",
+            "binding": "composer_abandoned_api",
+            "overrides": {
+                "status_endpoint": "https://127.0.0.1:46137",
+                "timeout_ms": 1000,
+                "token": "",
+                "strict_scope": true
+            },
+            "result": "PASS",
+            "message": "No installed packages in the requested Composer type scope are marked abandoned",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0744",
+            "case": "loopback abandoned=null archived args",
+            "binding": "composer_abandoned_api",
+            "overrides": {
+                "status_endpoint": "https://127.0.0.1:46137",
+                "timeout_ms": 1000,
+                "token": "",
+                "strict_scope": false
+            },
+            "result": "UNKNOWN",
+            "message": "[UNKNOWN] Packagist abandoned status unavailable for:\n    - fixture/library@1.0.0",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0744",
+            "case": "loopback abandoned=null active MB-0061 strict scope",
+            "binding": "composer_abandoned_api",
+            "overrides": {
+                "status_endpoint": "https://127.0.0.1:46137",
+                "timeout_ms": 1000,
+                "token": "",
+                "strict_scope": true
+            },
+            "result": "UNKNOWN",
+            "message": "[UNKNOWN] Packagist abandoned status unavailable for:\n    - fixture/library@1.0.0",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0747",
+            "case": "synthetic test PAN",
+            "binding": "code_cardholder_data_logs",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Cardholder data found in application logs or reports:\n    - <FIXTURE>/var/log/payment.log:1 [pan] Luhn-valid PAN-like value ending 1111",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0747",
+            "case": "no log inventory",
+            "binding": "code_cardholder_data_logs",
+            "overrides": [],
+            "result": "PASS",
+            "message": "No application log or report files found to scan",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0748",
+            "case": "PHP disguised as image",
+            "binding": "code_media_executable_code",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Executable code or script-enabling handlers detected in media/upload paths:\n    - <FIXTURE>/pub/media/picture.jpg:1 [php_open_tag] <?php echo \"inert fixture\";",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0748",
+            "case": "non-PHP shebang signature",
+            "binding": "code_media_executable_code",
+            "overrides": [],
+            "result": "FAIL",
+            "message": "Executable code or script-enabling handlers detected in media/upload paths:\n    - <FIXTURE>/pub/media/script.txt:1 [script_shebang] #!/usr/bin/env python",
+            "untested_bindings": []
+        },
+        {
+            "id": "MB-0748",
+            "case": "no upload inventory",
+            "binding": "code_media_executable_code",
+            "overrides": [],
+            "result": "PASS",
+            "message": "No executable code or script-enabling handlers detected in media/upload paths",
+            "untested_bindings": []
+        }
+    ]
+}

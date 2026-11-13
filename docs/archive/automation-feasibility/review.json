@@ -1,0 +1,1482 @@
+{
+  "summary": {
+    "review_date": "2026-10-17",
+    "scope": "All50 Magebean automation backlog requirements; feasibility review, not implemented automation or certification.",
+    "counts": {
+      "FULL_AUTOMATION": 11,
+      "SCOPED_AUTOMATION": 36,
+      "SIGNAL_ONLY": 1,
+      "NOT_AUTOMATABLE": 2
+    },
+    "candidate_requirements": 47,
+    "current_ready": 0,
+    "with_related_active_check": 23,
+    "input_sha256": {
+      "src/Rules/requirements/magebean-catalog.json": "7d28ddf8ff09cd1ce12f9ef82332c31082a1b19a1ffee0774873922fae341169",
+      "src/Rules/requirements/internal-profiles.json": "fa9dc5e1530c74201548bcb2a017e0602a25fc1c3d73139b139628a7c9983309",
+      "src/Rules/requirements/magebean-automation-backlog.json": "67aed5faa31e97d9b0f2be97c7d408b27bcc67f6135bf2f7858f1c70ca3d8705",
+      "docs/archive/automation-feasibility/root-probes.json": "81fdb56ec07790eb51db324bb00b9e79f6dc3e0f4b23dc7f916fe12dd73ee8fa"
+    }
+  },
+  "requirements": [
+    {
+      "id": "MB-0004",
+      "verdict": "FULL_AUTOMATION",
+      "rationale": "Effective write access is a machine property when the deployment runtime identities and mount namespace are known. Current strict mode checks all Unix write bits, so owner-writable code can falsely fail even when the web worker cannot write; ACLs and read-only mounts are not evaluated.",
+      "implementation_evidence": [
+        "src/Engine/Checks/FilesystemCheck.php:294",
+        "tests/ScopedSourceFilesystemPolicyTest.php:25"
+      ],
+      "existing_function": "FilesystemCheck::codeDirsReadonly / strictCodeModes",
+      "required_inputs": [
+        "Runtime UID, supplementary groups, capabilities and mount namespace for each application worker",
+        "Complete app/vendor/lib inventory, symlink targets, ACLs and mount flags"
+      ],
+      "proposed_check": "Evaluate effective create/replace/write permissions for every code object and containing directory under every declared runtime identity using an OS-aware read-only evaluator. PASS requires complete inventory and no writable object; any confirmed writable object FAIL; unsupported capability, namespace or ACL semantics UNKNOWN.",
+      "tests": {
+        "safe": "Deployment-owner write bit with distinct nonwriter web UID; read-only runtime bind mount.",
+        "fail": "ACL grants web UID write, writable parent allows code replacement, or runtime group can write.",
+        "missing": "Unidentified worker, uncollected ACL, external symlink or mount namespace yields UNKNOWN."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0001",
+        "MB-0002"
+      ],
+      "limitations": "Active IDs only cover world-write/env ownership policy. Never infer runtime access from scanner UID or mode bits alone.",
+      "criterion": "Code directories are read-only for the application runtime in the collected Magento deployment; assess effective runtime identity, permissions, ACLs and read-only mounts.",
+      "review_partition": "runtime"
+    },
+    {
+      "id": "MB-0010",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "An ACL string anywhere in repository config and an unseen login page do not prove ingress restriction. The current check can PASS on ACL hints even if the effective virtual host does not apply them.",
+      "implementation_evidence": [
+        "src/Engine/Checks/MagentoCheck.php:576",
+        "tests/QaRegressionTest.php:30"
+      ],
+      "existing_function": "MagentoCheck::adminExposureRestricted",
+      "required_inputs": [
+        "Known Admin route and explicit ingress endpoint list",
+        "Machine readable active gateway policy tied to endpoint and known denied/allowed probe perspectives"
+      ],
+      "proposed_check": "New ID: each named Admin endpoint returns an explicit access denial from the configured untrusted probe origin, with active ACL bindings showing the protected route. Reachable login FAIL; ambiguous 200/404, redirect, unknown origin or unavailable binding UNKNOWN. No password submission.",
+      "tests": {
+        "safe": "Known forbidden-origin probe gets bound gateway 403 while authenticated health probe confirms route exists.",
+        "fail": "Admin login body reachable from forbidden origin despite unrelated ACL hint.",
+        "missing": "Unknown route/origin, 404 catch-all, WAF challenge, transport failure or partial endpoint set UNKNOWN."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0006",
+        "MB-0777"
+      ],
+      "limitations": "New ID required for endpoint/origin-scoped denial; cannot establish restriction from all networks or gateway bypass absence. Existing route naming/HTTPS checks are not Admin access controls.",
+      "criterion": "Admin URL exposure restricted; assess only the collected Magento deployment scope.",
+      "review_partition": "runtime"
+    },
+    {
+      "id": "MB-0015",
+      "criterion": "Forms include CSRF tokens (form_key); assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "An input named form_key can be empty and current detector passes it; server acceptance is untested.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/TemplateRequestSourceChecks.php:276",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_csrf_form_key / csrfFormKey",
+      "required_inputs": [
+        "machine-readable state-changing route manifest",
+        "isolated test deployment",
+        "session/token fixtures",
+        "transaction rollback or disposable records"
+      ],
+      "proposed_check": "For the explicit discovered state-changing browser route manifest, automated integration tests must reject missing/invalid token without mutation and accept a valid token only with the appropriate authenticated session; incomplete route enumeration is UNKNOWN.",
+      "tests": {
+        "safe": "Valid session-bound token succeeds in sandbox; public safe GET is excluded by route metadata.",
+        "fail": "Missing/empty/foreign-session token performs the state change.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "Run mutation tests in isolated environment, not as a passive production probe; this is route-contract coverage rather than all possible CSRF.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0016",
+      "criterion": "SSRF protections present; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Timeout/allowlist words near a sink do not establish URL canonicalization, DNS rebinding handling or redirect controls across arbitrary application flows.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/InputSafetySourceChecks.php:959",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_ssrf_safeguards / ssrfSafeguards",
+      "required_inputs": [
+        "source inventory",
+        "HTTP client adapter manifests",
+        "controlled DNS and redirect test service in isolated network"
+      ],
+      "proposed_check": "For every HTTP-client adapter in the complete declared manifest, isolated automated tests must prove its approved destination policy rejects loopback/private/link-local destinations, DNS-change and redirect escape cases before connection, and allows the approved control. Unlisted adapters or incomplete network fixtures are UNKNOWN.",
+      "tests": {
+        "safe": "Known-safe adapter rejects loopback/private/redirect targets and permits approved destinations in controlled tests.",
+        "fail": "Adapter reaches a controlled forbidden target or unused guard suppresses a dangerous source sink.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "No defensible positive conclusion for the original broad requirement; arbitrary dynamic/network flows are not enumerated.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0019",
+      "criterion": "No eval/assert/dynamic execution; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Detector suppresses some unresolved includes/callables and interprets assert without installed-version semantics; current absence result cannot establish broad no dynamic execution.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/InputSafetySourceChecks.php:578",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_dynamic_execution_safety / dynamicExecutionSafety",
+      "required_inputs": [
+        "complete PHP AST inventory",
+        "runtime PHP version",
+        "approved include manifest"
+      ],
+      "proposed_check": "Completely parsed custom PHP must contain no eval, executable-string assertion, create_function or dynamic include target outside a statically resolved approved set; unresolved constructs yield UNKNOWN.",
+      "tests": {
+        "safe": "Literal installed-file include and ordinary assertion of a boolean pass the version-aware policy.",
+        "fail": "eval, dynamic request-controlled include and executable-string assertion on affected runtime fail.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "New precisely enumerated construct policy; dynamic language/runtime loading beyond analyzed files remains uncovered.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0020",
+      "criterion": "Path traversal protections; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Nearby basename/realpath/DirectoryList strings suppress reports without proving canonical containment or symlink-safe use.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/InputSafetySourceChecks.php:781",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_path_traversal_safety / pathTraversalSafety",
+      "required_inputs": [
+        "source inventory",
+        "file adapter manifests",
+        "isolated symlink and encoding fixtures"
+      ],
+      "proposed_check": "For each declared file adapter and operation, isolated automated tests must prove all defined traversal, encoding, sibling-prefix and symlink fixtures remain within the approved canonical root; supported safe paths must work and incomplete adapter/operation enumeration is UNKNOWN.",
+      "tests": {
+        "safe": "Controlled adapter rejects encoded traversal, symlink escape and sibling-prefix tricks.",
+        "fail": "A controlled read/write escapes the approved root despite nearby unused normalization.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "General path safety depends on runtime filesystem, races, wrappers and interprocedural input flow.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0021",
+      "criterion": "Secure file upload handling; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Generic MIME/extension/size/storage words near a save operation do not prove enforcement or non-executable delivery.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/InputSafetySourceChecks.php:871",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_upload_safety / uploadSafety",
+      "required_inputs": [
+        "endpoint and allowed-content manifest",
+        "isolated upload storage",
+        "test users",
+        "harmless MIME/extension mismatch fixtures"
+      ],
+      "proposed_check": "Every upload endpoint in the complete declared manifest must satisfy its exact extension/MIME/size/authorization/generated-filename/storage-delivery contract under isolated automated fixtures; unsupported endpoint architecture or incomplete inventory is UNKNOWN.",
+      "tests": {
+        "safe": "Manifest endpoint rejects disallowed size/type, stores under generated name and denies execution in sandbox.",
+        "fail": "Harmless forbidden-extension or oversized fixture is accepted contrary to its endpoint contract.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "Business allowed types, image transformations, virus processing and CDN/runtime execution are broader than source inference.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0023",
+      "criterion": "Use CSPRNG; avoid weak PRNG; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Current weak-PRNG detection depends on token-like nearby names; security relevance cannot be inferred from names alone.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/InputSafetySourceChecks.php:830",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_csprng_safety / csprngSafety",
+      "required_inputs": [
+        "machine-readable security-token generator manifest",
+        "PHP AST/dataflow",
+        "entropy policy"
+      ],
+      "proposed_check": "The complete declared security-token generator manifest must resolve to approved CSPRNG APIs with configured minimum entropy and no fallback to weak generators; unresolved flow is UNKNOWN.",
+      "tests": {
+        "safe": "Declared reset-token generator uses random_bytes at approved entropy with hard error on failure.",
+        "fail": "Declared generator uses mt_rand or silently falls back after entropy-source failure.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "New manifest-bound generator contract; cannot discover every security-sensitive random use by variable name.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0025",
+      "criterion": "No unsafe raw crypto or session APIs in custom code; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Raw APIs can be legitimate; framework name presence does not prove cryptographic or session correctness.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/DataProtectionSourceChecks.php:960",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_magento_api_crypto_session / magentoApiCryptoSession",
+      "required_inputs": [
+        "complete source inventory",
+        "installed PHP/Magento versions",
+        "approved service and forbidden API policy"
+      ],
+      "proposed_check": "Completely parsed custom PHP must use only approved crypto/session service APIs; ban a versioned exact list of raw session and obsolete crypto primitives, resolve aliases and report unresolved dynamic calls UNKNOWN.",
+      "tests": {
+        "safe": "Approved Magento encryption/session service usage passes the explicit API policy.",
+        "fail": "Direct session_start or prohibited raw cipher invocation fails independently of unrelated framework imports.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "New syntactic/API policy; approved services can still be misused semantically.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0043",
+      "verdict": "FULL_AUTOMATION",
+      "rationale": "Whether rotation is configured for deployed logs can be automatically determined from effective scheduler/collector configurations. A project devops/logrotate.conf with compression does not prove host installation, all log coverage or container/cloud applicability.",
+      "implementation_evidence": [
+        "src/Engine/Checks/FilesystemCheck.php:340",
+        "tests/QaRegressionTest.php:97"
+      ],
+      "existing_function": "FilesystemCheck::logRotationConfigured",
+      "required_inputs": [
+        "Actual application log destinations and deployment logging architecture",
+        "Effective installed logrotate includes and schedule, or supported container/cloud collector retention configuration"
+      ],
+      "proposed_check": "Bind every configured application log sink to active rotation/retention configuration through supported host/container/cloud adapters. Resolve includes, defaults, overrides and scheduling without invoking rotation scripts. Complete configured sink coverage PASS; known unrotated sink FAIL; unsupported collector or missing include/scheduler UNKNOWN.",
+      "tests": {
+        "safe": "Installed scheduler plus effective rules cover each file sink; supported container driver max-size/max-file policy.",
+        "fail": "One deployed log sink has no rotation rule or active scheduler.",
+        "missing": "Only repository sample config, unreadable include, unknown cloud sink or scheduler UNKNOWN."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "Original criterion is configured rotation, not successful historical execution. Retention/compression thresholds must be explicit policy; don't force local logrotate on managed logging.",
+      "criterion": "Log rotation configured; assess only the collected Magento deployment scope.",
+      "review_partition": "runtime"
+    },
+    {
+      "id": "MB-0051",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "An actionable remediation plan and explicitly reviewed alternative mitigation require a decision; OSV fixed-version metadata alone proves neither compatibility nor review.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/ComposerAdvisoryChecks.php:453",
+        "src/Engine/Checks/Families/ComposerSupport.php:455"
+      ],
+      "existing_function": "composer_fix_version_api",
+      "required_inputs": [
+        "Complete lock inventory",
+        "Fresh OSV branches/ranges",
+        "Composer solver/platform context"
+      ],
+      "proposed_check": "Report published fixed release candidates and optional read-only solver conflicts per detected advisory; do not assert an actionable approved plan.",
+      "tests": {
+        "safe": "All explicitly inventoried candidates meet the precise proposed check with complete known statuses. Verify applicable alternatives and exclusions explicitly.",
+        "fail": "One known violation of the precise proposed predicate fails even with missing statuses for other items; preserve redacted package/path evidence.",
+        "missing": "Missing, malformed, stale, unsupported, partial or unreadable input => UNKNOWN; never PASS."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0049",
+        "MB-0056"
+      ],
+      "limitations": "A new narrower criterion requires a new identity; do not promote the historical requirement by dropping human flags. Package API presence is not proof of backend provenance, freshness or completeness.",
+      "criterion": "For each detected dependency vulnerability in the assessed lockfile, an actionable remediation plan must identify an available fixed package release or an explicitly reviewed alternative mitigation.",
+      "review_partition": "dependencies"
+    },
+    {
+      "id": "MB-0052",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Maintained and high-risk are broader than pattern tagging and recent release/repository metadata; enabled module inventory must be mapped correctly to packages.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/ComposerPolicyChecks.php:9",
+        "src/Engine/Checks/Families/ComposerSupport.php:455"
+      ],
+      "existing_function": "composer_risk_surface_tag",
+      "required_inputs": [
+        "Enabled module declarations",
+        "Module-to-Composer mapping including non-Composer code",
+        "Explicit risk patterns",
+        "Known repository/release statuses"
+      ],
+      "proposed_check": "Flag enabled mapped modules matching explicit risk patterns whose known maintenance statuses violate configured recency/archive/abandonment policy.",
+      "tests": {
+        "safe": "All explicitly inventoried candidates meet the precise proposed check with complete known statuses. Verify applicable alternatives and exclusions explicitly.",
+        "fail": "One known violation of the precise proposed predicate fails even with missing statuses for other items; preserve redacted package/path evidence.",
+        "missing": "Missing, malformed, stale, unsupported, partial or unreadable input => UNKNOWN; never PASS."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0061",
+        "MB-0062",
+        "MB-0063"
+      ],
+      "limitations": "A new narrower criterion requires a new identity; do not promote the historical requirement by dropping human flags. Package API presence is not proof of backend provenance, freshness or completeness.",
+      "criterion": "Enabled high-risk modules are maintained; assess only the collected Magento deployment scope.",
+      "review_partition": "dependencies"
+    },
+    {
+      "id": "MB-0053",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Existing SECURITY.md keyword checks can pass arbitrary text containing mitigation and rollback; they cannot establish that every actual temporary mitigation is documented.",
+      "implementation_evidence": [
+        "src/Engine/Checks/FilesystemCheck.php:450"
+      ],
+      "existing_function": "security_mitigations_documented",
+      "required_inputs": [
+        "Machine-readable mitigation manifest",
+        "Advisory IDs and deployment identifiers",
+        "Owner, expiry and rollback fields"
+      ],
+      "proposed_check": "Validate mitigation manifest schema and expiry plus references to collected advisories; explicitly assess document completeness only, not mitigation effectiveness or truthful coverage.",
+      "tests": {
+        "safe": "All explicitly inventoried candidates meet the precise proposed check with complete known statuses. Verify applicable alternatives and exclusions explicitly.",
+        "fail": "SECURITY.md containing only mitigation rollback does not prove a complete mitigation register; expired or missing required fields fail schema predicate.",
+        "missing": "Missing, malformed, stale, unsupported, partial or unreadable input => UNKNOWN; never PASS."
+      },
+      "effort": "S",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "A new narrower criterion requires a new identity; do not promote the historical requirement by dropping human flags. Package API presence is not proof of backend provenance, freshness or completeness.",
+      "criterion": "Temporary mitigations documented; assess only the collected Magento deployment scope.",
+      "review_partition": "dependencies"
+    },
+    {
+      "id": "MB-0054",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Current function detects KEV advisory matches, not organizational prioritization. Missing known_exploited fields currently look false; feed completeness/freshness is necessary.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/ComposerAdvisoryChecks.php:579",
+        "src/Engine/Checks/Families/ComposerSupport.php:455"
+      ],
+      "existing_function": "composer_kev_advisories_api",
+      "required_inputs": [
+        "Complete advisory coverage",
+        "CVE alias mapping",
+        "Dated complete KEV source with explicit known membership"
+      ],
+      "proposed_check": "No installed collected Composer package version matches a known KEV CVE in the dated complete KEV/advisory datasets; preserve positive matches under partial coverage.",
+      "tests": {
+        "safe": "All explicitly inventoried candidates meet the precise proposed check with complete known statuses. Verify applicable alternatives and exclusions explicitly.",
+        "fail": "One known violation of the precise proposed predicate fails even with missing statuses for other items; preserve redacted package/path evidence.",
+        "missing": "Absent known_exploited flag, incomplete CVE aliases or stale KEV feed => UNKNOWN, not false."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0049"
+      ],
+      "limitations": "A new narrower criterion requires a new identity; do not promote the historical requirement by dropping human flags. Package API presence is not proof of backend provenance, freshness or completeness.",
+      "criterion": "Known-exploited packages prioritized (CISA KEV); assess only the collected Magento deployment scope.",
+      "review_partition": "dependencies"
+    },
+    {
+      "id": "MB-0058",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Current/maintained cannot be inferred from latest-release age; Marketplace classification is backend metadata, and magento2-module excludes other extension package types and manually installed extensions.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/ComposerVersionChecks.php:262",
+        "src/Engine/Checks/Families/ComposerSupport.php:455"
+      ],
+      "existing_function": "composer_marketplace_outdated_api",
+      "required_inputs": [
+        "Complete extension inventory and enabled/deployed scope",
+        "Verified Marketplace mapping",
+        "Version comparability/branch constraints",
+        "Explicit support/release metadata timestamps"
+      ],
+      "proposed_check": "For explicitly classified Marketplace Composer packages, report installed-versus-policy target version and latest release age; absence of metadata is UNKNOWN.",
+      "tests": {
+        "safe": "All explicitly inventoried candidates meet the precise proposed check with complete known statuses. Verify applicable alternatives and exclusions explicitly.",
+        "fail": "One known violation of the precise proposed predicate fails even with missing statuses for other items; preserve redacted package/path evidence.",
+        "missing": "Missing, malformed, stale, unsupported, partial or unreadable input => UNKNOWN; never PASS."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0062",
+        "MB-0063",
+        "MB-0061"
+      ],
+      "limitations": "A new narrower criterion requires a new identity; do not promote the historical requirement by dropping human flags. Package API presence is not proof of backend provenance, freshness or completeness.",
+      "criterion": "Marketplace extensions are current and maintained; assess only the collected Magento deployment scope.",
+      "review_partition": "dependencies"
+    },
+    {
+      "id": "MB-0060",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Backend vendor_support_status active is evidence of a reported support status, not evidence that this customer/version has vendor support entitlement or support service.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/ComposerRepositoryChecks.php:9",
+        "src/Engine/Checks/Families/ComposerSupport.php:455"
+      ],
+      "existing_function": "composer_vendor_support_api",
+      "required_inputs": [
+        "Authoritative vendor version lifecycle API or authenticated entitlement API",
+        "Complete extension classification",
+        "Timestamp and supported version ranges"
+      ],
+      "proposed_check": "For named mapped packages, configured authoritative vendor source explicitly declares this installed version supported until a recorded date; do not infer customer entitlement from repository activity.",
+      "tests": {
+        "safe": "All explicitly inventoried candidates meet the precise proposed check with complete known statuses. Verify applicable alternatives and exclusions explicitly.",
+        "fail": "One known violation of the precise proposed predicate fails even with missing statuses for other items; preserve redacted package/path evidence.",
+        "missing": "Missing, malformed, stale, unsupported, partial or unreadable input => UNKNOWN; never PASS."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0063"
+      ],
+      "limitations": "A new narrower criterion requires a new identity; do not promote the historical requirement by dropping human flags. Package API presence is not proof of backend provenance, freshness or completeness.",
+      "criterion": "Marketplace extensions have vendor support evidence; assess only the collected Magento deployment scope.",
+      "review_partition": "dependencies"
+    },
+    {
+      "id": "MB-0064",
+      "verdict": "FULL_AUTOMATION",
+      "rationale": "Risk can be an explicit machine-evaluable source policy: a complete mapping of replacements/forks/source overrides and exact approved upstreams/revisions permits a full verdict under that supplied policy. Current repository_trusted/is_fork heuristics and excluded missing sources are insufficient.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/ComposerRepositoryChecks.php:616",
+        "src/Engine/Checks/Families/ComposerSupport.php:455"
+      ],
+      "existing_function": "composer_risky_fork_api",
+      "required_inputs": [
+        "Complete lock plus root repository declarations",
+        "Canonical source URLs and pinned upstream revisions",
+        "Explicit exact source/revision allowlist",
+        "Known per-package fork/override status"
+      ],
+      "proposed_check": "Enumerate all collected replacement and source-override candidates from complete lock/root repository declarations; resolve canonical upstream and source revision; reject candidates violating configured exact repository/revision risk policy. Unknown identity, fork state, unsupported provider or source must prevent PASS.",
+      "tests": {
+        "safe": "All explicitly inventoried candidates meet the precise proposed check with complete known statuses. Verify applicable alternatives and exclusions explicitly.",
+        "fail": "Root repository source override or fork revision violates exact source policy; unknown no-replace package source cannot be silently excluded.",
+        "missing": "Missing, malformed, stale, unsupported, partial or unreadable input => UNKNOWN; never PASS."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0063"
+      ],
+      "limitations": "Conditional FULL under an explicit technical fork-risk policy; cannot infer absence of undisclosed malicious commits. Root repository overrides, non-Git providers, missing statuses and all installed custom libraries must be accounted for. No current authoritative revision allowlist adapter is claimed implemented.",
+      "criterion": "No risky forks replacing upstream libs; assess only the collected Magento deployment scope.",
+      "review_partition": "dependencies"
+    },
+    {
+      "id": "MB-0073",
+      "criterion": "HTTPS-only endpoints configured; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Source HTTP literals are neither complete effective endpoint inventory nor proof of TLS enforcement; Basic already covers storefront HTTPS and mixed-content observations.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/CodeQueryChecks.php:175",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_https_endpoints / httpsEndpoints",
+      "required_inputs": [
+        "effective endpoint/adapter manifest",
+        "resolved production config",
+        "HTTP client TLS options",
+        "safe TLS test endpoints"
+      ],
+      "proposed_check": "For every effective endpoint in the declared Magento integration endpoint manifest, resolved production configuration must use HTTPS and the actual client configuration must enable peer/hostname verification; unsupported adapters are UNKNOWN.",
+      "tests": {
+        "safe": "HTTPS endpoint with verified peer/hostname passes; namespaces in XML are not endpoints.",
+        "fail": "Effective HTTP integration endpoint or verify=false client setting fails.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0026",
+        "MB-0029"
+      ],
+      "limitations": "New manifest-bound integration TLS policy; active storefront/mixed-content checks overlap but do not fully cover integration configuration.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0075",
+      "criterion": "Webhook signature validation present; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Finding hash_hmac/hash_equals/signature words does not establish correct payload canonicalization, secret binding, rejection or replay handling for arbitrary webhook providers.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/TemplateRequestSourceChecks.php:441",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_webhook_signature_validation / webhookSignatureValidation",
+      "required_inputs": [
+        "provider handler manifest",
+        "official provider contract/version",
+        "isolated valid/tampered/replayed event fixtures",
+        "side-effect oracle"
+      ],
+      "proposed_check": "Every webhook adapter in the complete declared provider manifest must reject invalid/tampered/missing/stale signatures before side effects, accept the provider valid-event control, and satisfy its idempotency contract in isolated automated tests; unknown adapters are UNKNOWN.",
+      "tests": {
+        "safe": "Declared provider fixture accepts valid event and rejects invalid/replayed events before mutation.",
+        "fail": "Handler mutates state before verification or accepts tampered signed body.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "Provider-specific implementation is feasible per adapter but cannot certify the unrestricted original statement across unknown handlers.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0076",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Host OUTPUT default deny alone is not deployment allow-list enforcement: jumps, broad accepts, IPv6, container FORWARD/CNI and external gateways may bypass it. Source hints cannot repair missing topology.",
+      "implementation_evidence": [
+        "src/Engine/Checks/SystemCheck.php:23",
+        "src/Engine/Checks/SystemCheck.php:64",
+        "src/Rules/requirements/magebean-catalog.json:5883"
+      ],
+      "existing_function": "SystemCheck::egressRestricted; CodeSearchCheck::outboundEgressControls",
+      "required_inputs": [
+        "Named runtime network namespace and supported effective firewall/CNI/gateway policy export",
+        "Explicit destination allow-list and complete IPv4/IPv6 chain references"
+      ],
+      "proposed_check": "New ID: in the named supported namespace, effective policy for the declared application identity denies new outbound traffic outside supplied destination/service allow-list. Model complete chain ordering/jumps and both address families; unsupported paths UNKNOWN. No arbitrary external connection scans.",
+      "tests": {
+        "safe": "Complete supported ruleset permits only named destinations and necessary established traffic.",
+        "fail": "Early or jumped unconditional accept, IPv6 bypass or broad destination rule.",
+        "missing": "Unresolved chain, unreadable CNI/namespace policy, missing allow-list or unbound identity UNKNOWN."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "New ID required for supported namespace/policy model; cannot certify all production network paths from host firewall output. A DROP policy with unrestricted earlier rules must not PASS.",
+      "criterion": "Outbound connections restricted by allow-list; assess only the collected Magento deployment scope.",
+      "review_partition": "runtime"
+    },
+    {
+      "id": "MB-0077",
+      "verdict": "SIGNAL_ONLY",
+      "rationale": "Regex detection of sensitive fields near outbound calls cannot establish business necessity, complete data flows, effective payload minimization or runtime interception; benign masked code can hide another export path.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/DataProtectionSourceChecks.php:9",
+        "src/Engine/Checks/Families/ComposerSupport.php:455",
+        "src/Engine/Checks/Families/DataProtectionSourceChecks.php:658"
+      ],
+      "existing_function": "code_pii_minimization",
+      "required_inputs": [
+        "Complete readable source inventory",
+        "Configured sensitive field taxonomy",
+        "Optional bounded representative outbound request fixtures"
+      ],
+      "proposed_check": "Report inspected source locations with apparent raw sensitive fields in recognized outbound flows; label as suspicion requiring investigation, never proof all third-party flows minimize PII.",
+      "tests": {
+        "safe": "Masked recognized export yields no signal only; another unrecognized outbound flow cannot be asserted safe.",
+        "fail": "One known violation of the precise proposed predicate fails even with missing statuses for other items; preserve redacted package/path evidence.",
+        "missing": "Missing, malformed, stale, unsupported, partial or unreadable input => UNKNOWN; never PASS."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "A new narrower criterion requires a new identity; do not promote the historical requirement by dropping human flags. Package API presence is not proof of backend provenance, freshness or completeness.",
+      "criterion": "PII minimization for third-party flows; assess only the collected Magento deployment scope.",
+      "review_partition": "dependencies"
+    },
+    {
+      "id": "MB-0078",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Current check returns on the first apparently strong repository TLS declaration; other virtual hosts/gateways, inherited settings and TLS 1.3 cipher policy are not established. Active endpoint enumeration can support a precise observed policy.",
+      "implementation_evidence": [
+        "src/Engine/Checks/WebServerConfigCheck.php:59",
+        "src/Engine/Checks/WebServerConfigCheck.php:195",
+        "tests/QaRegressionTest.php:86"
+      ],
+      "existing_function": "WebServerConfigCheck::tlsCiphers",
+      "required_inputs": [
+        "Explicit gateway endpoint/SNI list with deployment binding",
+        "Supported active TLS cipher enumerator and explicit versioned cipher baseline"
+      ],
+      "proposed_check": "New ID: every successfully enumerated supplied gateway endpoint accepts only cipher suites allowed by configured baseline for assessed TLS versions. Any weak accepted suite FAIL; incomplete enumeration, unsupported client capability or unbound endpoint UNKNOWN. Source expressions are supplemental, not runtime proof.",
+      "tests": {
+        "safe": "Complete TLS 1.2/1.3 enumeration yields only allowed suites at every supplied endpoint.",
+        "fail": "One accepted deprecated suite or weak second gateway despite strong first config.",
+        "missing": "Enumerator cannot offer excluded suites, unknown SNI, handshake transport error or incomplete gateway list UNKNOWN."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0028",
+        "MB-0778"
+      ],
+      "limitations": "New ID required for enumerated endpoint scope and defined strong-suite policy. Protocol/certificate checks do not cover ciphers; no browser/client failure may be interpreted as server rejection.",
+      "criterion": "Strong TLS ciphers on upstream gateways; assess only the collected Magento deployment scope.",
+      "review_partition": "runtime"
+    },
+    {
+      "id": "MB-0079",
+      "criterion": "API keys stored in env.php (not in DB/plain code); assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "env.php presence or a credential-like key does not prove all API keys are stored there; external secret injection may be a valid architecture contrary to this original storage mandate.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/DataProtectionSourceChecks.php:188",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_api_key_storage / apiKeyStorage",
+      "required_inputs": [
+        "credential provenance manifest",
+        "read-only effective config/DB access",
+        "secret-store adapter provenance",
+        "complete source scope"
+      ],
+      "proposed_check": "For each credential in an explicit integration-credential manifest, effective config provenance must resolve to an approved protected environment/secret-store source, and prohibited plaintext config DB fields/source literals must not contain that credential; values are compared in memory and never emitted.",
+      "tests": {
+        "safe": "Env-injected or approved vault-backed credential passes the declared provenance policy.",
+        "fail": "Declared credential resolves from prohibited plaintext core_config_data or source literal.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0730"
+      ],
+      "limitations": "New storage/provenance criterion required; current env.php-only requirement rejects valid external secret stores and cannot enumerate unknown keys.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0081",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Source ACL/IP keywords do not prove effective integration privileges, endpoint access or least privilege. Business-required minimal permissions cannot be derived from code alone.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/DataProtectionSourceChecks.php:311",
+        "src/Engine/Checks/Families/ComposerSupport.php:455",
+        "src/Engine/Checks/Families/DataProtectionSourceChecks.php:794"
+      ],
+      "existing_function": "code_saas_integration_scoped",
+      "required_inputs": [
+        "Explicit integration allowlist policy",
+        "Read-only integration/authorization_role/authorization_rule data",
+        "Effective merged webapi ACL mappings",
+        "Applicable network policy API and named endpoints"
+      ],
+      "proposed_check": "For explicitly named integrations, effective assigned ACL resources must be a subset of supplied allowed resources with no all-resource grant; separately verify named IP policy declarations through authoritative APIs. Do not claim optimal business least privilege.",
+      "tests": {
+        "safe": "All explicitly inventoried candidates meet the precise proposed check with complete known statuses. Verify applicable alternatives and exclusions explicitly.",
+        "fail": "Effective integration has all-resource or unauthorized grant; nearby ACL or IP keyword alone cannot PASS.",
+        "missing": "Missing, malformed, stale, unsupported, partial or unreadable input => UNKNOWN; never PASS."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "A new narrower criterion requires a new identity; do not promote the historical requirement by dropping human flags. Package API presence is not proof of backend provenance, freshness or completeness.",
+      "criterion": "SaaS integrations scoped by ACL (least privilege/IP allowlist); assess only the collected Magento deployment scope.",
+      "review_partition": "dependencies"
+    },
+    {
+      "id": "MB-0089",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Current implementation unions CSP directives from unrelated source files; it cannot prove a policy is emitted or enforced at checkout. Runtime response policies can be checked on named routes with explicit scope.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/PaymentSourceChecks.php:609",
+        "src/Engine/Checks/Families/PaymentSourceChecks.php:842"
+      ],
+      "existing_function": "PaymentSourceChecks::checkoutCspEnforced",
+      "required_inputs": [
+        "Named checkout page URLs and safe existing session context",
+        "Successful final same-origin response headers and versioned explicit CSP baseline"
+      ],
+      "proposed_check": "New ID: each supplied successfully retrieved checkout response emits enforced CSP satisfying configured directives after parsing each policy and applicable fallback. Report-only alone FAIL; policy split across unrelated files cannot combine into PASS; unavailable checkout/session UNKNOWN.",
+      "tests": {
+        "safe": "One enforced complete restrictive policy on each supplied checkout page.",
+        "fail": "Report-only only, wildcard/unsafe policy violating baseline, or missing directive on an assessed successful page.",
+        "missing": "Login redirect, empty cart redirect, blocked session, unvisited route or unparseable response UNKNOWN."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0779"
+      ],
+      "limitations": "New ID required because named response policy is narrower than checkout-wide enforcement. Does not establish nonce/hash application, all payment flows or absence of XSS; no purchases or state-changing checkout actions.",
+      "criterion": "Checkout Content Security Policy enforced; assess only the collected Magento deployment scope.",
+      "review_partition": "runtime"
+    },
+    {
+      "id": "MB-0094",
+      "criterion": "Custom controllers and APIs include function-level authorization; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Current checker searches sensitive words and accepts authorization-looking names anywhere in the file, not executed denial paths.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/AuthorizationSourceChecks.php:393",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_custom_authorization_checks / customAuthorizationChecks",
+      "required_inputs": [
+        "complete custom privileged-route manifest",
+        "test role/user fixtures",
+        "isolated deployment",
+        "side-effect oracle"
+      ],
+      "proposed_check": "Every route in the complete declared custom privileged-route manifest must reject guest and disallowed-role test requests with no protected action and accept the authorized-role control in isolated integration tests.",
+      "tests": {
+        "safe": "Role matrix allows only authorized role and confirms no unauthorized side effect.",
+        "fail": "Unused isAllowed method does not prevent disallowed role from invoking operation.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "New route/role contract; object ownership and unenumerated business authorization are separate.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0095",
+      "criterion": "GraphQL and API exposure minimized; assess only the collected Magento deployment scope.",
+      "verdict": "NOT_AUTOMATABLE",
+      "rationale": "Minimized exposure is a business decision about which APIs the storefront/integrations require; neither anonymous GraphQL nor public REST is inherently wrong.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/AuthorizationSourceChecks.php:255",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_api_exposure_minimized / apiExposureMinimized",
+      "required_inputs": [
+        "business-approved route/schema allowlist",
+        "effective runtime API inventory"
+      ],
+      "proposed_check": "No positive automated verdict for original criterion. A separately named approved-route/schema allowlist drift check is possible after a policy manifest exists.",
+      "tests": {
+        "safe": "Approved public storefront route is not treated as a vulnerability merely for being anonymous.",
+        "fail": "Separate drift check reports an unapproved newly exposed route.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "The separate allowlist checker can enforce a decision, but cannot decide necessity or certify the original minimization criterion.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0096",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Baseline is underspecified and source strings are currently combined across files. A precise runtime response baseline is a defensible automated predicate; full application-wide enforcement is not inferred.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/PaymentSourceChecks.php:522",
+        "src/Engine/Checks/HttpCheck.php:1"
+      ],
+      "existing_function": "PaymentSourceChecks::securityHeadersBaseline",
+      "required_inputs": [
+        "Explicit assessed application URL set",
+        "Successful same-host HTTPS response headers and configured header policy"
+      ],
+      "proposed_check": "New ID: successful responses at named URLs emit unambiguous X-Content-Type-Options nosniff plus configured enforced CSP/frame protection; evaluate HSTS through MB-0027 and frame policy through MB-0779 to avoid duplicate conclusions. Missing header on valid response FAIL; unsuccessful collection UNKNOWN.",
+      "tests": {
+        "safe": "Complete valid headers on every supplied successful route.",
+        "fail": "Conflicting duplicate headers, report-only frame policy, missing nosniff or malformed baseline header.",
+        "missing": "Transport errors, cross-host redirects, unsupported status or incomplete URL inventory UNKNOWN."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0027",
+        "MB-0779"
+      ],
+      "limitations": "New ID required to define baseline and observation scope. Security headers do not by themselves prove input handling or complete browser security.",
+      "criterion": "Security headers baseline enforced; assess only the collected Magento deployment scope.",
+      "review_partition": "runtime"
+    },
+    {
+      "id": "MB-0097",
+      "criterion": "Secrets are not hardcoded in custom code; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Secret pattern absence cannot establish that no hardcoded secrets exist; an active scoped pattern predicate already overlaps this topic.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/DataProtectionSourceChecks.php:523",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_hardcoded_secrets / hardcodedSecrets",
+      "required_inputs": [
+        "complete source inventory",
+        "versioned supported credential signatures",
+        "explicit exclusions and redaction policy"
+      ],
+      "proposed_check": "In the completely collected declared deployment source inventory, no literal matches the versioned supported credential signatures outside explicit secret-store exclusions; all unreadable/oversized eligible inputs make the result UNKNOWN.",
+      "tests": {
+        "safe": "Secret references and test placeholders pass only the documented signature policy.",
+        "fail": "Known realistic credential signature fails with redacted file/line evidence.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0730"
+      ],
+      "limitations": "A narrower new ID or existing MB-0730 revision/coverage expansion is appropriate; no claim that arbitrary unknown secrets are absent.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0098",
+      "criterion": "Unsafe XML parsing disabled; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Flags can be composed or supplied dynamically; current raw pattern detection does not resolve parser behavior/version.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/DataProtectionSourceChecks.php:448",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_unsafe_xml_parsing / unsafeXmlParsing",
+      "required_inputs": [
+        "complete PHP inventory",
+        "AST constant/options evaluation",
+        "installed PHP/libxml versions",
+        "approved parser wrapper contract"
+      ],
+      "proposed_check": "All completely parsed custom XML-parser call sites must resolve to a versioned approved parser configuration that disables external entity expansion, external DTD loading and XInclude; unknown flags/options are UNKNOWN.",
+      "tests": {
+        "safe": "Approved parser wrapper rejects external DTD/entity fixtures under actual installed runtime in isolated tests.",
+        "fail": "Effective NOENT/DTDLOAD/entity substitution or XInclude outside approved policy fails, even under aliases.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "New enumerated parser API/configuration policy, not universal assurance for third-party parsing outside collected scope.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0099",
+      "criterion": "File download and export endpoints require authorization; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Route/file naming and login words cannot prove permission checks protect the exported data.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/AuthorizationSourceChecks.php:519",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_download_export_authorization / downloadExportAuthorization",
+      "required_inputs": [
+        "download/export route manifest",
+        "role/owner fixtures",
+        "isolated protected artifacts",
+        "response/content oracle"
+      ],
+      "proposed_check": "Each download/export route in the complete manifest must reject guest, disallowed role and wrong-owner requests without releasing the protected test artifact, while authorized control obtains it.",
+      "tests": {
+        "safe": "Authorized owner gets synthetic artifact; other identities receive no protected bytes.",
+        "fail": "Authenticated wrong-owner user receives another user's test export.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "New route/role/object contract; signed-link flows need explicit expiry/scope fixture semantics.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0101",
+      "verdict": "FULL_AUTOMATION",
+      "rationale": "Comparison of actual effective global ACL assignments to an explicit machine policy can be automated. The decision to approve a role remains customer policy input, not human evidence per finding. Current implementation uses direct global-resource rows and also requires user approvals beyond the stated role criterion.",
+      "implementation_evidence": [
+        "src/Engine/Checks/AdminAclCheck.php:213",
+        "src/Engine/Checks/AdminAclCheck.php:252",
+        "tests/AdminAclCheckTest.php:52"
+      ],
+      "existing_function": "AdminAclCheck::globalAclRestricted",
+      "required_inputs": [
+        "Complete admin_user/authorization_role/authorization_rule rows and Magento ACL semantics",
+        "Explicit approved global role policy with stable IDs and deployment binding"
+      ],
+      "proposed_check": "Resolve inherited effective global ACL role grants and compare to configured approved role IDs. Do not silently treat omitted approval policy as empty; explicit deny-all policy is valid. Orphan/cyclic/unsupported ACL semantics UNKNOWN or assignment-integrity FAIL in MB-0100. Preserve role-only criterion rather than imposing unconfigured user allow-list.",
+      "tests": {
+        "safe": "Every effective global role is explicitly approved; explicit deny-all with no global grant.",
+        "fail": "Unapproved inherited/direct global role grant.",
+        "missing": "Omitted approval policy, stale identity binding, partial tables or unsupported ACL plugin UNKNOWN."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0100"
+      ],
+      "limitations": "Approval policy must be supplied as configuration. Scanner cannot decide business necessity or least privilege; MB-0100 is only relational integrity.",
+      "criterion": "Global Admin ACL limited to approved roles; assess only the collected Magento deployment scope.",
+      "review_partition": "runtime"
+    },
+    {
+      "id": "MB-0102",
+      "verdict": "NOT_AUTOMATABLE",
+      "rationale": "Original criterion is explicitly a PCI vendor-default-account evidence assessment, not a defined technical predicate. Parsing a customer assertion JSON does not independently verify account security and cannot justify moving it to automated Magebean coverage.",
+      "implementation_evidence": [
+        "src/Rules/requirements/magebean-catalog.json:8480",
+        "src/Engine/Checks/PciEvidenceCheck.php:19"
+      ],
+      "existing_function": "PciEvidenceCheck::vendorDefaultAccountsEvidence",
+      "required_inputs": [
+        "Vendor-specific deployed account inventory and manufacturer defaults, if a separate technical control is desired"
+      ],
+      "proposed_check": "Keep original assessment outside Magebean automated profiles. Optional new ID may detect named supported vendor default accounts from read-only inventories; never automatically attempt default passwords on production.",
+      "tests": {
+        "safe": "An evidence JSON claiming reviewed must never alone produce automated protection PASS.",
+        "fail": "Separate supported inventory detector finds a prohibited known default account.",
+        "missing": "Missing vendor scope or independent account inventory remains UNKNOWN for any proposed technical detector."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "PCI provenance and evidence sufficiency belong to PCI workflow. Separate default-account detection cannot certify the original assurance assessment.",
+      "criterion": "PCI vendor default account evidence assessment; assess only the collected Magento deployment scope.",
+      "review_partition": "runtime"
+    },
+    {
+      "id": "MB-0731",
+      "verdict": "FULL_AUTOMATION",
+      "rationale": "The minimum accepted native Admin password length can be determined from effective configuration and the installed validator. Legacy implementation reads only config.php; active MB-0728 already improves observation but does not test actual acceptance or custom validator overrides.",
+      "implementation_evidence": [
+        "src/Engine/Checks/MagentoCheck.php:440",
+        "src/Engine/Checks/MagentoCheck.php:113",
+        "tests/MagentoConfigurationCompletionTest.php:1"
+      ],
+      "existing_function": "MagentoCheck::adminPasswordPolicyStrong; adminPasswordMinimumConfigured",
+      "required_inputs": [
+        "Effective Admin authentication mode and resolved password settings",
+        "Installed validator version, DI preferences/plugins and supported nonmutating validation adapter"
+      ],
+      "proposed_check": "Verify native Admin password validator rejects valid-form candidates shorter than eight and resolves an effective minimum at least eight; adapter runs validation without creating users or changing passwords. Unsupported IMS/custom authentication UNKNOWN. Prefer consolidate with MB-0728 if its existing narrower criterion remains explicit.",
+      "tests": {
+        "safe": "Native minimum eight rejects seven-character candidates and accepts an otherwise valid eight-character candidate.",
+        "fail": "Installed validator accepts a valid seven-character candidate.",
+        "missing": "IMS or unsupported validator override, unavailable settings or validation adapter yields UNKNOWN."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0728"
+      ],
+      "limitations": "Does not inspect plaintext passwords or prove every existing credential meets the current policy. Eight is Magebean policy, not a universal Adobe mandate.",
+      "criterion": "Admin passwords require at least 8 characters; assess only the collected Magento deployment scope.",
+      "review_partition": "runtime"
+    },
+    {
+      "id": "MB-0732",
+      "criterion": "No raw SQL without abstraction; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Raw-SQL abstraction and injection safety are different properties; current regex also flags fixed SQL literals and does not resolve the connection type.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/InputSafetySourceChecks.php:363",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_raw_sql / rawSql",
+      "required_inputs": [
+        "complete source inventory",
+        "PHP AST and resolved adapter types",
+        "approved abstraction/binding policy"
+      ],
+      "proposed_check": "In every parsed PHP/PHTML file in the declared complete custom-code inventory, database calls must resolve to approved Magento adapters/repositories and parameter binding; unresolved dynamic receiver or query construction is UNKNOWN.",
+      "tests": {
+        "safe": "Bound Magento adapter query passes the binding policy; fixed SQL has a separate abstraction verdict.",
+        "fail": "Direct mysqli/PDO call outside approved adapter policy; concatenated request value fails.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "Interprocedural dynamic SQL and plugins require analysis coverage; this new policy does not prove no SQL injection.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0733",
+      "criterion": "Template output is escaped; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Regex recognizes a subset of echoes and any escape-function name; HTML, attribute, URL and JS contexts require distinct handling.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/TemplateRequestSourceChecks.php:247",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_phtml_escaped_output / phtmlEscapedOutput",
+      "required_inputs": [
+        "complete template inventory",
+        "PHP/HTML context parser",
+        "typed trusted-fragment policy"
+      ],
+      "proposed_check": "Every output expression in completely parsed custom PHTML templates must use the encoder approved for its syntactic HTML/attribute/URL context or resolve to an explicitly typed trusted rendered fragment; dynamic contexts are UNKNOWN.",
+      "tests": {
+        "safe": "escapeHtml in HTML text and escapeHtmlAttr in quoted attribute pass their respective context checks.",
+        "fail": "Unescaped dynamic output and escapeHtml used in a JS string fail the context policy.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "No browser/runtime XSS guarantee; Knockout/JS-generated output is outside this new PHTML policy.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0734",
+      "criterion": "No unsafe deserialization; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Current allowed_classes=false bypass is not sufficient for untrusted data; PHP documentation explicitly warns against it.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/InputSafetySourceChecks.php:523",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_unserialize_safety / unserializeSafety",
+      "required_inputs": [
+        "complete PHP inventory",
+        "AST callable resolver",
+        "ban-native-unserialize policy"
+      ],
+      "proposed_check": "In completely parsed custom PHP files, no invocation may resolve to native unserialize, including namespace aliases/fully-qualified and statically resolvable indirect calls; unresolved callable targets are UNKNOWN.",
+      "tests": {
+        "safe": "JSON decoder use passes the explicit native-unserialize ban.",
+        "fail": "Native unserialize with allowed_classes=false, true or missing option fails the policy.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "This is a stricter API ban with a new criterion; it does not prove all serializers and object-hydration flows safe.",
+      "sources": [
+        "https://www.php.net/manual/en/function.unserialize.php"
+      ],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0735",
+      "criterion": "Command execution is guarded; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Fixture shows unrelated escapeshellarg causes PASS for unguarded shell_exec; guard presence is not dataflow.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/InputSafetySourceChecks.php:718",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_command_execution_safety / commandExecutionSafety",
+      "required_inputs": [
+        "complete PHP inventory",
+        "AST callable/dataflow analysis",
+        "approved process adapter contract"
+      ],
+      "proposed_check": "No parsed custom-code call may resolve to shell-enabled execution APIs or backticks; only approved process adapter calls with literal executable and array arguments are allowed, unresolved indirect targets are UNKNOWN.",
+      "tests": {
+        "safe": "Approved process adapter with fixed executable and separate argument vector passes.",
+        "fail": "shell_exec of request input fails even with unrelated escapeshellarg nearby.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "New explicit execution API policy, not proof every OS command is semantically harmless.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0736",
+      "criterion": "Escaping for JS context; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Inline JS output requires nested HTML/JS parsing; finding an encoder name is insufficient.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/TemplateRequestSourceChecks.php:332",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_js_context_escaping / jsContextEscaping",
+      "required_inputs": [
+        "complete PHTML/HTML inventory",
+        "HTML and JS parser",
+        "installed serializer contract"
+      ],
+      "proposed_check": "All dynamic output in completely parsed inline-script and event-handler contexts must use the approved context-specific serializer/encoder combination; unresolved script templates are UNKNOWN.",
+      "tests": {
+        "safe": "Correct JSON data serialization for script context including HTML delimiters passes.",
+        "fail": "Raw request output inside a JS quoted literal fails; unrelated escapeJs call must not suppress it.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "External JS/DOM sinks remain outside this bounded policy; no general XSS assurance.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0737",
+      "criterion": "Sensitive data not logged; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Source snippets neither enumerate downstream handlers nor prove every sensitive value is redacted.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/DataProtectionSourceChecks.php:930",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_sensitive_logging / sensitiveLogging",
+      "required_inputs": [
+        "logging pipeline/handler manifest",
+        "sensitive-field schema",
+        "isolated sink captures",
+        "synthetic canaries only"
+      ],
+      "proposed_check": "For the declared application logging pipeline and sensitive-field schema, synthetic canary values must be removed or irreversibly masked before every configured sink receives each defined event fixture.",
+      "tests": {
+        "safe": "All configured handlers receive redacted fixtures including nested fields and exceptions.",
+        "fail": "Any sink receives raw canary token/password from a defined event fixture.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "New schema/event-bound contract; unknown sensitive fields and historical logs remain outside tested coverage.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0738",
+      "verdict": "FULL_AUTOMATION",
+      "rationale": "Loaded Xdebug extension/mode state is machine observable for actual production workers. Current repository ini scan and absence of Xdebug HTTP headers do not identify web SAPI state or environment overrides.",
+      "implementation_evidence": [
+        "src/Engine/Checks/PhpConfigCheck.php:155",
+        "src/Engine/Checks/HttpCheck.php:44",
+        "tests/BasicDeploymentPoliciesTest.php:21"
+      ],
+      "existing_function": "PhpConfigCheck::xdebugDisabled; HttpCheck::noXdebugHeaders",
+      "required_inputs": [
+        "Read-only authenticated worker-local runtime telemetry for every declared PHP pool/container",
+        "Loaded extension list, Xdebug effective mode and environment overrides with release/pool binding"
+      ],
+      "proposed_check": "Assess actual workers: Xdebug extension absent PASS under disabled-extension policy; loaded extension FAIL if that policy forbids loading, or effective off only under explicit mode policy. No public phpinfo endpoint. Incomplete fleet telemetry UNKNOWN; never substitute scanner CLI php -i.",
+      "tests": {
+        "safe": "All declared pools report Xdebug absent with matching deployment identities.",
+        "fail": "One worker loads Xdebug or effective debugging mode contrary to policy despite clean repository ini.",
+        "missing": "Only CLI ini, missing pool telemetry, stale snapshot or unknown XDEBUG_MODE override UNKNOWN."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0729"
+      ],
+      "limitations": "Define disabled semantics explicitly. Active MB-0729 covers inspected declarations only; absence of debug headers is not absence of Xdebug.",
+      "criterion": "Xdebug disabled in production; assess only the collected Magento deployment scope.",
+      "review_partition": "runtime"
+    },
+    {
+      "id": "MB-0739",
+      "verdict": "FULL_AUTOMATION",
+      "rationale": "Effective display_errors is machine observable in the application PHP runtime. Current project ini parsing ignores pool/server overrides and treats every observed declaration equally instead of resolving precedence.",
+      "implementation_evidence": [
+        "src/Engine/Checks/PhpConfigCheck.php:217",
+        "src/Engine/Checks/HttpCheck.php:43",
+        "tests/BasicDeploymentPoliciesTest.php:19"
+      ],
+      "existing_function": "PhpConfigCheck::displayErrorsDisabled; HttpCheck::noStacktrace",
+      "required_inputs": [
+        "Bound read-only actual web-worker runtime settings for each deployment pool",
+        "Effective display_errors after applicable ini/pool/runtime overrides"
+      ],
+      "proposed_check": "Verify effective display_errors is Off for each assessed runtime pool through trusted nonpublic telemetry. Enabled value FAIL, complete all-Off PASS, unavailable worker/value UNKNOWN. Do not intentionally trigger production errors as proof.",
+      "tests": {
+        "safe": "Every worker reports effective Off despite overridden historical On declaration.",
+        "fail": "A pool/runtime override enables display_errors despite project ini Off.",
+        "missing": "Absent telemetry or stale/pool-mismatched snapshot UNKNOWN; clean homepage alone cannot PASS."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0729"
+      ],
+      "limitations": "Point-in-time runtime value does not prove code never later changes it; unsupported request-specific overrides must remain UNKNOWN or separately scoped.",
+      "criterion": "display_errors is Off; assess only the collected Magento deployment scope.",
+      "review_partition": "runtime"
+    },
+    {
+      "id": "MB-0740",
+      "verdict": "FULL_AUTOMATION",
+      "rationale": "Native template-hint settings can be resolved automatically across deployment store scopes. Existing env.php-only lookup marks absent values safe and misses database/store overrides.",
+      "implementation_evidence": [
+        "src/Engine/Checks/PhpConfigCheck.php:281",
+        "src/Engine/Checks/MagentoCheck.php:264",
+        "tests/MagentoConfigurationCompletionTest.php:38"
+      ],
+      "existing_function": "PhpConfigCheck::templateHintsDisabled; MagentoCheck::effectiveConfigurationValues",
+      "required_inputs": [
+        "Complete active store/website scope inventory",
+        "Resolved env/config/DB/module defaults plus environment config overrides for template-hint paths"
+      ],
+      "proposed_check": "Resolve native template hints including applicable store inheritance for every active production scope; all resolved disabled PASS, any enabled FAIL, unknown effective value or unsupported override UNKNOWN. Deduplicate MB-0742 through a combined implementation while retaining criterion mapping.",
+      "tests": {
+        "safe": "Installed defaults disabled and inherited across all enumerated scopes.",
+        "fail": "One store-specific template_hints=1 overrides disabled default.",
+        "missing": "Unknown store inventory, missing DB permissions or custom config reader UNKNOWN."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0729"
+      ],
+      "limitations": "Active default-scope declaration check is partial. Does not assess arbitrary extension debugging output or unenumerated deployments.",
+      "criterion": "No dev debug configs on production (template hints off); assess only the collected Magento deployment scope.",
+      "review_partition": "runtime"
+    },
+    {
+      "id": "MB-0741",
+      "verdict": "FULL_AUTOMATION",
+      "rationale": "Effective cache frontend backend identities can be inspected automatically in supported Magento deployments. Active MB-0038 already covers the declared Redis/Varnish policy; original absence-of-file backend needs resolved defaults/overrides, not a Redis-only allow-list that rejects every safe custom backend.",
+      "implementation_evidence": [
+        "src/Engine/Checks/PhpConfigCheck.php:598",
+        "tests/AutomationConfigRuntimeAuditTest.php:14"
+      ],
+      "existing_function": "PhpConfigCheck::noFileCacheBackend",
+      "required_inputs": [
+        "Resolved effective default/page-cache frontend backend configuration",
+        "Installed backend class identity/adapter mapping, Varnish applicability and runtime override inventory"
+      ],
+      "proposed_check": "Resolve actual default/page-cache backend selection and fallback for supported backend implementations; any file backend FAIL, every selected supported non-file backend PASS, unknown custom backend semantics UNKNOWN. Prefer consolidate with MB-0038 where declaration policy is intended.",
+      "tests": {
+        "safe": "Resolved Redis default and Redis/Varnish page cache; supported non-file adapter.",
+        "fail": "Absent effective default frontend falls back to filesystem, or explicit file page cache.",
+        "missing": "Unsupported backend class, unresolved DI/runtime override or malformed config UNKNOWN."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0038"
+      ],
+      "limitations": "Cache selection is readiness policy, not proof of vulnerability or service health. Do not add a duplicate declaration check merely to restore the old count.",
+      "criterion": "No dev cache backends (avoid file backend); assess only the collected Magento deployment scope.",
+      "review_partition": "runtime"
+    },
+    {
+      "id": "MB-0742",
+      "verdict": "FULL_AUTOMATION",
+      "rationale": "Debug template hints are native resolvable settings, but legacy check also inspects inline translation and does not resolve stores/defaults. Clarify the implementation against original hints criterion rather than conflating independent settings.",
+      "implementation_evidence": [
+        "src/Engine/Checks/PhpConfigCheck.php:329",
+        "src/Engine/Checks/MagentoCheck.php:137",
+        "tests/MagentoConfigurationCompletionTest.php:38"
+      ],
+      "existing_function": "PhpConfigCheck::devDebugConfigDisabled; MagentoCheck::deploymentDebugFlagsDisabled",
+      "required_inputs": [
+        "All production store scopes and resolved template_hints_storefront/template_hints settings",
+        "Installed module defaults and applicable config overrides"
+      ],
+      "proposed_check": "Resolve and require native template hint values disabled in every active production scope. Share collector/check with MB-0740 and consolidate duplicates if criteria are semantically equal; separately report inline translation under its own defined predicate.",
+      "tests": {
+        "safe": "All resolved storefront hints disabled.",
+        "fail": "Store-specific storefront hints enabled while default scope is off.",
+        "missing": "Unresolved setting, unreadable installed defaults or partial scope inventory UNKNOWN."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0729"
+      ],
+      "limitations": "Do not count two near-duplicate template-hint requirements as two independent security capabilities. Existing active requirement covers only default-scope declarations.",
+      "criterion": "Debug template hints disabled in production; assess only the collected Magento deployment scope.",
+      "review_partition": "runtime"
+    },
+    {
+      "id": "MB-0743",
+      "criterion": "PII not logged in application logs; assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "It reuses MB-0737 detector but PII classification is different; matching a customer/email word does not prove disclosure.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/DataProtectionSourceChecks.php:930",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_sensitive_logging / sensitiveLogging",
+      "required_inputs": [
+        "PII schema",
+        "log sink manifest",
+        "isolated synthetic PII fixtures"
+      ],
+      "proposed_check": "For declared PII fields and event fixtures, every configured application-log sink must receive values transformed according to the declared masking policy; unknown sinks are UNKNOWN.",
+      "tests": {
+        "safe": "Synthetic customer/email/address fixture is masked to the defined policy in all captured sinks.",
+        "fail": "A defined event sends raw synthetic PII to any captured sink.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "New bounded PII policy; no claim that arbitrary logs contain no PII. Share collection with MB-0737 but keep distinct conclusions.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0744",
+      "verdict": "FULL_AUTOMATION",
+      "rationale": "Abandonment is an explicit package-maintenance status and can be machine-verified for a complete collected library inventory. Existing active MB-0061 already provides this for Composer libraries. Original full criterion can be satisfied only if all collected libraries are covered, including untyped/non-Composer libraries where present.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/ComposerRepositoryChecks.php:147",
+        "src/Engine/Checks/Families/ComposerSupport.php:455"
+      ],
+      "existing_function": "composer_abandoned_api",
+      "required_inputs": [
+        "Complete declared Composer inventory",
+        "Per-package explicit abandonment status from dated authoritative source",
+        "Non-Composer library inventory if claiming all libraries"
+      ],
+      "proposed_check": "Reuse MB-0061 for Composer libraries; inventory additional collected libraries with authoritative package identifiers and explicit known abandonment status for every item. Any unresolved identity or status prevents PASS.",
+      "tests": {
+        "safe": "All Composer and non-Composer libraries have explicit abandonment=false; missing package type must not hide a library.",
+        "fail": "One known violation of the precise proposed predicate fails even with missing statuses for other items; preserve redacted package/path evidence.",
+        "missing": "Missing, malformed, stale, unsupported, partial or unreadable input => UNKNOWN; never PASS."
+      },
+      "effort": "S",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0061"
+      ],
+      "limitations": "Conditional on complete collected library inventory and authoritative current per-library status. Merely filtering Composer type=library does not prove all libraries covered. This is overlap with an active check, not a net-new check for Composer-only deployments.",
+      "criterion": "No abandoned libraries allowed; assess only the collected Magento deployment scope.",
+      "review_partition": "dependencies"
+    },
+    {
+      "id": "MB-0745",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Regex matching debug/logging keys and integration-like context cannot exhaust third-party integrations; ordinary enabled logging is not necessarily verbose secret-bearing debug. Current absence-of-key PASS overclaims.",
+      "implementation_evidence": [
+        "src/Engine/Checks/PhpConfigCheck.php:377",
+        "src/Engine/Checks/PhpConfigCheck.php:663"
+      ],
+      "existing_function": "PhpConfigCheck::thirdPartyDebugDisabled",
+      "required_inputs": [
+        "Installed supported integration module/version inventory",
+        "Versioned vendor config schema mapping of actual debug/verbose paths and resolved scope values"
+      ],
+      "proposed_check": "New ID: every debug/verbose setting for explicitly supported installed integration/version adapters is resolved disabled in named scopes. Unsupported integrations remain reported UNKNOWN, rather than treating absent regex matches as clean. Ordinary audit logging excluded unless vendor schema explicitly marks debug.",
+      "tests": {
+        "safe": "Supported gateway debug off with ordinary audit logging on.",
+        "fail": "Known vendor debug key resolves on in a store override.",
+        "missing": "Unknown integration/version, missing schema or inaccessible setting UNKNOWN."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "New ID required for named supported integrations; cannot infer every third-party component behavior from generic key names.",
+      "criterion": "Debug/verbose off for third-party integrations; assess only the collected Magento deployment scope.",
+      "review_partition": "runtime"
+    },
+    {
+      "id": "MB-0746",
+      "criterion": "Third-party logging sanitized (mask/redact); assess only the collected Magento deployment scope.",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Third-party API responses and nested SDK log processors can bypass superficial redact-string matches.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/DataProtectionSourceChecks.php:895",
+        "src/Engine/Collectors/CodeInventoryCollector.php:31",
+        "docs/archive/automation-feasibility/source-probes.json"
+      ],
+      "existing_function": "code_third_party_logging_sanitized / thirdPartyLoggingSanitized",
+      "required_inputs": [
+        "SDK/logger adapter manifest",
+        "sensitive data schema",
+        "mock remote services",
+        "captured isolated sinks"
+      ],
+      "proposed_check": "Each declared third-party logging adapter must redact all schema-listed secret/PII canaries from request, response, exception and retry fixtures before the adapter emits to its configured sink.",
+      "tests": {
+        "safe": "Nested request/response and exception canaries are masked before emission.",
+        "fail": "SDK debug/retry logger emits a raw canary despite an unused sanitizer method.",
+        "missing": "Missing/unreadable/oversized/malformed eligible inputs, truncated inventory or unresolved analysis must be UNKNOWN; no conversion to manual evidence and no PASS from zero files."
+      },
+      "effort": "L",
+      "current_ready": false,
+      "covered_by_active_ids": [],
+      "limitations": "New adapter-contract policy; newly introduced integrations need manifest updates.",
+      "sources": [],
+      "review_partition": "source"
+    },
+    {
+      "id": "MB-0748",
+      "verdict": "SCOPED_AUTOMATION",
+      "rationale": "Arbitrary executable content cannot be excluded by a finite signature set; current legacy detector skips oversized/unreadable files and can PASS an empty inventory.",
+      "implementation_evidence": [
+        "src/Engine/Checks/Families/AuthorizationSourceChecks.php:195",
+        "src/Engine/Checks/BasicExposureCheck.php:12",
+        "tests/BasicExposureCheckTest.php:10"
+      ],
+      "existing_function": "AuthorizationSourceChecks::mediaExecutableCode; BasicExposureCheck::mediaExecutableFiles",
+      "required_inputs": [
+        "Complete bounded upload path inventory",
+        "Configured signature/extension policy and server handler inventory"
+      ],
+      "proposed_check": "New ID: no configured PHP opening-tag, executable-extension or script-handler signatures in readable eligible files across named upload paths; eligible unreadable/oversized files or unfollowed symlinks UNKNOWN. Extend active MB-0780 only within its filename predicate, not as proof of all executable-code absence.",
+      "tests": {
+        "safe": "Complete benign inventory and inert strings handled under explicit signature policy.",
+        "fail": "PHP payload disguised as jpg; .phtml double extension; upload .htaccess handler directive.",
+        "missing": "Missing root, oversized eligible file, symlink or incomplete traversal yields UNKNOWN."
+      },
+      "effort": "M",
+      "current_ready": false,
+      "covered_by_active_ids": [
+        "MB-0780"
+      ],
+      "limitations": "New ID required because a signature policy is weaker than absence of executable code. Never execute suspected files; filename inventory does not establish server execution prevention.",
+      "criterion": "No executable code in media or upload paths; assess only the collected Magento deployment scope.",
+      "review_partition": "runtime"
+    }
+  ]
+}

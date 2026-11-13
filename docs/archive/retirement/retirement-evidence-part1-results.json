@@ -1,0 +1,271 @@
+{
+  "notes": "Direct handlers only; PASS/FAIL/UNKNOWN are observed handler outcomes, not security conclusions. No customer project or remote APIs used.",
+  "results": [
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0004",
+      "check": "code_dirs_readonly",
+      "status": "FAIL",
+      "message": "Code paths have Unix permission write bits enabled"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0010",
+      "check": "magento_admin_exposure_restricted",
+      "status": "FAIL",
+      "message": "Could not verify admin exposure restriction: no URL or web server ACL hints found"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0015",
+      "check": "code_csrf_form_key",
+      "status": "PASS",
+      "message": "POST forms and handlers include form_key protection signals"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0016",
+      "check": "code_ssrf_safeguards",
+      "status": "PASS",
+      "message": "Outbound HTTP sinks include SSRF safeguard signals"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0019",
+      "check": "code_dynamic_execution_safety",
+      "status": "PASS",
+      "message": "No unsafe dynamic execution patterns detected"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0020",
+      "check": "code_path_traversal_safety",
+      "status": "PASS",
+      "message": "File path sinks are absent or guarded against traversal"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0021",
+      "check": "code_upload_safety",
+      "status": "PASS",
+      "message": "Upload flows are absent or include validation and storage safeguards"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0023",
+      "check": "code_csprng_safety",
+      "status": "PASS",
+      "message": "No weak PRNG detected in security-sensitive randomness"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0025",
+      "check": "code_magento_api_crypto_session",
+      "status": "PASS",
+      "message": "Magento crypto and session APIs are used"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0043",
+      "check": "fs_log_rotation_configured",
+      "status": "UNKNOWN",
+      "message": "[UNKNOWN] Log rotation configuration unavailable"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0051",
+      "check": "composer_fix_version_api",
+      "status": "UNKNOWN",
+      "message": "[UNKNOWN] composer.lock not found"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0052",
+      "check": "composer_risk_surface_tag",
+      "status": "UNKNOWN",
+      "message": "[UNKNOWN] composer.lock not found"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0053",
+      "check": "security_mitigations_documented",
+      "status": "FAIL",
+      "message": "Mitigation document not found: SECURITY.md"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0054",
+      "check": "composer_kev_advisories_api",
+      "status": "UNKNOWN",
+      "message": "[UNKNOWN] composer.lock not found"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0058",
+      "check": "composer_marketplace_outdated_api",
+      "status": "UNKNOWN",
+      "message": "[UNKNOWN] composer.lock not found"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0060",
+      "check": "composer_vendor_support_api",
+      "status": "UNKNOWN",
+      "message": "[UNKNOWN] composer.lock not found"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0064",
+      "check": "composer_risky_fork_api",
+      "status": "UNKNOWN",
+      "message": "[UNKNOWN] composer.lock not found"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0073",
+      "check": "code_https_endpoints",
+      "status": "PASS",
+      "message": "All detected configured endpoints use HTTPS"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0075",
+      "check": "code_webhook_signature_validation",
+      "status": "PASS",
+      "message": "No webhook handlers detected in application code"
+    },
+    {
+      "case": "neutral-source-no-lock",
+      "id": "MB-0076",
+      "check": "code_outbound_egress_controls",
+      "status": "PASS",
+      "message": "No app-level outbound HTTP sinks detected"
+    },
+    {
+      "case": "literal-risk-source",
+      "id": "MB-0004",
+      "check": "code_dirs_readonly",
+      "status": "FAIL",
+      "message": "Code paths have Unix permission write bits enabled"
+    },
+    {
+      "case": "literal-risk-source",
+      "id": "MB-0015",
+      "check": "code_csrf_form_key",
+      "status": "FAIL",
+      "message": "Potential CSRF/form_key gaps found in: <FIXTURE_ROOT>/app/design/form.phtml:1 [post_form_without_form_key]"
+    },
+    {
+      "case": "literal-risk-source",
+      "id": "MB-0016",
+      "check": "code_ssrf_safeguards",
+      "status": "FAIL",
+      "message": "Outbound HTTP sinks missing SSRF safeguards in: <FIXTURE_ROOT>/app/code/Fixture/Webhook.php:4 [php_stream]"
+    },
+    {
+      "case": "literal-risk-source",
+      "id": "MB-0019",
+      "check": "code_dynamic_execution_safety",
+      "status": "FAIL",
+      "message": "Unsafe dynamic execution found in: <FIXTURE_ROOT>/app/code/Fixture/Webhook.php:5 [dynamic_code_function/medium]"
+    },
+    {
+      "case": "literal-risk-source",
+      "id": "MB-0020",
+      "check": "code_path_traversal_safety",
+      "status": "FAIL",
+      "message": "Potential path traversal sinks found in: <FIXTURE_ROOT>/app/code/Fixture/Webhook.php:4 [file_read_sink/high]"
+    },
+    {
+      "case": "literal-risk-source",
+      "id": "MB-0021",
+      "check": "code_upload_safety",
+      "status": "FAIL",
+      "message": "Potential unsafe upload flows found in: <FIXTURE_ROOT>/app/code/Fixture/Webhook.php:6 [move_uploaded_file/high]"
+    },
+    {
+      "case": "literal-risk-source",
+      "id": "MB-0023",
+      "check": "code_csprng_safety",
+      "status": "FAIL",
+      "message": "Weak PRNG used in security-sensitive context: <FIXTURE_ROOT>/app/code/Fixture/Webhook.php:7 [rand/high]"
+    },
+    {
+      "case": "literal-risk-source",
+      "id": "MB-0025",
+      "check": "code_magento_api_crypto_session",
+      "status": "FAIL",
+      "message": "Raw crypto/session API usage found in: <FIXTURE_ROOT>/app/code/Fixture/Webhook.php:7 [raw_session_start/medium]"
+    },
+    {
+      "case": "literal-risk-source",
+      "id": "MB-0073",
+      "check": "code_https_endpoints",
+      "status": "FAIL",
+      "message": "Configured HTTP endpoints detected:\n    - <FIXTURE_ROOT>/app/code/Fixture/Webhook.php:8 [named_config] http://api.example.test/receive"
+    },
+    {
+      "case": "literal-risk-source",
+      "id": "MB-0075",
+      "check": "code_webhook_signature_validation",
+      "status": "FAIL",
+      "message": "Webhook handlers without required authentication hardening evidence:\n    - <FIXTURE_ROOT>/app/code/Fixture/Webhook.php:2 [webhook_class] missing signature_header+timing_safe_signature_verify\n    - <FIXTURE_ROOT>/app/code/Fixture/Webhook.php:3 [webhook_method] missing signature_header+timing_safe_signature_verify"
+    },
+    {
+      "case": "unloaded-nginx-acl-hint",
+      "id": "MB-0010",
+      "check": "magento_admin_exposure_restricted",
+      "status": "PASS",
+      "message": "Admin exposure appears restricted by web server ACL hints"
+    },
+    {
+      "case": "unix-modes-readonly",
+      "id": "MB-0004",
+      "check": "code_dirs_readonly",
+      "status": "PASS",
+      "message": "Inspected code paths have no Unix permission write bits"
+    },
+    {
+      "case": "owner-writable-mode",
+      "id": "MB-0004",
+      "check": "code_dirs_readonly",
+      "status": "FAIL",
+      "message": "Code paths have Unix permission write bits enabled"
+    },
+    {
+      "case": "literal-valid-logrotate",
+      "id": "MB-0043",
+      "check": "fs_log_rotation_configured",
+      "status": "PASS",
+      "message": "Log rotation has positive retention and compression for each detected log target"
+    },
+    {
+      "case": "zero-retention-logrotate",
+      "id": "MB-0043",
+      "check": "fs_log_rotation_configured",
+      "status": "FAIL",
+      "message": "Log target lacks positive retention or enabled compression: var/log/*.log"
+    },
+    {
+      "case": "negated-mitigation-words",
+      "id": "MB-0053",
+      "check": "security_mitigations_documented",
+      "status": "PASS",
+      "message": "Temporary mitigations and their rollback/remediation lifecycle are documented in SECURITY.md"
+    },
+    {
+      "case": "firewall-comment-bypass",
+      "id": "MB-0076",
+      "check": "system_egress_restricted",
+      "status": "PASS",
+      "message": "iptables OUTPUT policy denies by default"
+    },
+    {
+      "case": "firewall-comment-bypass",
+      "id": "MB-0076",
+      "check": "code_outbound_egress_controls",
+      "status": "FAIL",
+      "message": "Outbound HTTP sinks missing allowlist/timeout controls:\n    - <FIXTURE_ROOT>/app/code/Fixture/Webhook.php:4 [php_stream] missing allowlist+timeout"
+    }
+  ]
+}

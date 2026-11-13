@@ -1,0 +1,17 @@
+{
+    "source_parity": true,
+    "artifacts": {
+        "magebean.phar": {
+            "sha256": "4de938de2f368dc0d4b9d6f9a29d7f176d346877652e9febd3dd25549e078006",
+            "bytes": 1878748,
+            "source_files_matched": 211,
+            "signature_type": "SHA-512"
+        },
+        "artifacts/magebean-one-time.phar": {
+            "sha256": "c3fc34eab32e4a9eb72ceffca8ba40894d8f9bf5a5bd5edfbcd557639cfe44a3",
+            "bytes": 1878748,
+            "source_files_matched": 211,
+            "signature_type": "SHA-512"
+        }
+    }
+}

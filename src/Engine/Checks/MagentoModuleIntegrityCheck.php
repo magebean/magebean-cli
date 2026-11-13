@@ -101,7 +101,7 @@ final class MagentoModuleIntegrityCheck
                 'action' => 'Verify the installed module metadata, local source access, and selected module scope.',
             ];
         }
-        return MagebeanDetectorAnalysis::result('magento-module-'.$kind, '1.1', $findings, array_values($diagnostics));
+        return MagebeanDetectorAnalysis::result('magento-module-'.$kind, '1.2', $findings, array_values($diagnostics));
     }
 
     private function identity(array $modules, array $registeredRoots): array
@@ -299,7 +299,7 @@ final class MagentoModuleIntegrityCheck
             $findings[] = self::finding($modules[$root], 'request-logging-policy', 'Named log method receives a direct request superglobal reference.',
                 'The existing syntactic request logging policy matched a log-like call argument in the selected source.',
                 'Log only explicitly selected and redacted fields.',
-                [['file' => $violation['file'], 'line' => $violation['line']]], 'policy', 'confirmed', 'medium',
+                [['file' => $violation['file'], 'line' => $violation['line']]+(isset($violation['byte_offset'])?['byte_offset'=>$violation['byte_offset'],'source_sha256'=>$violation['source_sha256']]:[])], 'policy', 'confirmed', 'medium',
                 assumptions: ['The method name is a policy match. Actual log delivery and data sensitivity depend on runtime behavior.']);
         }
         return $findings;

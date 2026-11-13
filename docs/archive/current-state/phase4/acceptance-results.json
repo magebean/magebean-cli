@@ -1,0 +1,87 @@
+{
+  "phase": 4,
+  "scope": "Fresh original synthetic QA fixtures; inert sample PHP is parsed, never executed.",
+  "qa_observations": 10,
+  "pairs": [
+    {
+      "acceptance_ids": [
+        "CS-033",
+        "CS-034"
+      ],
+      "rules": [
+        "MB-0733",
+        "MB-0736"
+      ],
+      "raw_assessment_count": 2,
+      "canonical_issue_count": 1,
+      "issue_family": "template-output-encoding",
+      "issue_id": "mb-issue-v1:437285575871cfc44048d8a78d5b8eb434656d749a6399a9896c46ebf7a13828",
+      "contributor_count": 2,
+      "passed": true
+    },
+    {
+      "acceptance_ids": [
+        "CS-035",
+        "CS-036"
+      ],
+      "rules": [
+        "MB-0728",
+        "MB-0731"
+      ],
+      "raw_assessment_count": 2,
+      "canonical_issue_count": 1,
+      "issue_family": "admin-password-minimum",
+      "issue_id": "mb-issue-v1:7d84d9cf2deece89a3fd6f3f156d7220bab79b5717cf3750aebd83a9fc4f3562",
+      "contributor_count": 2,
+      "passed": true
+    },
+    {
+      "acceptance_ids": [
+        "CS-044",
+        "CS-045"
+      ],
+      "rules": [
+        "MB-0780",
+        "MB-0800"
+      ],
+      "raw_assessment_count": 2,
+      "canonical_issue_count": 1,
+      "issue_family": "upload-script-artifact",
+      "issue_id": "mb-issue-v1:2be1c4186d2efcd845ea70e271c01d0ee7e687ac330d6f2b91b888a7edd5486c",
+      "contributor_count": 2,
+      "passed": true
+    },
+    {
+      "acceptance_ids": [
+        "CS-046",
+        "CS-047"
+      ],
+      "rules": [
+        "MB-0790",
+        "MB-0822"
+      ],
+      "raw_assessment_count": 2,
+      "canonical_issue_count": 1,
+      "issue_family": "source-command-call",
+      "issue_id": "mb-issue-v1:dcbfc995bb59575acf398aec11070342250dcbf6b88557de0c8eb425880afbcc",
+      "contributor_count": 2,
+      "passed": true
+    },
+    {
+      "acceptance_ids": [
+        "CS-048",
+        "CS-049"
+      ],
+      "rules": [
+        "MB-0795",
+        "MB-0814"
+      ],
+      "raw_assessment_count": 2,
+      "canonical_issue_count": 1,
+      "issue_family": "source-request-logging",
+      "issue_id": "mb-issue-v1:79b86271ec87e6a17323c97f4f213ff07cb3c12e8dea38315b00d2ee31c9abe8",
+      "contributor_count": 2,
+      "passed": true
+    }
+  ]
+}

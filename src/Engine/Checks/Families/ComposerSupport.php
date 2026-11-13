@@ -186,6 +186,8 @@ abstract class ComposerSupport
                     'package' => (string)$pkg,
                     'version' => $current,
                     'advisory' => $id,
+                    ...(is_string($vuln['summary']??null)&&trim($vuln['summary'])!==''?['summary'=>$vuln['summary']]:[]),
+                    ...(!empty($vuln['references'])&&is_array($vuln['references'])?['references'=>array_values(array_filter($vuln['references'],static fn($reference):bool=>is_array($reference)&&is_string($reference['url']??null)))]:[]),
                     'published' => is_string($vuln['published'] ?? null)
                         ? $vuln['published']
                         : null,
@@ -376,6 +378,24 @@ abstract class ComposerSupport
 
     protected function postJson(string $url, array $payload, int $timeoutMs, string $token = ''): array
     {
+        $loaded=null;
+        $key='dependency-api:'.hash('sha256',serialize([$url,$payload,$timeoutMs,$token]));
+        $cached=$this->collectors->session->remember($key,function () use ($url,$payload,$timeoutMs,$token,&$loaded): ?array {
+            $loaded=$this->postJsonFresh($url,$payload,$timeoutMs,$token);
+            $decoded=json_decode((string)($loaded[2]['body']??''),true);
+            $valid=($loaded[0]??false) && ($loaded[2]['status']??null)===200 && is_array($decoded);
+            if (($payload['schema_version']??'')==='magebean-osv-request-v1') $valid=$valid && ($decoded['schema_version']??'')==='magebean-osv-response-v1' && is_array($decoded['advisories']??null) && array_is_list($decoded['advisories']);
+            if (($payload['schema_version']??'')==='magebean-osv-request-v1' && $valid) {
+                foreach ($decoded['advisories'] as $advisory) if (!is_array($advisory) || !is_array($advisory['affected']??null) || $advisory['affected']===[]) $valid=false;
+            }
+            if (($payload['schema_version']??'')==='magebean-package-status-request-v1') $valid=$valid && ($decoded['schema_version']??'')==='magebean-package-status-response-v1' && is_array($decoded['packages']??null);
+            return $valid?$loaded:null;
+        });
+        return $cached??$loaded;
+    }
+
+    private function postJsonFresh(string $url, array $payload, int $timeoutMs, string $token = ''): array
+    {
         $json = json_encode($payload, JSON_UNESCAPED_SLASHES);
         if (!is_string($json)) {
             return [false, 'Unable to encode request JSON', []];
@@ -390,50 +410,7 @@ abstract class ComposerSupport
             $headers[] = 'Authorization: Bearer ' . $token;
         }
 
-        if (function_exists('curl_init')) {
-            $ch = curl_init($url);
-            curl_setopt_array($ch, [
-                CURLOPT_POST => true,
-                CURLOPT_POSTFIELDS => $json,
-                CURLOPT_HTTPHEADER => $headers,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT_MS => $timeoutMs,
-                CURLOPT_CONNECTTIMEOUT_MS => min($timeoutMs, 5000),
-                CURLOPT_ENCODING => '',
-            ]);
-            $body = curl_exec($ch);
-            if ($body === false) {
-                $message = curl_error($ch);
-                curl_close($ch);
-                return [false, $message !== '' ? $message : 'cURL request failed', []];
-            }
-            $status = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-            curl_close($ch);
-            return [true, '', ['status' => $status, 'body' => (string)$body]];
-        }
-
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'POST',
-                'header' => implode("\r\n", $headers),
-                'content' => $json,
-                'ignore_errors' => true,
-                'timeout' => max(1, (int)ceil($timeoutMs / 1000)),
-            ],
-        ]);
-        $body = @file_get_contents($url, false, $context);
-        $rawHeaders = is_array($http_response_header ?? null) ? $http_response_header : [];
-        $status = 0;
-        foreach ($rawHeaders as $header) {
-            if (preg_match('~^HTTP/\S+\s+(?P<status>\d{3})~i', (string)$header, $match) === 1) {
-                $status = (int)$match['status'];
-            }
-        }
-        if ($body === false) {
-            return [false, 'HTTP stream request failed', ['status' => $status]];
-        }
-
-        return [true, '', ['status' => $status, 'body' => (string)$body]];
+        return $this->collectors->http->fetch($url, 'POST', $headers, $timeoutMs, false, $json);
     }
 
     protected function eventsToIntervals(array $events): array
@@ -469,7 +446,7 @@ abstract class ComposerSupport
             getenv('MAGEBEAN_PACKAGE_STATUS_API_TOKEN') ?: ''
         )));
 
-        $byName = [];
+        $byName = []; $batchGaps=[];
         foreach (array_chunk($packages, $batchSize) as $batchIndex => $batch) {
             $requestEndpoint = $endpoint;
             [$ok, $message, $response] = $this->postJson(
@@ -497,40 +474,24 @@ abstract class ComposerSupport
                     $token
                 );
             }
-            if (!$ok) {
-                return [
-                    false,
-                    $message . ' (batch ' . ($batchIndex + 1) . ', packages ' . count($batch) . ')',
-                    [],
-                ];
-            }
-
-            $status = (int)($response['status'] ?? 0);
-            $decoded = json_decode((string)($response['body'] ?? ''), true);
-            if ($status !== 200 || !is_array($decoded)) {
-                return [
-                    false,
-                    'Package status API returned HTTP ' . $status
-                        . ' (batch ' . ($batchIndex + 1) . ', packages ' . count($batch) . ')',
-                    [],
-                ];
-            }
-            if (($decoded['schema_version'] ?? null) !== 'magebean-package-status-response-v1') {
-                return [
-                    false,
-                    'Unsupported package status API response schema'
-                        . ' (batch ' . ($batchIndex + 1) . ')',
-                    [],
-                ];
+            $status=(int)($response['status']??0);
+            $decoded=json_decode((string)($response['body']??''),true);
+            if (!$ok || $status!==200 || !is_array($decoded)
+                || ($decoded['schema_version']??null)!=='magebean-package-status-response-v1'
+                || !is_array($decoded['packages']??null)) {
+                $batchGaps[]=$batchIndex+1;
+                continue;
             }
 
             foreach ((array)($decoded['packages'] ?? []) as $package) {
                 if (is_array($package) && is_string($package['name'] ?? null)) {
+                    $package['_status_observation']=['endpoint'=>$requestEndpoint,'identity'=>hash('sha256',json_encode($package,JSON_INVALID_UTF8_SUBSTITUTE|JSON_THROW_ON_ERROR)), 'dataset_revision'=>$decoded['meta']['dataset_revision']??null];
                     $byName[strtolower($package['name'])] = $package;
                 }
             }
         }
-        return [true, 'Package status loaded (' . count($packages) . ' packages in '
+        if ($byName===[] && $batchGaps!==[]) return [false,'Package status response unavailable or invalid',[]];
+        return [true, ($batchGaps!==[]?'Partial package status; missing batches '.implode(',',$batchGaps).'. ':'').'Package status loaded (' . count($packages) . ' packages in '
             . (int)ceil(count($packages) / $batchSize) . ' batch(es))', $byName];
     }
 
@@ -682,6 +643,36 @@ abstract class ComposerSupport
         }
         if ($bad) return [null, '[UNKNOWN] composer.json dependency declarations are missing or malformed; restore the project manifest.', ['file'=>'composer.json']];
         return null;
+    }
+
+    protected function dependencySelection(array $args): array
+    {
+        $inventory=$this->collectors->dependencies->collect($this->ctx,$args);
+        return $this->collectors->dependencies->select($inventory,(string)($args['dependency_scope']??'current'));
+    }
+
+    protected function withDependencyProvenance(array $result, array $selection): array
+    {
+        $evidence=is_array($result[2]??null)?$result[2]:[];
+        $evidence['dependency_inventory']=array_diff_key($selection,['packages'=>true]);
+        $evidence['package_observations']=array_map(static fn(array $p): array=>$p['dependency_observation'],$selection['packages']);
+        foreach (['findings','unassessed','unassessed_affected_packages','remediated_findings'] as $field) {
+            foreach ($evidence[$field]??[] as $index=>$finding) {
+                $name=$finding['package']??'';
+                if (isset($selection['packages'][$name])) $evidence[$field][$index]['dependency_observation']=$selection['packages'][$name]['dependency_observation'];
+            }
+        }
+        $message=(string)($result[1]??'');
+        if ($selection['scope']==='locked_dependency') {
+            $message=str_replace(['installed package','Installed package','installed version'],['locked package','Locked package','locked version'],$message);
+            if (!str_contains($message,'[Scope: locked dependency declarations;')) $message.=' [Scope: locked dependency declarations; installation and runtime exposure unverified.]';
+        }
+        if ((!$selection['complete'] || !empty($evidence['feed_gaps'])) && ($result[0]??null)===true) {
+            $result[0]=null; $message='[UNKNOWN] Dependency inventory coverage incomplete; no clean conclusion can be established.';
+        }
+        if (!$selection['complete'] && ($result[0]??null)!==false) $evidence['reason_code']='COMPOSER_LOCK_SCOPE_INVALID';
+        if (!$selection['complete']) $message.=' [Inventory: composer.lock or installed metadata coverage incomplete.]';
+        return [$result[0]??null,$message,$evidence];
     }
 
     protected function readLockPackages(string $lockPath): ?array

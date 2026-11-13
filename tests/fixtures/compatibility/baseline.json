@@ -25,7 +25,7 @@
                     "optional": true,
                     "array": false,
                     "default": null,
-                    "description": "Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | module-integrity | module-source | module-lifecycle | module-reliability | development | prelaunch | takeover | custom JSON"
+                    "description": "Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | module-integrity | module-source | module-lifecycle | module-reliability | development | prelaunch | takeover | evidence | custom JSON"
                 },
                 "modules": {
                     "shortcut": null,
@@ -124,7 +124,7 @@
                     "description": "Magento root path (omit to auto-detect from current working directory)"
                 }
             },
-            "help": "<fg=cyan;options=bold>Audit Magento 2 production readiness</> using selectable Magebean security profiles.\nThe default <fg=green;options=bold>basic</> profile selects Magento production-readiness requirements.\nDocs: <href=https://magebean.com/documentation>magebean.com/documentation</>\n\n<options=bold>USAGE</>\n  <fg=green>php magebean.phar scan [--path=PATH] [--url=URL] [options]</>\n\n<options=bold>TARGET MODES</>\n  \u2022 <fg=green;options=bold>LOCAL</> \u2014 --path only, or omit both target options to auto-detect the Magento root\n    HTTP checks discover the default store base URL from Magento configuration; --url is not required.\n  \u2022 <fg=blue;options=bold>REMOTE</> \u2014 --url only; verifies Magento and runs externally observable rules\n  \u2022 With a Magento path, store configuration is authoritative; a supplied --url does not override it.\n  \u2022 Profiles select applicable internal requirements and preserve their evidence scope.\n  \u2022 Default REMOTE scans use applicable basic requirements.\n\n<options=bold>PROFILES</>\n  <fg=yellow>basic</>      Default Magento production security and operations requirements.\n  <fg=yellow>asvs-l1</>    Internal requirements aligned with ASVS level 1.\n  <fg=yellow>asvs-l2</>    Internal requirements aligned with ASVS levels 1 and 2.\n  <fg=yellow>asvs-l3</>    Internal requirements aligned with ASVS levels 1, 2 and 3.\n  <fg=yellow>owasp</>      Application security requirements tagged with OWASP Top 10 categories.\n  <fg=yellow>pci</>        Consolidated PCI requirements; human verification remains mandatory.\n  <fg=yellow>hardening</>  Production hardening requirements.\n  <fg=yellow>FILE</>       Custom JSON path or a profile under .magebean/profiles.\n\n<options=bold>COMMAND OPTIONS</>\n  <fg=yellow>--path=PATH</>                     Magento root. Omit to search from the current directory.\n  <fg=yellow>--url=URL</>                       External REMOTE target only; ignored when --path selects a local Magento installation.\n  <fg=yellow>--profile=PROFILE|FILE</>          Built-in or custom profile. Default: basic.\n  <fg=yellow>--include-manual-review</>           Include human-review rules; excluded by default.\n  <fg=yellow>--capabilities=NAME,NAME</>         Enable contextual profile rules (for example graphql,oauth_oidc).\n  <fg=yellow>--controls=MB-Cxx,MB-Cxx</>       Restrict the loaded pack to control IDs.\n  <fg=yellow>--rules=MB-xxxx,MB-xxxx</>         Run listed rule IDs directly from the available catalog; bypasses profile selection.\n  <fg=yellow>--exclude-rules=MB-xxxx,...</>     Remove rules after profile and project configuration.\n  <fg=yellow>--config=FILE</>                   Project policy file; auto-detected in LOCAL/HYBRID.\n  <fg=yellow>--pci-context=FILE</>               PCI applicability context JSON (PCI profile only).\n  <fg=yellow>--pci-evidence=FILE</>              Structured external evidence JSON (PCI profile only).\n  <fg=yellow>--pci-report=FILE</>                Write the PCI evidence-readiness report as JSON.\n  <fg=yellow>--standard=NAME</>                 Legacy selector: magebean, owasp, pci, or cwe.\n                                          Prefer --profile; explicit --profile takes precedence.\n\n<options=bold>GLOBAL OPTIONS</>\n  <fg=yellow>-h, --help</>           Show help.\n  <fg=yellow>-V, --version</>        Show version.\n  <fg=yellow>-q, --quiet</>          Show errors only.\n  <fg=yellow>--silent</>             Suppress all output.\n  <fg=yellow>--ansi|--no-ansi</>     Force or disable ANSI formatting.\n  <fg=yellow>-n, --no-interaction</> Disable interactive questions.\n  <fg=yellow>-v|vv|vvv</>            Increase verbosity.\n\n<options=bold>EXAMPLES</>\n  # Default basic scan with Magento root auto-detection\n  <fg=green>php magebean.phar scan</>\n\n  # LOCAL, REMOTE, and HYBRID scans\n  <fg=green>php magebean.phar scan --path=/var/www/magento</>\n  <fg=green>php magebean.phar scan --url=https://store.example.com</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento</>\n\n  # ASVS Level 1, application security, payment readiness, deep hardening\n  <fg=green>php magebean.phar scan --path=/var/www/magento --profile=asvs-l1</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento --profile=asvs-l2 --include-manual-review --capabilities=graphql</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento --profile=asvs-l3 --include-manual-review</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento --profile=owasp</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento --profile=pci</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento --profile=hardening</>\n\n  # Rule and control filters\n  <fg=green>php magebean.phar scan --path=/var/www/magento --rules=MB-0031,MB-0037</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento --rules=MB-0020</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento --profile=hardening --controls=MB-C01,MB-C05</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento --config=.magebean.yml --exclude-rules=MB-0032</>\n\n<options=bold>SELECTION ORDER</>\n  Target pack \u2192 project policy \u2192 (--rules OR profile) \u2192 --exclude-rules.\n  MB-REQ IDs select independent internal requirements. Deprecated MB-R and OWASP-ASVS selectors use the compatibility adapter; old ASVS selectors require an ASVS profile.\n\n<options=bold>NOTES</>\n  \u2022 REMOTE results cover only publicly observable behavior; local-only checks are omitted.\n  \u2022 --path must point to, or be below, a Magento root containing app/etc and vendor.\n  \u2022 Unknown rule IDs in a custom profile fail validation against a full local pack.\n  \u2022 Confirmed findings determine security exit codes; basic collection errors exit with code 3.\n\n<options=bold>SEE ALSO</>\n  <fg=cyan>rules:list --help</>  List and filter rules by profile, control, and severity.\n\nCONTACT: <href=mailto:support@magebean.com>support@magebean.com</>\n"
+            "help": "<fg=cyan;options=bold>Audit current Magento 2 technical state</> using selectable Magebean security profiles.\nThe default <fg=green;options=bold>basic</> profile selects Magento production-readiness requirements.\nDocs: <href=https://magebean.com/documentation>magebean.com/documentation</>\n\n<options=bold>USAGE</>\n  <fg=green>php magebean.phar scan [--path=PATH] [--url=URL] [options]</>\n\n<options=bold>TARGET MODES</>\n  \u2022 <fg=green;options=bold>LOCAL</> \u2014 --path only, or omit both target options to auto-detect the Magento root\n    HTTP checks discover the default store base URL from Magento configuration; --url is not required.\n  \u2022 <fg=blue;options=bold>REMOTE</> \u2014 --url only; verifies Magento and runs externally observable rules\n  \u2022 With a Magento path, store configuration is authoritative; a supplied --url does not override it.\n  \u2022 Profiles select applicable internal requirements and preserve their evidence scope.\n  \u2022 Default REMOTE scans use applicable basic requirements.\n\n<options=bold>PROFILES</>\n  <fg=yellow>basic</>      Default Magento production security and operations requirements.\n  <fg=yellow>asvs-l1</>    Internal requirements aligned with ASVS level 1.\n  <fg=yellow>asvs-l2</>    Internal requirements aligned with ASVS levels 1 and 2.\n  <fg=yellow>asvs-l3</>    Internal requirements aligned with ASVS levels 1, 2 and 3.\n  <fg=yellow>owasp</>      Application security requirements tagged with OWASP Top 10 categories.\n  <fg=yellow>pci</>        Consolidated PCI requirements; human verification remains mandatory.\n  <fg=yellow>hardening</>  Production hardening requirements.\n  <fg=yellow>development</> Offline source/config checks; dependency_maintenance is opt-in.\n  <fg=yellow>prelaunch</>   Prelaunch source/deployment checks, including online maintenance lookup.\n  <fg=yellow>takeover</>    Current technical risks and maintenance scope for project handover.\n  <fg=yellow>evidence</>    Opt-in document and mitigation-record lint; no security assurance.\n  Context: log_rotation_config enables supplied logrotate checks; cache_backend_policy\n  selects a strict backend baseline (default only in hardening). Explicit project false wins.\n  <fg=yellow>FILE</>       Custom JSON path or a profile under .magebean/profiles.\n\n<options=bold>COMMAND OPTIONS</>\n  <fg=yellow>--path=PATH</>                     Magento root. Omit to search from the current directory.\n  <fg=yellow>--url=URL</>                       External REMOTE target only; ignored when --path selects a local Magento installation.\n  <fg=yellow>--profile=PROFILE|FILE</>          Built-in or custom profile. Default: basic.\n  <fg=yellow>--include-manual-review</>           Include human-review rules; excluded by default.\n  <fg=yellow>--capabilities=NAME,NAME</>         Enable contextual profile rules (for example graphql,oauth_oidc).\n  <fg=yellow>--controls=MB-Cxx,MB-Cxx</>       Restrict the loaded pack to control IDs.\n  <fg=yellow>--rules=MB-xxxx,MB-xxxx</>         Run listed rule IDs directly from the available catalog; bypasses profile selection.\n  <fg=yellow>--exclude-rules=MB-xxxx,...</>     Remove rules after profile and project configuration.\n  <fg=yellow>--config=FILE</>                   Project policy file; auto-detected in LOCAL/HYBRID.\n  <fg=yellow>--pci-context=FILE</>               PCI applicability context JSON (PCI profile only).\n  <fg=yellow>--pci-evidence=FILE</>              Structured external evidence JSON (PCI profile only).\n  <fg=yellow>--pci-report=FILE</>                Write the PCI evidence-readiness report as JSON.\n  <fg=yellow>--standard=NAME</>                 Legacy selector: magebean, owasp, pci, or cwe.\n                                          Prefer --profile; explicit --profile takes precedence.\n\n<options=bold>GLOBAL OPTIONS</>\n  <fg=yellow>-h, --help</>           Show help.\n  <fg=yellow>-V, --version</>        Show version.\n  <fg=yellow>-q, --quiet</>          Show errors only.\n  <fg=yellow>--silent</>             Suppress all output.\n  <fg=yellow>--ansi|--no-ansi</>     Force or disable ANSI formatting.\n  <fg=yellow>-n, --no-interaction</> Disable interactive questions.\n  <fg=yellow>-v|vv|vvv</>            Increase verbosity.\n\n<options=bold>EXAMPLES</>\n  # Default basic scan with Magento root auto-detection\n  <fg=green>php magebean.phar scan</>\n\n  # LOCAL, REMOTE, and HYBRID scans\n  <fg=green>php magebean.phar scan --path=/var/www/magento</>\n  <fg=green>php magebean.phar scan --url=https://store.example.com</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento</>\n\n  # ASVS Level 1, application security, payment readiness, deep hardening\n  <fg=green>php magebean.phar scan --path=/var/www/magento --profile=asvs-l1</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento --profile=asvs-l2 --include-manual-review --capabilities=graphql</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento --profile=asvs-l3 --include-manual-review</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento --profile=owasp</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento --profile=pci</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento --profile=hardening</>\n\n  # Rule and control filters\n  <fg=green>php magebean.phar scan --path=/var/www/magento --rules=MB-0031,MB-0037</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento --rules=MB-0020</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento --profile=hardening --controls=MB-C01,MB-C05</>\n  <fg=green>php magebean.phar scan --path=/var/www/magento --config=.magebean.yml --exclude-rules=MB-0032</>\n\n<options=bold>SELECTION ORDER</>\n  Target pack \u2192 project policy \u2192 (--rules OR profile) \u2192 --exclude-rules.\n  MB-REQ IDs select independent internal requirements. Deprecated MB-R and OWASP-ASVS selectors use the compatibility adapter; old ASVS selectors require an ASVS profile.\n\n<options=bold>NOTES</>\n  \u2022 REMOTE results cover only publicly observable behavior; local-only checks are omitted.\n  \u2022 --path must point to, or be below, a Magento root containing app/etc and vendor.\n  \u2022 Unknown rule IDs in a custom profile fail validation against a full local pack.\n  \u2022 Confirmed findings determine security exit codes; basic collection errors exit with code 3.\n\n<options=bold>SEE ALSO</>\n  <fg=cyan>rules:list --help</>  List and filter rules by profile, control, and severity.\n\nCONTACT: <href=mailto:support@magebean.com>support@magebean.com</>\n"
         },
         "rules:list": {
             "aliases": [],
@@ -160,7 +160,7 @@
                     "optional": true,
                     "array": false,
                     "default": null,
-                    "description": "Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | development | prelaunch | takeover | custom JSON"
+                    "description": "Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | development | prelaunch | takeover | evidence | custom JSON"
                 },
                 "severity": {
                     "shortcut": null,
@@ -171,7 +171,7 @@
                     "description": "low|medium|high|critical"
                 }
             },
-            "help": "List Magebean requirements after applying a profile and optional control/severity filters.\n\nPROFILES\n  basic      Default production-readiness requirements.\n  asvs-l1    ASVS level 1 requirements.\n  asvs-l2    ASVS levels 1 and 2 requirements.\n  asvs-l3    ASVS levels 1, 2, and 3 requirements.\n  owasp      Application requirements tagged with OWASP Top 10 categories.\n  pci        PCI DSS requirement evidence and human verification obligations.\n  hardening  Production hardening requirements.\n  FILE       Custom profile JSON selecting requirement IDs.\n\nCounts are calculated from the selected catalog and capability context.\n\nOPTIONS\n  --profile=PROFILE|FILE       Select the profile. Default: basic.\n  --include-manual-review    Include human-review rules; excluded by default.\n  --capabilities=NAME,NAME    Include contextual rules for enabled application capabilities.\n  --control=MB-Cxx,MB-Cxx     Keep only the listed controls.\n  --severity=LEVEL             Keep low, medium, high, or critical rules.\n  -h, --help                   Show this help.\n  -V, --version                Show the Magebean version.\n  -q, --quiet                  Show errors only.\n  --silent                     Suppress all output.\n  --ansi|--no-ansi             Force or disable ANSI formatting.\n  -n, --no-interaction         Disable interactive questions.\n  -v|vv|vvv                    Increase verbosity.\n\nEXAMPLES\n  php magebean.phar rules:list\n  php magebean.phar rules:list --profile=asvs-l1\n  php magebean.phar rules:list --profile=asvs-l2 --include-manual-review --capabilities=oauth_oidc\n  php magebean.phar rules:list --profile=asvs-l3 --include-manual-review\n  php magebean.phar rules:list --profile=hardening\n  php magebean.phar rules:list --profile=hardening --control=MB-C03\n  php magebean.phar rules:list --profile=owasp --severity=critical\n  php magebean.phar rules:list --profile=.magebean/profiles/acme.json\n\nFilters are intersected: --control and --severity only reduce the selected profile."
+            "help": "List Magebean requirements after applying a profile and optional control/severity filters.\n\nPROFILES\n  basic      Default production-readiness requirements.\n  asvs-l1    ASVS level 1 requirements.\n  asvs-l2    ASVS levels 1 and 2 requirements.\n  asvs-l3    ASVS levels 1, 2, and 3 requirements.\n  owasp      Application requirements tagged with OWASP Top 10 categories.\n  pci        PCI DSS requirement evidence and human verification obligations.\n  hardening  Production hardening requirements.\n  development Offline source/config checks; online maintenance is opt-in.\n  prelaunch  Source/deployment checks including online library maintenance.\n  takeover   Current technical risks and maintenance scope for handover.\n  evidence   Opt-in document/record lint, not technical security assurance.\n  FILE       Custom profile JSON selecting requirement IDs.\n\nContext: log_rotation_config enables supplied logrotate checks.\ncache_backend_policy selects a strict backend baseline (default in hardening).\nExplicit false project capabilities override profile defaults.\n\nCounts are calculated from the selected catalog and capability context.\n\nOPTIONS\n  --profile=PROFILE|FILE       Select the profile. Default: basic.\n  --include-manual-review    Include human-review rules; excluded by default.\n  --capabilities=NAME,NAME    Include contextual rules for enabled application capabilities.\n  --control=MB-Cxx,MB-Cxx     Keep only the listed controls.\n  --severity=LEVEL             Keep low, medium, high, or critical rules.\n  -h, --help                   Show this help.\n  -V, --version                Show the Magebean version.\n  -q, --quiet                  Show errors only.\n  --silent                     Suppress all output.\n  --ansi|--no-ansi             Force or disable ANSI formatting.\n  -n, --no-interaction         Disable interactive questions.\n  -v|vv|vvv                    Increase verbosity.\n\nEXAMPLES\n  php magebean.phar rules:list\n  php magebean.phar rules:list --profile=asvs-l1\n  php magebean.phar rules:list --profile=asvs-l2 --include-manual-review --capabilities=oauth_oidc\n  php magebean.phar rules:list --profile=asvs-l3 --include-manual-review\n  php magebean.phar rules:list --profile=hardening\n  php magebean.phar rules:list --profile=hardening --control=MB-C03\n  php magebean.phar rules:list --profile=owasp --severity=critical\n  php magebean.phar rules:list --profile=.magebean/profiles/acme.json\n\nFilters are intersected: --control and --severity only reduce the selected profile."
         },
         "agent:connect": {
             "aliases": [],
@@ -3768,7 +3768,7 @@
         },
         {
             "exit": 0,
-            "output": "Profile: hardening (Magento Production Hardening)\nRequirement source: Magebean\nMB-0014 [MB-C03] high \u2014 No direct PHP superglobal references in inspected application files\nTotal Rules Listed: 1\nTotal Profile Rules: 8 (automated only)\nProfile inventory: 79; checks omitted for missing technical context: 12.\nMB-0786: CAPABILITY_CONTEXT_MISSING (capability: strict_native_api_policy)\nMB-0788: CAPABILITY_CONTEXT_MISSING (capability: strict_native_api_policy)\nMB-0792: CAPABILITY_CONTEXT_MISSING (capability: strict_native_api_policy)\nMB-0794: CAPABILITY_CONTEXT_MISSING (capability: strict_native_api_policy)\nMB-0796: CAPABILITY_CONTEXT_MISSING (capability: strict_native_api_policy)\nMB-0798: CAPABILITY_CONTEXT_MISSING (capability: strict_native_api_policy)\nMB-0799: CAPABILITY_CONTEXT_MISSING (capability: runtime_worker_access)\nMB-0801: CAPABILITY_CONTEXT_MISSING (capability: admin_role_policy)\nMB-0804: CAPABILITY_CONTEXT_MISSING (capability: integration_debug_policy)\nMB-0805: CAPABILITY_CONTEXT_MISSING (capability: dependency_source_policy)\nMB-0806: CAPABILITY_CONTEXT_MISSING (capability: dependency_mitigation_policy)\nMB-0807: CAPABILITY_CONTEXT_MISSING (capability: runtime_worker_inventory)\n"
+            "output": "Profile: hardening (Magento Production Hardening)\nRequirement source: Magebean\nMB-0014 [MB-C03] high \u2014 No direct PHP superglobal references in inspected application files\nMB-0733 [MB-C03] high \u2014 Supported PHTML output uses context-appropriate escaping\nMB-0736 [MB-C03] high \u2014 Supported inline JavaScript output uses context-appropriate escaping\nTotal Rules Listed: 3\nTotal Profile Rules: 15 (automated only)\nProfile inventory: 86; checks omitted for missing technical context: 6.\nMB-0799: CAPABILITY_CONTEXT_MISSING (capability: runtime_worker_access)\nMB-0801: CAPABILITY_CONTEXT_MISSING (capability: admin_role_policy)\nMB-0804: CAPABILITY_CONTEXT_MISSING (capability: integration_debug_policy)\nMB-0805: CAPABILITY_CONTEXT_MISSING (capability: dependency_source_policy)\nMB-0807: CAPABILITY_CONTEXT_MISSING (capability: runtime_worker_inventory)\nMB-0043: CAPABILITY_CONTEXT_MISSING (capability: log_rotation_config)\n"
         },
         {
             "exit": 0,
@@ -4978,10 +4978,11 @@
     },
     "offline_cve": [
         false,
-        "1 vulnerable package found (1 advisory match):\n    - qa/example@1.0.0 -> QA-CVE (Severity not published), fix >= 1.1.0",
+        "1 vulnerable package found (1 advisory match):\n    - qa/example@1.0.0 -> QA-CVE (Severity not published), fix >= 1.1.0 [Scope: locked dependency declarations; installation and runtime exposure unverified.]",
         {
             "source": "offline_dataset",
             "dataset": "<ROOT>/cve.json",
+            "coverage": "Supplied advisory records only",
             "advisories": 1,
             "usable_advisories": 1,
             "remediated_findings": [],
@@ -4997,14 +4998,69 @@
                     "cvss_vector": "",
                     "fixed": "1.1.0",
                     "known_exploited": false,
-                    "hotfix_verification": null
+                    "hotfix_verification": null,
+                    "dependency_observation": {
+                        "scope": "locked_dependency",
+                        "source_path": "composer.lock",
+                        "observed_at": "<TIMESTAMP>",
+                        "installed": null,
+                        "locked_version": "1.0.0",
+                        "development_dependency": false,
+                        "matches_locked_version": null,
+                        "runtime_reachability": "unverified",
+                        "module_activation": "separate_declaration_only"
+                    }
                 }
             ],
             "vulnerable_packages": [
                 "qa/example"
             ],
             "vulnerable_packages_count": 1,
-            "advisory_matches_count": 1
+            "advisory_matches_count": 1,
+            "dependency_inventory": {
+                "scope": "locked_dependency",
+                "complete": true,
+                "gaps": [],
+                "observed_at": "<TIMESTAMP>",
+                "sources": {
+                    "root_manifest": {
+                        "path": "composer.json",
+                        "state": "read",
+                        "sha256": "8ca4ca02be2cc3ae147d085de4cf47fef806e3be6112ee15eb1f22909537a031"
+                    },
+                    "lockfile": {
+                        "path": "composer.lock",
+                        "state": "read",
+                        "sha256": "18ef12d15ae42076ff5cff60ec9d0f8276f62b65b90ce0248ac56dcabb176b67"
+                    },
+                    "installed_metadata": {
+                        "path": "vendor/composer/installed.json",
+                        "state": "missing"
+                    },
+                    "module_declarations": {
+                        "path": "app/etc/config.php",
+                        "sha256": "a80ecc1bcabe9d5ce5ae049bb58c80e5ff244660c25dafa8db4cc5b9e3ed0385",
+                        "scope": "source_declaration"
+                    }
+                },
+                "installed_dev_mode": null,
+                "excluded_locked_packages": [],
+                "declared_modules": [],
+                "coverage_note": "Composer metadata identifies recorded installation or locked build intent, not executable bytes, module activation or runtime reachability."
+            },
+            "package_observations": {
+                "qa/example": {
+                    "scope": "locked_dependency",
+                    "source_path": "composer.lock",
+                    "observed_at": "<TIMESTAMP>",
+                    "installed": null,
+                    "locked_version": "1.0.0",
+                    "development_dependency": false,
+                    "matches_locked_version": null,
+                    "runtime_reachability": "unverified",
+                    "module_activation": "separate_declaration_only"
+                }
+            }
         }
     ],
     "pci": {

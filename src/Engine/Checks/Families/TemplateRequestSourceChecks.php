@@ -8,64 +8,23 @@ final class TemplateRequestSourceChecks extends CodeSearchSupport
 {
     public function phtmlEscapedOutput(array $args): array
     {
-        $roots = $args['paths'] ?? ['app'];
-        $max = max(1, (int)($args['max_results'] ?? 50));
-        $escapeFunctions = $args['escape_functions'] ?? [
-            'escapeHtml',
-            'escapeHtmlAttr',
-            'escapeUrl',
-            'escapeJs',
-            'escapeCss',
-        ];
-        if (!is_array($escapeFunctions)) {
-            $escapeFunctions = [];
-        }
-        $escapeFunctions = array_values(array_filter(array_map(
-            static fn(mixed $fn): string => trim((string)$fn),
-            $escapeFunctions
-        )));
-
-        $rootsAbs = array_map(fn($p) => $this->ctx->abs($p), $roots);
-        $files = $this->collectFiles($rootsAbs, ['phtml']);
-
-        $offenders = [];
-        foreach ($files as $file) {
-            $content = $this->collectors->files->read($file);
-            if ($content === false) {
-                continue;
-            }
-
-            foreach ($this->phtmlOutputFindings($file, $content, $escapeFunctions) as $finding) {
-                $offenders[] = $finding;
-                if (count($offenders) >= $max) {
-                    break 2;
-                }
-            }
-        }
-
-        if ($offenders !== []) {
-            return [
-                false,
-                'Unescaped template output found in: ' . implode(', ', array_map(
-                    static fn(array $match): string => $match['file'] . ':' . $match['line'],
-                    $offenders
-                )),
-                $offenders,
-            ];
-        }
-
-        return [true, 'PHTML output uses approved escaping helpers'];
+        return (new \Magebean\Engine\Checks\ScopedTemplateOutputCheck($this->ctx, $this->collectors))->run($args);
     }
 
     public function csrfFormKey(array $args): array
     {
         $roots = $args['paths'] ?? ['app'];
         $max = max(1, (int)($args['max_results'] ?? 50));
-        $rootsAbs = array_map(fn($p) => $this->ctx->abs($p), $roots);
+        $inventory = (new \Magebean\Engine\Collectors\BoundedSourceInventory($this->collectors->session))->collect($this->ctx, [
+            'paths'=>$roots, 'include_ext'=>['php','phtml','html'], 'verify_stable'=>true,
+        ]);
+        $byPath = []; foreach ($inventory['files'] as $entry) $byPath[$entry['file']] = $entry;
+        $templates = array_keys(array_filter($byPath, static fn(array $entry):bool => in_array($entry['extension'], ['phtml','html'], true)));
+        $phpFiles = array_keys(array_filter($byPath, static fn(array $entry):bool => $entry['extension']==='php'));
 
         $offenders = [];
-        foreach ($this->collectFiles($rootsAbs, ['phtml', 'html']) as $file) {
-            $content = $this->collectors->files->read($file);
+        foreach ($templates as $file) {
+            $content = $byPath[$file]['content'];
             if ($content === false) {
                 continue;
             }
@@ -78,8 +37,8 @@ final class TemplateRequestSourceChecks extends CodeSearchSupport
             }
         }
 
-        foreach ($this->collectFiles($rootsAbs, ['php']) as $file) {
-            $content = $this->collectors->files->read($file);
+        foreach ($phpFiles as $file) {
+            $content = $byPath[$file]['content'];
             if ($content === false) {
                 continue;
             }
@@ -104,43 +63,12 @@ final class TemplateRequestSourceChecks extends CodeSearchSupport
             ];
         }
 
-        return [true, 'POST forms and handlers include form_key protection signals'];
+        return [null, '[UNKNOWN] Form-key source signals do not establish effective CSRF validation or rejection paths', ['files_read'=>$inventory['files_read'], 'collection_gaps'=>$inventory['gaps'], 'reason_code'=>'CSRF_CONTROL_FLOW_UNVERIFIED']];
     }
 
     public function jsContextEscaping(array $args): array
     {
-        $roots = $args['paths'] ?? ['app'];
-        $inc = $args['include_ext'] ?? ['phtml', 'html'];
-        $max = max(1, (int)($args['max_results'] ?? 50));
-        $rootsAbs = array_map(fn($p) => $this->ctx->abs($p), $roots);
-
-        $offenders = [];
-        foreach ($this->collectFiles($rootsAbs, $inc) as $file) {
-            $content = $this->collectors->files->read($file);
-            if ($content === false) {
-                continue;
-            }
-
-            foreach ($this->jsContextFindings($file, $content) as $finding) {
-                $offenders[] = $finding;
-                if (count($offenders) >= $max) {
-                    break 2;
-                }
-            }
-        }
-
-        if ($offenders !== []) {
-            return [
-                false,
-                'Unescaped JavaScript-context output found in: ' . implode(', ', array_map(
-                    static fn(array $match): string => $match['file'] . ':' . $match['line'] . ' [' . $match['kind'] . ']',
-                    $offenders
-                )),
-                $offenders,
-            ];
-        }
-
-        return [true, 'JavaScript-context PHP output is escaped or encoded'];
+        return (new \Magebean\Engine\Checks\ScopedTemplateOutputCheck($this->ctx, $this->collectors))->run($args, true);
     }
 
     public function webhookSignatureValidation(array $args): array
@@ -152,7 +80,10 @@ final class TemplateRequestSourceChecks extends CodeSearchSupport
         $requireReplayWindow = (bool)($args['require_replay_window'] ?? false);
         $requireIdempotency = (bool)($args['require_idempotency'] ?? false);
         $paymentOnly = (bool)($args['payment_only'] ?? false);
-        $rootsAbs = array_map(fn($p) => $this->ctx->abs($p), $roots);
+        $inventory = (new \Magebean\Engine\Collectors\BoundedSourceInventory($this->collectors->session))->collect($this->ctx, [
+            'paths'=>$roots, 'include_ext'=>$inc, 'verify_stable'=>true,
+        ]);
+        $source = []; foreach ($inventory['files'] as $entry) $source[$entry['file']] = $entry['content'];
         $evidenceArgs = [
             'require_timestamp' => $requireTimestamp,
             'require_replay_window' => $requireReplayWindow,
@@ -163,8 +94,8 @@ final class TemplateRequestSourceChecks extends CodeSearchSupport
         $failures = [];
         $hasApplicationSignatureValidation = false;
         $filesRead = 0;
-        foreach ($this->collectFiles($rootsAbs, $inc) as $file) {
-            $content = $this->collectors->files->read($file);
+        foreach (array_keys($source) as $file) {
+            $content = $source[$file];
             if ($content === false) {
                 continue;
             }
@@ -233,15 +164,16 @@ final class TemplateRequestSourceChecks extends CodeSearchSupport
             return [false, implode("\n", $lines), $evidence];
         }
 
+        $evidence['collection_gaps'] = $inventory['gaps'];
         if ($handlers === []) {
-            return [true, $paymentOnly ? 'No payment webhook handlers detected in application code' : 'No webhook handlers detected in application code', $evidence];
+            return [null, '[UNKNOWN] No supported webhook handler was independently established in the collected source', $evidence];
         }
 
         $message = ($requireTimestamp || $requireReplayWindow || $requireIdempotency)
             ? 'Webhook handlers include required authentication hardening evidence'
             : 'Webhook handlers include local signature validation evidence';
 
-        return [true, $message, $evidence];
+        return [null, '[UNKNOWN] Webhook signature keywords are supporting observations; verification and failure control flow remain unverified', $evidence + ['reason_code'=>'WEBHOOK_CONTROL_FLOW_UNVERIFIED']];
     }
 
     private function phtmlOutputFindings(string $file, string $content, array $escapeFunctions): array

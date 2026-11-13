@@ -49,5 +49,5 @@ file_put_contents($dir.'magebean-catalog.json',json_encode($catalog,$flags)."\n"
 $aggregate=json_decode(file_get_contents($dir.'internal-catalog.json'),true,512,JSON_THROW_ON_ERROR);
 foreach($aggregate['requirements']as&$r)if(isset($index[$r['id']]))$r=$index[$r['id']];unset($r);
 file_put_contents($dir.'internal-catalog.json',json_encode($aggregate,$flags)."\n");
-file_put_contents($root.'/docs/magebean-guidance-review.md',implode("\n",$audit)."\n");
+file_put_contents($root.'/docs/archive/reviews/magebean-guidance-review.md',implode("\n",$audit)."\n");
 echo 'Normalized '.count($index)." Magebean requirements; standards and requirement semantics unchanged.\n";

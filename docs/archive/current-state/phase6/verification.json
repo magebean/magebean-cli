@@ -1,0 +1,61 @@
+{
+  "phase": 6,
+  "status": "local_qualification_complete",
+  "scope": "Source, standard PHAR and one-time PHAR; isolated SQLite Console; synthetic small/medium fixtures",
+  "cli_regression": {
+    "tests": 142,
+    "passed": 142,
+    "failed": 0
+  },
+  "console_catalog_regression": {
+    "tests": 18,
+    "assertions": 89
+  },
+  "console_wire_and_full_import": {
+    "runtimes": [
+      "standard",
+      "one-time"
+    ],
+    "tests_per_runtime": 1,
+    "assertions_per_runtime": 58,
+    "catalog_rules": 735,
+    "profiles": 15,
+    "imports_per_runtime": 2,
+    "snapshot_result_observation_history_preserved": true
+  },
+  "qualified_phase_assertions": {
+    "phase1": 58,
+    "phase2": 42,
+    "phase3": 263,
+    "phase4": 46,
+    "phase5": 62,
+    "restored_rules": 323
+  },
+  "qa_requalification": {
+    "phase3_cases": 23,
+    "canonical_observations": 10,
+    "canonical_groups": 5
+  },
+  "artifacts": {
+    "magebean.phar": {
+      "sha256": "4de938de2f368dc0d4b9d6f9a29d7f176d346877652e9febd3dd25549e078006",
+      "bytes": 1878748,
+      "source_files_matched": 211,
+      "signature_type": "SHA-512"
+    },
+    "artifacts/magebean-one-time.phar": {
+      "sha256": "c3fc34eab32e4a9eb72ceffca8ba40894d8f9bf5a5bd5edfbcd557639cfe44a3",
+      "bytes": 1878748,
+      "source_files_matched": 211,
+      "signature_type": "SHA-512"
+    }
+  },
+  "performance_runs": 18,
+  "protected_definitions": "baseline verifier passed",
+  "limitations": [
+    "No authorized live-store target supplied; no live qualification or remote deployment performed.",
+    "Synthetic fixture has no installed Magento XSDs: MB-0809 remains incomplete, not PASS.",
+    "Console imports memberships but does not persist CLI default_capabilities or add them to manifests; agent context remains explicit and fail-closed.",
+    "Console persistence retains one finding/projection per assessment; canonical refs do not merge historical rows."
+  ]
+}

@@ -1,0 +1,3534 @@
+{
+  "scope": "All110 active Magebean rules; ASVS/PCI not reviewed here;50 inactive archive decisions are a reference appendix, not fresh execution qualification.",
+  "production_changed": false,
+  "active_count": 110,
+  "exact_check_and_mode_duplicates": [
+    [
+      "MB-0728",
+      "MB-0731"
+    ]
+  ],
+  "shared_exact_check_components": [
+    {
+      "rules": [
+        "MB-0038",
+        "MB-0741"
+      ],
+      "check": {
+        "args": {
+          "file": "app/etc/env.php",
+          "paths": [
+            "cache.frontend.default.backend",
+            "cache.frontend.page_cache.backend",
+            "cache.backend"
+          ]
+        },
+        "name": "php_no_file_cache_backend"
+      }
+    },
+    {
+      "rules": [
+        "MB-0061",
+        "MB-0744"
+      ],
+      "check": {
+        "args": {
+          "allow_private_http_fallback": true,
+          "lock_file": "composer.lock",
+          "package_types": [
+            "library"
+          ],
+          "status_batch_size": 500,
+          "status_endpoint": "https://api.magebean.com/v1/packages/status",
+          "strict_scope": true,
+          "timeout_ms": 10000
+        },
+        "name": "composer_abandoned_api"
+      }
+    },
+    {
+      "rules": [
+        "MB-0728",
+        "MB-0731"
+      ],
+      "check": {
+        "args": {
+          "min_length": 8
+        },
+        "name": "magento_admin_password_minimum_configured"
+      }
+    }
+  ],
+  "no_builtin_profile_membership": [
+    "MB-0043",
+    "MB-0093",
+    "MB-0731",
+    "MB-0733",
+    "MB-0736",
+    "MB-0739",
+    "MB-0740",
+    "MB-0741",
+    "MB-0742",
+    "MB-0744"
+  ],
+  "rules": [
+    {
+      "id": "MB-0001",
+      "title": "No world-writable files or directories",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "No world-writable files or directories; assess only the collected Magento deployment scope.",
+      "checks": [
+        {
+          "name": "fs_no_world_writable",
+          "args": {
+            "path": ".",
+            "max_results": 50,
+            "strict_observation": true
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0002",
+      "title": "env.php satisfies configured mode and ownership policy",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "The collected app/etc/env.php Unix permission bits are a subset of configured mode 0640, and its owner and group match the configured reference paths (the project root by default). This is an explicit deployment ownership policy, not proof of effective ACL or web-process access restrictions.",
+      "checks": [
+        {
+          "name": "file_mode_max",
+          "args": {
+            "file": "app/etc/env.php",
+            "max_octal": "0640",
+            "strict_observation": true
+          }
+        },
+        {
+          "name": "file_owner_group_matches",
+          "args": {
+            "file": "app/etc/env.php",
+            "owner_reference": ".",
+            "group_reference": ".",
+            "strict_observation": true
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0003",
+      "title": "Webroot hygiene (no .git/.env/backups in pub/)",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "Webroot hygiene (no .git/.env/backups in pub/); assess only the collected Magento deployment scope.",
+      "checks": [
+        {
+          "name": "fs_webroot_artifact_policy",
+          "args": {
+            "webroot": "pub",
+            "forbidden": [
+              ".git",
+              ".env",
+              ".env.local",
+              ".env.*",
+              "*.bak",
+              "*.old",
+              "*~"
+            ]
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0005",
+      "title": "Directory listing absent on probed Magento paths",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "Successful responses from the configured runtime endpoint on /media/, /static/, /errors/ and /var/ must not expose recognizable directory-index markup. Scope is these paths at scan time; transport or unsupported responses are inconclusive.",
+      "checks": [
+        {
+          "name": "http_no_directory_listing",
+          "args": {
+            "paths": [
+              "/media/",
+              "/static/",
+              "/errors/",
+              "/var/"
+            ],
+            "timeout_ms": 8000,
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0006",
+      "title": "Declared Admin route avoids common names",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "The collected backend.frontName is a valid nonempty route other than admin or backend. Route obscurity is not authentication or access control.",
+      "checks": [
+        {
+          "name": "magento_admin_frontname_declared",
+          "args": []
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0007",
+      "title": "Native Admin MFA provider configuration declared",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "For a native Admin authentication deployment, Magento_TwoFactorAuth is declared enabled and resolved twofactorauth/general/force_providers names recognized native engines. Possible Adobe IMS mode, unforced providers or an unsupported provider require additional evidence. An empty force_providers setting does not prove MFA is disabled. This predicate does not prove enrollment, enforcement or absence of bypass.",
+      "checks": [
+        {
+          "name": "magento_admin_2fa_enabled",
+          "args": []
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0009",
+      "title": "Configured admin session lifetime is at most 900 seconds",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "The effective default-scope Magento admin/security/session_lifetime setting resolved from env.php, config.php, core_config_data or actual installed module defaults is a positive integer not exceeding 900 seconds.",
+      "checks": [
+        {
+          "name": "magento_admin_session_timeout",
+          "args": {
+            "file": "app/etc/config.php",
+            "base_path": "system.default.admin.security",
+            "max_seconds": 900
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0011",
+      "title": "Configured admin login CAPTCHA or bounded lockout",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "Default-scope Magento admin login configuration enables native CAPTCHA for backend_login, recognized backend_login reCAPTCHA, or a positive lockout failure limit at most 10 with a positive lockout threshold. Locked env.php/config.php settings precede core_config_data. Custom authentication enforcement and runtime effectiveness require separate evidence.",
+      "checks": [
+        {
+          "name": "magento_admin_login_protection_configured",
+          "args": {
+            "max_lockout_failures": 10
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0014",
+      "title": "No direct PHP superglobal references in inspected application files",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "Valid PHP files in the configured app subtree contain no T_VARIABLE references to $_GET, $_POST, $_REQUEST, $_COOKIE, $_FILES or $_SERVER. Comments and literal strings are ignored. This is a source coding policy, not proof of input validation.",
+      "checks": [
+        {
+          "name": "code_grep",
+          "args": {
+            "paths": [
+              "app"
+            ],
+            "include_ext": [
+              "php"
+            ],
+            "must_not_match": [
+              "\\$_(?:GET|POST|REQUEST|COOKIE|FILES|SERVER)\\b"
+            ],
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025"
+      ],
+      "capability": null,
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0026",
+      "title": "Observed storefront entrypoint redirects to HTTPS",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "The observed HTTP storefront root redirects directly with 301/302/303/307/308 to same-host HTTPS. Admin and other store entrypoints are assessed separately.",
+      "checks": [
+        {
+          "name": "http_force_https_redirect",
+          "args": {
+            "strict_scope": true,
+            "include_admin": false
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0027",
+      "title": "Observed HTTPS response has HSTS max-age of at least one year",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "A successful same-host HTTPS response at the configured runtime URL emits one unambiguous Strict-Transport-Security header with an exact integer max-age directive of at least 31536000 seconds. Repository web-server declarations are not runtime proof.",
+      "checks": [
+        {
+          "name": "http_has_hsts",
+          "args": {
+            "min_max_age": 31536000,
+            "timeout_ms": 8000,
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0028",
+      "title": "Runtime endpoint rejects legacy TLS",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "The assessed runtime host and port must accept TLS 1.2 or 1.3 and reject TLS 1.0 and 1.1. Rejection requires peer protocol-version alerts or successful active protocol enumeration; client-side protocol restrictions and connection failures are not proof.",
+      "checks": [
+        {
+          "name": "http_tls_min_version",
+          "args": {
+            "timeout_ms": 8000,
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0029",
+      "title": "Literal HTTP asset references absent in assessed markup/CSS",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "In LOCAL mode, readable markup/CSS files under app must contain no literal HTTP subresource or form-action references. In REMOTE mode, successful HTTPS pages at configured paths must contain no literal HTTP subresource/form references. Dynamic code-generated URLs, external stylesheets and unvisited routes require separate assessment.",
+      "checks": [
+        {
+          "name": "code_no_mixed_content",
+          "args": {
+            "paths": [
+              "app"
+            ],
+            "include_ext": [
+              "phtml",
+              "html",
+              "xml",
+              "css",
+              "less"
+            ],
+            "max_results": 50,
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0030",
+      "title": "Sensitive cookies use Secure, HttpOnly, and SameSite",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "Cookies matching the configured session/admin cookie-name list and emitted by successful same-host HTTPS responses on the configured probe paths have unambiguous Secure, HttpOnly and SameSite=Lax or Strict attributes. Cookie names alone do not classify authentication sensitivity outside this explicit list; unobserved authenticated sessions are not assessed.",
+      "checks": [
+        {
+          "name": "http_cookie_flags",
+          "args": {
+            "strict_scope": true,
+            "paths": [
+              "/",
+              "/customer/account/login",
+              "/checkout/cart"
+            ],
+            "sensitive_cookies": [
+              "phpsessid",
+              "admin",
+              "adminhtml",
+              "backend",
+              "frontend",
+              "frontend_cid"
+            ]
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0031",
+      "title": "Declared Magento deployment mode is production",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "The collected app/etc/env.php MAGE_MODE declaration equals production. Runtime environment overrides and actual web process state require separate evidence.",
+      "checks": [
+        {
+          "name": "magento_production_mode",
+          "args": {
+            "file": "app/etc/env.php",
+            "path": "MAGE_MODE",
+            "equals": "production"
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0034",
+      "title": "Generated DI PHP artifacts are present",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "At least one readable PHP artifact exists in each configured generated/metadata and generated/code directory. This assesses artifact presence, not DI compilation correctness or freshness.",
+      "checks": [
+        {
+          "name": "fs_di_compiled",
+          "args": {
+            "metadata_path": "generated/metadata",
+            "code_path": "generated/code",
+            "min_metadata_php_files": 1,
+            "min_code_php_files": 1
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0035",
+      "title": "Published static artifacts present in assessed deployment",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "In LOCAL mode, pub/static/frontend or pub/static/adminhtml must contain at least one readable, nonempty published CSS/JS/font/image artifact. In REMOTE mode, same-origin Magento static CSS/JS assets referenced by the retrieved storefront must return nonempty non-HTML content with HTTP 200. This verifies observed deployment artifacts, not completeness of every theme, locale or route.",
+      "checks": [
+        {
+          "name": "fs_static_content_deployed",
+          "args": {
+            "static_path": "pub/static",
+            "preprocessed_path": "var/view_preprocessed",
+            "min_static_files": 1,
+            "min_preprocessed_files": 1,
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0037",
+      "title": "Declared Full Page Cache type enabled",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "The collected deployment app/etc/env.php declares cache_types.full_page enabled. This verifies the persisted Magento cache type state; Varnish selection and actual cache hit rates are separate observations.",
+      "checks": [
+        {
+          "name": "cache_type_enabled",
+          "args": {
+            "file": "app/etc/env.php",
+            "type": "full_page"
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0038",
+      "title": "Declared cache backends use Redis or Varnish",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "Declared default and page-cache frontend backends use supported Redis configuration; an explicit Varnish page-cache setting may replace an absent page-cache backend declaration. No assessed declared backend is file-based. This checks deployed configuration declarations, not live cache service health.",
+      "checks": [
+        {
+          "name": "php_cache_backend_configured",
+          "args": {
+            "file": "app/etc/env.php",
+            "paths": [
+              "cache.frontend.default.backend",
+              "cache.frontend.page_cache.backend",
+              "cache.backend",
+              "system.default.system/full_page_cache/caching_application"
+            ]
+          }
+        },
+        {
+          "name": "php_no_file_cache_backend",
+          "args": {
+            "file": "app/etc/env.php",
+            "paths": [
+              "cache.frontend.default.backend",
+              "cache.frontend.page_cache.backend",
+              "cache.backend"
+            ]
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0039",
+      "title": "Recorded Magento indexers have valid state",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "Every recorded row in the deployed Magento indexer_state table has status valid. Working or invalid indexers fail this readiness policy; empty, malformed or unreadable table evidence is a collection error. This does not assert mview queue state or coverage of unregistered indexers.",
+      "checks": [
+        {
+          "name": "deployment_indexers_database_ready",
+          "args": {
+            "env_file": "app/etc/env.php"
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0040",
+      "title": "Declared Redis session storage has authentication configured",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "The deployed configuration declares session.save as redis and session.redis.password as a nonempty string. This checks the configured authentication declaration; it does not prove server ACL, network isolation or credential validity.",
+      "checks": [
+        {
+          "name": "php_session_storage_hardened",
+          "args": {
+            "file": "app/etc/env.php",
+            "save_path": "session.save",
+            "password_path": "session.redis.password"
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0042",
+      "title": "Log/report paths are absent from the collected webroot",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "Within the collected pub tree, no configured var/log or var/report relative path, nor symlink to the corresponding project target, is present. This is filesystem placement, not a live HTTP exposure assertion.",
+      "checks": [
+        {
+          "name": "fs_logs_reports_not_in_webroot",
+          "args": {
+            "webroot": "pub",
+            "forbidden_paths": [
+              "var/log",
+              "var/report"
+            ],
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0043",
+      "title": "Supplied logrotate declaration has positive retention",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "The supplied project logrotate configuration declares a supported rotation cadence, positive retention and compression for its assessed stanzas. This validates configuration text, not installed scheduler activation or actual log deletion.",
+      "checks": [
+        {
+          "name": "fs_log_rotation_configured",
+          "args": {
+            "file": "devops/logrotate.conf"
+          }
+        }
+      ],
+      "profiles": [],
+      "capability": null,
+      "review_tags": [
+        "no_builtin_profile_membership"
+      ]
+    },
+    {
+      "id": "MB-0046",
+      "title": "Installed Magento scheduler observed",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "A collected installed cron:run entry targets this deployment. Missing installed entries remain unresolved when an external/cloud/container scheduler may apply; cadence and execution health are separate observations.",
+      "checks": [
+        {
+          "name": "installed_magento_cron",
+          "args": {
+            "allow_external_scheduler": true
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0047",
+      "title": "Recorded cron execution is recent (<= 900s)",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "The latest recorded cron_schedule.executed_at among success, running or error jobs in the deployment database is no older than 900 seconds. No execution or a stale execution fails this policy; unreadable or malformed table evidence and future timestamps indicating clock skew are collection errors. Job success and scheduler retention are outside this criterion.",
+      "checks": [
+        {
+          "name": "cron_heartbeat_recent",
+          "args": {
+            "files": [
+              "var/cron/cron.timestamp",
+              "var/log/cron.log",
+              "var/log/magento.cron.log"
+            ],
+            "seconds": 900,
+            "database_only": true
+          }
+        }
+      ],
+      "profiles": [
+        "hardening"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0048",
+      "title": "Due pending cron backlog is below 1000",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "The deployment cron_schedule table contains fewer than 1000 pending jobs whose scheduled_at is at or before scanner UTC time. Future scheduled jobs are excluded. This counts due pending scheduler jobs, not arbitrary application queues.",
+      "checks": [
+        {
+          "name": "cron_backlog_below_threshold",
+          "args": {
+            "files": [
+              "var/cron/queue.size",
+              "var/cron/backlog.json",
+              "var/cron/backlog.txt"
+            ],
+            "max": 1000,
+            "database_only": true
+          }
+        }
+      ],
+      "profiles": [
+        "hardening"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0049",
+      "title": "Composer dependency OSV advisory matches",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "Collected versioned Composer lock dependencies have no applicable OSV advisory matches in the successfully queried dataset, accounting for locally verified advisory-specific hotfix evidence. This does not certify absence of unknown vulnerabilities or uncollected runtime dependencies.",
+      "checks": [
+        {
+          "name": "composer_audit_api",
+          "args": {
+            "lock_file": "composer.lock",
+            "endpoint": "https://api.magebean.com/v1/osv/advisories",
+            "timeout_ms": 10000,
+            "batch_size": 500,
+            "allow_private_http_fallback": true,
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0050",
+      "title": "Adobe security release patch assessment",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "The collected Composer-locked Magento product version is current for its Adobe security release branch according to the successfully queried patch dataset, or each required advisory patch is satisfied by verified local alternative evidence. Unsupported branches and missing required patches fail; this does not certify runtime patch deployment outside collected files.",
+      "checks": [
+        {
+          "name": "composer_adobe_security_patches_api",
+          "args": {
+            "lock_file": "composer.lock",
+            "endpoint": "https://api.magebean.com/v1/adobe/security-patches",
+            "timeout_ms": 10000,
+            "allow_private_http_fallback": true,
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0055",
+      "title": "Collected transitive versions have no returned applicable advisories",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "No transitive package version in the complete collected Composer lock inventory is identified as affected by applicable advisories returned by the configured OSV service. Coverage is limited to the queried inventory and service data.",
+      "checks": [
+        {
+          "name": "composer_transitive_audit_api",
+          "args": {
+            "lock_file": "composer.lock",
+            "composer_file": "composer.json",
+            "endpoint": "https://api.magebean.com/v1/osv/advisories",
+            "timeout_ms": 10000,
+            "batch_size": 500,
+            "allow_private_http_fallback": true,
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0056",
+      "title": "Declared constraints permit returned advisory fixed versions",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "For returned applicable advisory findings with published fixed versions, the combined declared dependency constraints intersect versions at or above the published fixed version. This does not establish complete Composer solver feasibility, platform compatibility or every fixed branch.",
+      "checks": [
+        {
+          "name": "composer_constraints_conflict_api",
+          "args": {
+            "json_file": "composer.json",
+            "lock_file": "composer.lock",
+            "endpoint": "https://api.magebean.com/v1/osv/advisories",
+            "timeout_ms": 10000,
+            "batch_size": 500,
+            "allow_private_http_fallback": true,
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0057",
+      "title": "Collected package versions are not reported withdrawn",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "Every package version in the complete collected Composer lock inventory has an explicit non-yanked status from the configured package-status source. Missing per-package status cannot establish a clean result.",
+      "checks": [
+        {
+          "name": "composer_yanked_api",
+          "args": {
+            "lock_file": "composer.lock",
+            "status_endpoint": "https://api.magebean.com/v1/packages/status",
+            "timeout_ms": 10000,
+            "batch_size": 500,
+            "allow_private_http_fallback": true,
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0059",
+      "title": "Affected advisory publication age is within 30 days",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "No returned advisory affecting an installed Composer package version has a publication age greater than the configured 30-day threshold. This is publication age, not organizational discovery time or a measured remediation SLA.",
+      "checks": [
+        {
+          "name": "composer_advisory_latency_api",
+          "args": {
+            "lock_file": "composer.lock",
+            "endpoint": "https://api.magebean.com/v1/osv/advisories",
+            "timeout_ms": 10000,
+            "batch_size": 500,
+            "allow_private_http_fallback": true,
+            "latency_days": 30,
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025"
+      ],
+      "capability": null,
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context",
+        "reproduced_implementation_defect"
+      ]
+    },
+    {
+      "id": "MB-0061",
+      "title": "Collected dependencies are not reported abandoned",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "No dependency package in the complete assessed Composer inventory is marked abandoned by the configured package-maintenance source; a clean conclusion requires explicit known status for every assessed package.",
+      "checks": [
+        {
+          "name": "composer_abandoned_api",
+          "args": {
+            "lock_file": "composer.lock",
+            "status_endpoint": "https://api.magebean.com/v1/packages/status",
+            "timeout_ms": 10000,
+            "allow_private_http_fallback": true,
+            "strict_scope": true
+          }
+        },
+        {
+          "name": "composer_abandoned_api",
+          "args": {
+            "lock_file": "composer.lock",
+            "status_endpoint": "https://api.magebean.com/v1/packages/status",
+            "timeout_ms": 10000,
+            "status_batch_size": 500,
+            "allow_private_http_fallback": true,
+            "package_types": [
+              "library"
+            ],
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0062",
+      "title": "Reported latest package releases are within 24 months",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "For every versioned package in the complete collected Composer lock inventory, the configured package-status source reports known latest release history with a valid nonfuture latest release timestamp within the configured 24 calendar-month threshold. This is a maintenance policy, not proof of exploitability; unknown release history cannot establish a clean conclusion.",
+      "checks": [
+        {
+          "name": "composer_release_recency_api",
+          "args": {
+            "lock_file": "composer.lock",
+            "status_endpoint": "https://api.magebean.com/v1/packages/status",
+            "timeout_ms": 10000,
+            "allow_private_http_fallback": true,
+            "months": 24,
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context",
+        "reproduced_implementation_defect"
+      ]
+    },
+    {
+      "id": "MB-0063",
+      "title": "Reported source repositories remain available and active",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "For every applicable source repository reported for packages in the complete collected Composer lock inventory, the configured package-status source explicitly reports that the repository is neither archived, disabled nor missing. Explicit repository-not-applicable classifications are outside scope; unsupported or unassessed providers cannot establish a clean conclusion. This is a maintenance policy, not proof of exploitability.",
+      "checks": [
+        {
+          "name": "composer_repo_archived_api",
+          "args": {
+            "lock_file": "composer.lock",
+            "status_endpoint": "https://api.magebean.com/v1/packages/status",
+            "timeout_ms": 10000,
+            "allow_private_http_fallback": true,
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0065",
+      "title": "No wildcard constraints in composer.json",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "No wildcard constraints in composer.json; assess only the collected Magento deployment scope.",
+      "checks": [
+        {
+          "name": "composer_json_constraints",
+          "args": {
+            "json_file": "composer.json",
+            "sections": [
+              "require",
+              "require-dev"
+            ],
+            "deny_wildcard": true,
+            "finding_message": "Wildcard Composer constraints detected",
+            "project_local_only": true
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0066",
+      "title": "No dev branches in composer.json",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "No dev branches in composer.json; assess only the collected Magento deployment scope.",
+      "checks": [
+        {
+          "name": "composer_json_constraints",
+          "args": {
+            "json_file": "composer.json",
+            "sections": [
+              "require",
+              "require-dev"
+            ],
+            "deny_dev_constraints": true,
+            "finding_message": "Development Composer constraints detected",
+            "project_local_only": true
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0067",
+      "title": "prefer-stable=true in composer.json",
+      "review_report": "docs/archive/current-state/qa-part1.md",
+      "criterion": "prefer-stable=true in composer.json; assess only the collected Magento deployment scope.",
+      "checks": [
+        {
+          "name": "composer_json_kv",
+          "args": {
+            "json_file": "composer.json",
+            "key": "prefer-stable",
+            "op": "eq",
+            "expect": true,
+            "strict": true,
+            "project_local_only": true
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0069",
+      "title": "Direct locked versions match the reported latest stable release",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Collected direct Composer package versions are not older than the latest stable release reported by the configured package-status source. This is a maintenance policy, not proof of an exploitable vulnerability.",
+      "checks": [
+        {
+          "name": "composer_direct_outdated_api",
+          "args": {
+            "lock_file": "composer.lock",
+            "json_file": "composer.json",
+            "status_endpoint": "https://api.magebean.com/v1/packages/status",
+            "timeout_ms": 10000,
+            "status_batch_size": 500,
+            "allow_private_http_fallback": true,
+            "include_dev": true,
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025"
+      ],
+      "capability": null,
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0070",
+      "title": "Composer lock hash and dependency identities are consistent",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "composer.lock has a matching Composer content-hash, no duplicate or malformed package identities, and contains or provides/replaces each declared root package dependency. This does not prove the full dependency solver result or installed vendor file integrity.",
+      "checks": [
+        {
+          "name": "composer_lock_integrity",
+          "args": {
+            "json_file": "composer.json",
+            "lock_file": "composer.lock"
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0072",
+      "title": "No configured secret-pattern matches in collected VCS scope",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "No configured PCRE secret-pattern matches occur in eligible nonbinary working-tree files up to max_file_bytes and in individual file lines across available local Git ref history, within configured paths and exclusions. Git metadata and Git PCRE support are required for a clean history conclusion. This does not certify absence of every secret format, multiline historical matches, excluded files, remote refs or unavailable history.",
+      "checks": [
+        {
+          "name": "git_history_scan",
+          "args": {
+            "paths": [
+              "."
+            ],
+            "exclude_dirs": [
+              ".git",
+              "vendor",
+              "var",
+              "generated",
+              "node_modules",
+              "pub/media",
+              "pub/static",
+              "pub/cache",
+              "setup",
+              "dev/tests",
+              "dev/tools"
+            ],
+            "patterns": [
+              "AKIA[0-9A-Z]{16}",
+              "ASIA[0-9A-Z]{16}",
+              "AIza[0-9A-Za-z\\-_]{35}",
+              "-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----",
+              "xox[baprs]-[0-9A-Za-z\\-]{10,48}",
+              "sk_live_[0-9a-zA-Z]{24,}",
+              "gh[pousr]_[0-9A-Za-z]{36,255}",
+              "(api[_-]?key|client[_-]?secret|access[_-]?token|password)[[:space:]]*[\"']?[[:space:]]*(=>|=|:)[[:space:]]*[\"'][A-Za-z0-9_./+=-]{16,}[\"']"
+            ],
+            "max_results": 200,
+            "max_file_bytes": 1048576
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0093",
+      "title": "PCI checklist declares the required evidence topics",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "At least one supplied readable checklist contains the configured payment scope, SAQ notes, access review, incident response and vendor responsibility topic declarations. This is document-topic presence, not adequacy of PCI evidence or operational compliance.",
+      "checks": [
+        {
+          "name": "pci_manual_evidence_documented",
+          "args": {
+            "paths": [
+              ".magebean/pci-evidence.md",
+              "docs/pci-evidence.md",
+              "SECURITY.md"
+            ],
+            "required_topics": [
+              "payment_scope",
+              "saq_notes",
+              "access_review",
+              "incident_response",
+              "vendor_responsibilities"
+            ]
+          }
+        }
+      ],
+      "profiles": [],
+      "capability": null,
+      "review_tags": [
+        "document_governance_not_direct_store_weakness",
+        "no_builtin_profile_membership"
+      ]
+    },
+    {
+      "id": "MB-0100",
+      "title": "Recorded Admin role assignments have relational integrity",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Collected admin_user, authorization_role and authorization_rule rows have valid user/group parent relationships, no cyclic group ancestry or orphan rules, and each active admin has one assigned group with ACL rules. This checks relational assignment integrity, not business approval, least privilege or effective authorization policy.",
+      "checks": [
+        {
+          "name": "magento_admin_role_assignments_valid",
+          "args": {
+            "env_file": "app/etc/env.php"
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0728",
+      "title": "Configured admin password minimum is at least eight",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "The collected admin password minimum declaration, or the installed Magento User validator minimum when no declaration overrides it, is at least eight characters. This checks the observed admin policy, not every user password or ASVS conformance.",
+      "checks": [
+        {
+          "name": "magento_admin_password_minimum_configured",
+          "args": {
+            "min_length": 8
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0729",
+      "title": "Declared project debug settings are disabled",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Inspected default-scope project Magento debug/inline-translation declarations and project PHP ini display_errors/display_startup_errors and Xdebug declarations must not enable debug output. Absent declarations are not enabled declarations in this scope; web-worker runtime, custom integrations and all-component ASVS conformance are outside this predicate.",
+      "checks": [
+        {
+          "name": "magento_deployment_debug_flags_disabled",
+          "args": []
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0730",
+      "title": "No configured secret patterns in deployed application files",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Eligible deployed working-tree text files within configured paths and exclusions contain no configured secret-pattern matches. Git history is outside this basic deployment check. Runtime credential configuration app/etc/env.php is excluded; unreadable or oversized eligible files are collection errors.",
+      "checks": [
+        {
+          "name": "working_tree_secret_scan",
+          "args": {
+            "paths": [
+              "."
+            ],
+            "exclude_dirs": [
+              ".git",
+              "vendor",
+              "var",
+              "generated",
+              "node_modules",
+              "pub/media",
+              "pub/static",
+              "pub/cache",
+              "setup",
+              "dev/tests",
+              "dev/tools",
+              "app/etc/env.php"
+            ],
+            "patterns": [
+              "AKIA[0-9A-Z]{16}",
+              "ASIA[0-9A-Z]{16}",
+              "AIza[0-9A-Za-z\\-_]{35}",
+              "-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----",
+              "xox[baprs]-[0-9A-Za-z\\-]{10,48}",
+              "sk_live_[0-9a-zA-Z]{24,}",
+              "gh[pousr]_[0-9A-Za-z]{36,255}",
+              "(api[_-]?key|client[_-]?secret|access[_-]?token|password)[[:space:]]*[\"']?[[:space:]]*(=>|=|:)[[:space:]]*[\"'][A-Za-z0-9_./+=-]{16,}[\"']"
+            ],
+            "max_results": 200,
+            "max_file_bytes": 16777216
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "owasp-top-10-2025",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0731",
+      "title": "Observed Admin password minimum is at least eight",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "The collected Admin minimum-password declaration or supported installed default is at least eight characters. Existing passwords, custom identity providers and uncollected scopes are not assessed.",
+      "checks": [
+        {
+          "name": "magento_admin_password_minimum_configured",
+          "args": {
+            "min_length": 8
+          }
+        }
+      ],
+      "profiles": [],
+      "capability": null,
+      "review_tags": [
+        "no_builtin_profile_membership"
+      ]
+    },
+    {
+      "id": "MB-0733",
+      "title": "Supported PHTML output uses context-appropriate escaping",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Within bounded collected PHTML files, supported direct dynamic output expressions call recognized context-matched escaping APIs on supported template receivers, use supported encoding forms or static values. This is an output syntax policy; custom implementations, unsupported contexts, dynamic markup and incomplete source coverage remain unavailable, and runtime XSS safety is not established.",
+      "checks": [
+        {
+          "name": "code_phtml_escaped_output",
+          "args": {
+            "paths": [
+              "app"
+            ],
+            "escape_functions": [
+              "escapeHtml",
+              "escapeHtmlAttr",
+              "escapeUrl",
+              "escapeJs",
+              "escapeCss"
+            ]
+          }
+        }
+      ],
+      "profiles": [],
+      "capability": null,
+      "review_tags": [
+        "no_builtin_profile_membership"
+      ]
+    },
+    {
+      "id": "MB-0736",
+      "title": "Supported inline JavaScript output uses context-appropriate escaping",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Within bounded collected templates, supported direct PHP output into inline JavaScript calls recognized JS-string escaping APIs or supported native JSON encoding in the appropriate supported context. This is a syntax observation; unresolved receiver/function identity, dynamic markup, unsupported JS contexts and incomplete coverage remain unavailable, not proof of browser-wide safety.",
+      "checks": [
+        {
+          "name": "code_js_context_escaping",
+          "args": {
+            "paths": [
+              "app"
+            ],
+            "include_ext": [
+              "phtml",
+              "html"
+            ]
+          }
+        }
+      ],
+      "profiles": [],
+      "capability": null,
+      "review_tags": [
+        "no_builtin_profile_membership"
+      ]
+    },
+    {
+      "id": "MB-0739",
+      "title": "Declared display_errors is disabled in supplied ini files",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Inspected readable supplied PHP ini files explicitly declare display_errors disabled. Missing, malformed or unreadable declaration evidence is unavailable. The effective PHP web-worker configuration and runtime exception behavior are not established.",
+      "checks": [
+        {
+          "name": "php_display_errors_disabled",
+          "args": {
+            "files": [
+              "php.ini",
+              ".user.ini"
+            ]
+          }
+        }
+      ],
+      "profiles": [],
+      "capability": null,
+      "review_tags": [
+        "no_builtin_profile_membership"
+      ]
+    },
+    {
+      "id": "MB-0740",
+      "title": "Declared template hints are disabled",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "The configured named template-hint paths in the supplied literal project configuration are explicitly disabled. Missing or malformed declarations remain unavailable; effective merged store and web-worker settings are not established.",
+      "checks": [
+        {
+          "name": "php_template_hints_disabled",
+          "args": {
+            "file": "app/etc/env.php",
+            "paths": [
+              "system.default.dev/debug/template_hints"
+            ]
+          }
+        }
+      ],
+      "profiles": [],
+      "capability": null,
+      "review_tags": [
+        "no_builtin_profile_membership"
+      ]
+    },
+    {
+      "id": "MB-0741",
+      "title": "Declared cache backends are not file-based",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "The supplied literal project configuration contains supported cache backend declarations and no assessed declared backend is file-based. Missing or malformed required evidence remains unavailable. This does not require every backend to be Redis or prove running cache service health.",
+      "checks": [
+        {
+          "name": "php_no_file_cache_backend",
+          "args": {
+            "file": "app/etc/env.php",
+            "paths": [
+              "cache.frontend.default.backend",
+              "cache.frontend.page_cache.backend",
+              "cache.backend"
+            ]
+          }
+        }
+      ],
+      "profiles": [],
+      "capability": null,
+      "review_tags": [
+        "no_builtin_profile_membership"
+      ]
+    },
+    {
+      "id": "MB-0742",
+      "title": "Declared storefront hints and inline translation are disabled",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "The configured named storefront-template-hint and inline-translation paths in the supplied literal project configuration are explicitly disabled. Missing or malformed evidence remains unavailable; effective runtime settings are outside this predicate.",
+      "checks": [
+        {
+          "name": "php_dev_debug_config_disabled",
+          "args": {
+            "file": "app/etc/env.php",
+            "paths": [
+              "system.default.dev/translate_inline/active",
+              "system.default.dev/debug/template_hints_storefront"
+            ]
+          }
+        }
+      ],
+      "profiles": [],
+      "capability": null,
+      "review_tags": [
+        "no_builtin_profile_membership"
+      ]
+    },
+    {
+      "id": "MB-0744",
+      "title": "Assessed Composer libraries are not reported abandoned",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Every library package in the complete assessed Composer lock inventory has explicit usable maintenance status and is not reported abandoned. Missing inventory, malformed package records or unknown maintenance statuses remain unavailable; vendor support contracts and all extension maintenance are not established.",
+      "checks": [
+        {
+          "name": "composer_abandoned_api",
+          "args": {
+            "lock_file": "composer.lock",
+            "status_endpoint": "https://api.magebean.com/v1/packages/status",
+            "timeout_ms": 10000,
+            "status_batch_size": 500,
+            "allow_private_http_fallback": true,
+            "package_types": [
+              "library"
+            ],
+            "strict_scope": true
+          }
+        }
+      ],
+      "profiles": [],
+      "capability": null,
+      "review_tags": [
+        "no_builtin_profile_membership"
+      ]
+    },
+    {
+      "id": "MB-0773",
+      "title": "Admin secret URL keys enabled",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "The resolved default-scope native Admin admin/security/use_form_key configuration is enabled. Authenticated route enforcement requires separate verification.",
+      "checks": [
+        {
+          "name": "magento_admin_security_flag",
+          "args": {
+            "path": "admin/security/use_form_key"
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0774",
+      "title": "Admin login names are case sensitive",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "The resolved default-scope native Admin admin/security/use_case_sensitive_login configuration is enabled; this is a configuration observation, not an authentication flow test.",
+      "checks": [
+        {
+          "name": "magento_admin_security_flag",
+          "args": {
+            "path": "admin/security/use_case_sensitive_login"
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0775",
+      "title": "Admin account sharing disabled",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "The resolved default-scope native Admin admin/security/admin_account_sharing configuration is disabled. This does not establish that each person has a unique approved account.",
+      "checks": [
+        {
+          "name": "magento_admin_security_flag",
+          "args": {
+            "path": "admin/security/admin_account_sharing"
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0776",
+      "title": "Admin password reset protection configured",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Resolved native Admin reset protection is enabled with bounded hourly requests and a positive cooldown meeting Magebean policy (at most 5 requests/hour and at least 1 minute). This does not exercise reset tokens or email delivery.",
+      "checks": [
+        {
+          "name": "magento_admin_password_reset_protection",
+          "args": {
+            "max_requests_per_hour": 5,
+            "min_interval_minutes": 1
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0777",
+      "title": "Observed Admin entrypoint redirects to HTTPS",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "The explicitly supplied or locally resolved Admin HTTP entrypoint redirects directly to same-host HTTPS. Missing Admin route evidence remains unresolved without preventing the separate storefront probe.",
+      "checks": [
+        {
+          "name": "http_force_https_redirect",
+          "args": {
+            "strict_scope": true,
+            "admin_only": true
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0778",
+      "title": "Observed TLS certificate has trusted hostname and renewal margin",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "The configured endpoint completes a peer-verified TLS connection for its hostname with a currently valid certificate and at least 15 days remaining under Magebean renewal policy. Uncollectable trust or network evidence is unresolved.",
+      "checks": [
+        {
+          "name": "http_tls_cert_days_left",
+          "args": {
+            "min_days": 15,
+            "timeout_ms": 8000
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0779",
+      "title": "Observed page restricts framing",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "A successful same-host application response emits an unambiguous enforced restrictive CSP frame-ancestors policy, or valid X-Frame-Options DENY/SAMEORIGIN when no enforced frame-ancestors overrides it. This scopes the observation to the requested page.",
+      "checks": [
+        {
+          "name": "http_clickjacking_protection",
+          "args": {
+            "strict_scope": true,
+            "timeout_ms": 8000
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0780",
+      "title": "Media inventory has no executable PHP-like filenames",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "The bounded readable pub/media filename inventory contains no PHP-like executable extension, including double extensions. Symlinks, unreadable subtrees and budget gaps remain unresolved. Web-server execution policy is separate evidence.",
+      "checks": [
+        {
+          "name": "basic_media_executable_files",
+          "args": {
+            "max_entries": 10000
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0781",
+      "title": "Named sensitive HTTP paths are denied or absent",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Six named deployment artifact paths are denied or absent over HTTP. A bounded prefix containing a recognizable artifact signature is a violation; ambiguous 200 pages, redirects and transport gaps remain unresolved. No response contents are retained.",
+      "checks": [
+        {
+          "name": "basic_sensitive_http_paths",
+          "args": {
+            "timeout_ms": 2000
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0782",
+      "title": "Sensitive deployment configuration excluded from Git index",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "The readable current deployment Git index does not track app/etc/env.php. Historical commits, remote repositories and deployments without a readable Git index require separate evidence.",
+      "checks": [
+        {
+          "name": "env_not_tracked",
+          "args": []
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0783",
+      "title": "Installed Magento cron has every-minute cadence",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "The observed installed cron:run schedule has every-minute cadence for the assessed project. External/cloud/container scheduling without a matching installed entry requires separate scheduler evidence; presence alone is insufficient.",
+      "checks": [
+        {
+          "name": "installed_cron_cadence",
+          "args": []
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0784",
+      "title": "Published theme and locale static scopes have representative assets",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "The bounded observed published frontend theme/locale scopes contain representative readable nonempty CSS and JavaScript artifacts. Explicit intended scopes may refine this observation. Active-store coverage, asset freshness and headless deployment applicability require separate evidence.",
+      "checks": [
+        {
+          "name": "static_scopes_ready",
+          "args": []
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0785",
+      "title": "Magento cron execution has recent success and bounded backlog",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "The read-only bounded cron_schedule observation contains recent successful execution within 24 hours and no overdue pending jobs beyond 15 minutes under Magebean readiness policy. The reported collection window is explicit; job-group completeness and external schedulers require separate evidence.",
+      "checks": [
+        {
+          "name": "cron_health",
+          "args": {
+            "recent_hours": 24,
+            "overdue_minutes": 15
+          }
+        }
+      ],
+      "profiles": [
+        "basic",
+        "hardening",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0786",
+      "title": "Direct named query methods use a literal first argument",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Every syntactically named query/rawQuery/exec/executeQuery method call in collected custom PHP/PHTML uses one static string first argument, without direct concatenation or interpolation. Unresolved variables yield UNKNOWN. This does not prove parameter binding or SQL injection safety. Scope is completely collected app/code PHP/PHTML; missing, unreadable, oversized, linked, malformed or truncated eligible input prevents a clean PASS.",
+      "checks": [
+        {
+          "name": "automated_source_policy",
+          "args": {
+            "kind": "sql_literal_query",
+            "paths": [
+              "app/code"
+            ],
+            "include_ext": [
+              "php",
+              "phtml"
+            ]
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025"
+      ],
+      "capability": "strict_native_api_policy",
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0787",
+      "title": "No unconditional validateForCsrf acceptance override",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Collected custom PHP/PHTML contains no validateForCsrf method whose complete body is an unconditional return true. This exact bypass ban does not establish form tokens or server-side CSRF effectiveness. Scope is completely collected app/code PHP/PHTML; missing, unreadable, oversized, linked, malformed or truncated eligible input prevents a clean PASS.",
+      "checks": [
+        {
+          "name": "automated_source_policy",
+          "args": {
+            "kind": "csrf_unconditional_bypass",
+            "paths": [
+              "app/code"
+            ],
+            "include_ext": [
+              "php",
+              "phtml"
+            ]
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0788",
+      "title": "Custom source avoids enumerated native network primitives",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Collected custom PHP/PHTML has no direct global calls to curl_exec, curl_multi_exec, fsockopen, pfsockopen, stream_socket_client or file_get_contents. Dynamic callable/alias ambiguity yields UNKNOWN. This explicit API restriction does not establish SSRF safety of framework adapters. Scope is completely collected app/code PHP/PHTML; missing, unreadable, oversized, linked, malformed or truncated eligible input prevents a clean PASS.",
+      "checks": [
+        {
+          "name": "automated_source_policy",
+          "args": {
+            "kind": "native_network",
+            "paths": [
+              "app/code"
+            ],
+            "include_ext": [
+              "php",
+              "phtml"
+            ]
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025"
+      ],
+      "capability": "strict_native_api_policy",
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0789",
+      "title": "Custom source avoids native unserialize calls",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Collected custom PHP/PHTML contains no direct unqualified or fully-qualified global unserialize call, irrespective of allowed_classes options. Indirect calls and function aliases yield UNKNOWN. Other serializers remain outside this syntax policy. Scope is completely collected app/code PHP/PHTML; missing, unreadable, oversized, linked, malformed or truncated eligible input prevents a clean PASS.",
+      "checks": [
+        {
+          "name": "automated_source_policy",
+          "args": {
+            "kind": "native_unserialize",
+            "paths": [
+              "app/code"
+            ],
+            "include_ext": [
+              "php",
+              "phtml"
+            ]
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0790",
+      "title": "Custom source avoids enumerated shell/process primitives",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Collected custom PHP/PHTML contains no direct global exec/system/passthru/shell_exec/popen/proc_open/pcntl_exec invocation or shell backtick expression. Indirect calls and function aliases yield UNKNOWN; framework process adapters are outside this API ban. Scope is completely collected app/code PHP/PHTML; missing, unreadable, oversized, linked, malformed or truncated eligible input prevents a clean PASS.",
+      "checks": [
+        {
+          "name": "automated_source_policy",
+          "args": {
+            "kind": "shell_execution",
+            "paths": [
+              "app/code"
+            ],
+            "include_ext": [
+              "php",
+              "phtml"
+            ]
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0791",
+      "title": "Custom source avoids eval and create_function constructs",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Collected custom PHP/PHTML contains no eval construct or direct global create_function call. Dynamic include targets, indirect calls, function aliases and unresolved assertion semantics yield UNKNOWN. This is a construct policy, not general runtime execution assurance. Scope is completely collected app/code PHP/PHTML; missing, unreadable, oversized, linked, malformed or truncated eligible input prevents a clean PASS.",
+      "checks": [
+        {
+          "name": "automated_source_policy",
+          "args": {
+            "kind": "dynamic_execution",
+            "paths": [
+              "app/code"
+            ],
+            "include_ext": [
+              "php",
+              "phtml"
+            ]
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0792",
+      "title": "Custom source avoids enumerated raw filesystem primitives",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Collected custom PHP/PHTML contains no direct global file_get_contents/file_put_contents/fopen/readfile/unlink/rename/copy/scandir/glob call. Indirect calls and aliases yield UNKNOWN. This explicit API restriction does not establish path safety of framework adapters. Scope is completely collected app/code PHP/PHTML; missing, unreadable, oversized, linked, malformed or truncated eligible input prevents a clean PASS.",
+      "checks": [
+        {
+          "name": "automated_source_policy",
+          "args": {
+            "kind": "native_filesystem",
+            "paths": [
+              "app/code"
+            ],
+            "include_ext": [
+              "php",
+              "phtml"
+            ]
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025"
+      ],
+      "capability": "strict_native_api_policy",
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0793",
+      "title": "Custom source avoids native upload move calls",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Collected custom PHP/PHTML contains no direct global move_uploaded_file invocation. Indirect calls and aliases yield UNKNOWN. This is an explicit native API restriction, not proof that other upload handlers validate content or authorization. Scope is completely collected app/code PHP/PHTML; missing, unreadable, oversized, linked, malformed or truncated eligible input prevents a clean PASS.",
+      "checks": [
+        {
+          "name": "automated_source_policy",
+          "args": {
+            "kind": "native_upload",
+            "paths": [
+              "app/code"
+            ],
+            "include_ext": [
+              "php",
+              "phtml"
+            ]
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0794",
+      "title": "Custom source avoids enumerated weak randomness APIs",
+      "review_report": "docs/archive/current-state/qa-part2.md",
+      "criterion": "Collected custom PHP/PHTML contains no direct global rand/mt_rand/lcg_value/uniqid/srand/mt_srand call. Indirect calls and aliases yield UNKNOWN. This deliberately strict coding policy includes non-security uses; it does not establish entropy or token lifetime. Scope is completely collected app/code PHP/PHTML; missing, unreadable, oversized, linked, malformed or truncated eligible input prevents a clean PASS.",
+      "checks": [
+        {
+          "name": "automated_source_policy",
+          "args": {
+            "kind": "weak_prng",
+            "paths": [
+              "app/code"
+            ],
+            "include_ext": [
+              "php",
+              "phtml"
+            ]
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025"
+      ],
+      "capability": "strict_native_api_policy",
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0795",
+      "title": "No direct request superglobals in named log method arguments",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Collected custom PHP/PHTML contains no $_GET/$_POST/$_REQUEST/$_COOKIE/$_SERVER/$_FILES token inside arguments of syntactically named log/debug/info/notice/warning/error/critical/alert/emergency method calls. This exact syntax rule does not prove absence of sensitive data in arbitrary logs. Scope is completely collected app/code PHP/PHTML; missing, unreadable, oversized, linked, malformed or truncated eligible input prevents a clean PASS.",
+      "checks": [
+        {
+          "name": "automated_source_policy",
+          "args": {
+            "kind": "direct_request_logging",
+            "paths": [
+              "app/code"
+            ],
+            "include_ext": [
+              "php",
+              "phtml"
+            ]
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0796",
+      "title": "Custom source avoids enumerated raw crypto and session APIs",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Collected custom PHP/PHTML contains no direct global session_start/session_id/session_regenerate_id/session_set_save_handler/mcrypt_encrypt/mcrypt_decrypt/md5/sha1/crypt/openssl_encrypt/openssl_decrypt call. This explicit coding restriction also bans legitimate non-security hash uses; it does not prove framework cryptography/session semantics. Scope is completely collected app/code PHP/PHTML; missing, unreadable, oversized, linked, malformed or truncated eligible input prevents a clean PASS.",
+      "checks": [
+        {
+          "name": "automated_source_policy",
+          "args": {
+            "kind": "raw_crypto_session",
+            "paths": [
+              "app/code"
+            ],
+            "include_ext": [
+              "php",
+              "phtml"
+            ]
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025"
+      ],
+      "capability": "strict_native_api_policy",
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0797",
+      "title": "No enumerated XML external feature constructs in custom source",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Collected custom PHP/PHTML contains no token reference to LIBXML_NOENT/LIBXML_DTDLOAD/LIBXML_DTDATTR, no resolveExternals/substituteEntities/validateOnParse assignment except literal false, and no syntactically named xinclude or xml_set_external_entity_ref_handler invocation. This exact construct ban does not establish every parser default or runtime configuration. Scope is completely collected app/code PHP/PHTML; missing, unreadable, oversized, linked, malformed or truncated eligible input prevents a clean PASS.",
+      "checks": [
+        {
+          "name": "automated_source_policy",
+          "args": {
+            "kind": "xml_external_features",
+            "paths": [
+              "app/code"
+            ],
+            "include_ext": [
+              "php",
+              "phtml"
+            ]
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0798",
+      "title": "No plain HTTP standalone PHP string literals in custom source",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Collected custom PHP/PHTML contains no standalone constant string literal beginning http://. Comments are excluded. This deliberately strict literal policy includes non-endpoint examples and does not establish effective endpoint inventory, TLS verification or runtime interpolation. Scope is completely collected app/code PHP/PHTML; missing, unreadable, oversized, linked, malformed or truncated eligible input prevents a clean PASS.",
+      "checks": [
+        {
+          "name": "automated_source_policy",
+          "args": {
+            "kind": "literal_https",
+            "paths": [
+              "app/code"
+            ],
+            "include_ext": [
+              "php",
+              "phtml"
+            ]
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025"
+      ],
+      "capability": "strict_native_api_policy",
+      "review_tags": [
+        "needs_explicit_policy_or_risk_context"
+      ]
+    },
+    {
+      "id": "MB-0799",
+      "title": "Application worker code paths are read-only",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "For every explicitly supplied PHP-FPM worker PID, the scanner and worker have identical effective UID/GID/groups, zero effective/permitted/ambient capabilities, matching project tree, mount namespace and Linux security context. Kernel access observations find no writable object or replaceable code root in the complete bounded configured app/vendor/lib inventory. Unsupported identity, seccomp, links or inventory gaps remain UNKNOWN.",
+      "checks": [
+        {
+          "name": "production_bound_worker_code_readonly",
+          "args": {
+            "dirs": [
+              "app",
+              "vendor",
+              "lib"
+            ],
+            "max_entries": 50000
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025",
+        "takeover"
+      ],
+      "capability": "runtime_worker_access",
+      "review_tags": []
+    },
+    {
+      "id": "MB-0800",
+      "title": "Upload inventory has no configured PHP or handler signatures",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Within the complete bounded configured upload path inventory, readable files contain no explicit long PHP opening tags or configured htaccess script-handler signatures and no PHP-like executable filename extension. Missing/unreadable/oversized eligible files, unfollowed links and traversal-budget gaps remain UNKNOWN. This is a signature policy, not absence of arbitrary executable content or prevention of server execution.",
+      "checks": [
+        {
+          "name": "production_upload_signatures_absent",
+          "args": {
+            "paths": [
+              "pub/media"
+            ],
+            "max_entries": 10000,
+            "max_file_bytes": 1048576
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0801",
+      "title": "Direct global Admin ACL grants match the approved role policy",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "In a nonempty bounded deployed authorization_role inventory and complete bounded authorization_rule inventory, every direct allow rule for Magento_Backend::all or Magento_Adminhtml::all assigned to a group role has a role ID in the explicitly configured approved_role_ids policy. Missing policy, malformed/orphan rows, direct user grants or incomplete tables remain UNKNOWN. This checks direct stored grants, not inherited effective privileges or business least privilege.",
+      "checks": [
+        {
+          "name": "production_direct_global_roles_approved",
+          "args": []
+        }
+      ],
+      "profiles": [
+        "hardening"
+      ],
+      "capability": "admin_role_policy",
+      "review_tags": []
+    },
+    {
+      "id": "MB-0802",
+      "title": "Named checkout response emits the explicit enforced CSP baseline",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "The supplied checkout path returns a successful same-origin no-redirect HTTPS GET with one unambiguous enforced Content-Security-Policy. The emitted policy explicitly defines script-src, connect-src, frame-src, form-action, object-src and base-uri; assessed sources contain no wildcard, unsafe-inline, unsafe-eval or broad scheme-only source. object-src is exactly none, base-uri is exactly none or self, and reporting is present when configured. Report-only alone fails; redirect/inaccessible checkout, multiple policies, unsupported syntax or incomplete collection remain UNKNOWN.",
+      "checks": [
+        {
+          "name": "production_checkout_csp_response",
+          "args": {
+            "path": "/checkout/",
+            "require_reporting": true,
+            "timeout_ms": 5000
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0803",
+      "title": "Observed application response emits nosniff",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "One successful same-origin no-redirect HTTPS GET at the configured path emits exactly one X-Content-Type-Options header whose trimmed value is nosniff. Missing or invalid header on an observed successful response fails; duplicate headers, redirects, transport failures and incomplete collection remain UNKNOWN. HSTS and frame protection are assessed separately.",
+      "checks": [
+        {
+          "name": "production_runtime_nosniff",
+          "args": {
+            "path": "/",
+            "timeout_ms": 5000
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025",
+        "prelaunch"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0804",
+      "title": "Named integration debug settings resolve disabled in default scope",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Every explicitly configured integration debug/verbose setting path resolves through deployed env.php/config.php/default core_config_data or supported installed-module defaults to a recognized disabled value in default scope. Any recognized enabled value fails; omitted paths, missing values or unsupported flag representations remain UNKNOWN. This verifies named settings, not every third-party integration or store scope.",
+      "checks": [
+        {
+          "name": "production_integration_debug_defaults_disabled",
+          "args": []
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025"
+      ],
+      "capability": "integration_debug_policy",
+      "review_tags": []
+    },
+    {
+      "id": "MB-0805",
+      "title": "Collected Composer dependency sources match explicit policy",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Every package in the readable bounded collected composer.lock inventory has source and/or dist URL and nonempty reference matching the supplied exact per-package source policy; replacement declarations and root composer.json repository declarations also match the supplied policy. Explicit metadata-only metapackages may have no source/dist. Missing package policies or incomplete source identity are unresolved. This compares collected declarations and does not verify installed bytes, canonical upstream truth or absence of malicious approved revisions.",
+      "checks": [
+        {
+          "name": "dependency_source_policy",
+          "args": {
+            "lock_file": "composer.lock",
+            "composer_file": "composer.json",
+            "policy_file": ".magebean/dependency-source-policy.json"
+          }
+        }
+      ],
+      "profiles": [
+        "hardening"
+      ],
+      "capability": "dependency_source_policy",
+      "review_tags": []
+    },
+    {
+      "id": "MB-0806",
+      "title": "Declared mitigation records satisfy structure and expiry policy",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "The bounded readable schema-version-1 mitigation record inventory has a valid generated_at timestamp within configured max_age_days and covers each identity in the supplied nonempty expected_ids policy with a unique record containing nonempty advisory, package, version, owner, action, rollback and a valid future expires_at. This checks declared record structure and expiry only, not whether all deployed mitigations are declared, effective or approved.",
+      "checks": [
+        {
+          "name": "dependency_mitigation_records",
+          "args": {
+            "inventory_file": ".magebean/mitigations.json",
+            "max_age_days": 30
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025"
+      ],
+      "capability": "dependency_mitigation_policy",
+      "review_tags": [
+        "document_governance_not_direct_store_weakness"
+      ]
+    },
+    {
+      "id": "MB-0807",
+      "title": "Configured PHP-FPM workers have no mapped Xdebug binary module",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Every explicitly inventoried Linux PHP-FPM worker is bound to its pool, executable identity and exact process start_ticks before and after a complete bounded nonempty /proc process-map observation. No Xdebug-named shared module is mapped in these verified workers. Missing or changed identity, empty/unreadable/truncated maps or malformed inventory remain UNKNOWN. This observes configured process mappings at scan time, not every deployment worker, Xdebug feature mode, statically linked code or complete PHP runtime settings.",
+      "checks": [
+        {
+          "name": "production_worker_xdebug_absent",
+          "args": {
+            "policy_file": ".magebean/php-fpm-workers.json"
+          }
+        }
+      ],
+      "profiles": [
+        "hardening",
+        "owasp-top-10-2025",
+        "takeover"
+      ],
+      "capability": "runtime_worker_inventory",
+      "review_tags": []
+    },
+    {
+      "id": "MB-0808",
+      "title": "Consistent static Magento module identity",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Literal module registrations and module.xml names agree for selected module roots, and a literal registration name has a unique installed root.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "identity"
+          }
+        }
+      ],
+      "profiles": [
+        "module-integrity",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0809",
+      "title": "Supported module XML satisfies its local schema",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Collected module, routes, webapi and ACL XML declarations satisfy their resolvable project-local declared Magento XSD.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "xml"
+          }
+        }
+      ],
+      "profiles": [
+        "module-integrity",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0810",
+      "title": "Declared Composer package names are available",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Package names in selected modules’ Composer require metadata appear in the installed package inventory or a collected provide or replace declaration.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "dependencies"
+          }
+        }
+      ],
+      "profiles": [
+        "module-integrity",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0811",
+      "title": "REST declaration references a public service method",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Selected global webapi.xml entries reference a public method on a uniquely indexed service class or interface within supported resolution scope.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "rest-service"
+          }
+        }
+      ],
+      "profiles": [
+        "module-integrity",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0812",
+      "title": "REST ACL references are declared in collected context",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "In development, selected modules’ global webapi.xml resource references resolve to collected static global ACL declarations or anonymous/self; activation is not established. Other profiles assess selected enabled modules against enabled ACL declarations.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "rest-acl"
+          }
+        }
+      ],
+      "profiles": [
+        "module-integrity",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0813",
+      "title": "Review sensitive anonymous REST declarations",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Flag selected modules’ global webapi.xml anonymous routes with export, download, credentials, permissions, roles, or secrets path segments. Development inspects source declarations without claiming activation; other profiles require enabled modules.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "rest-anonymous"
+          }
+        }
+      ],
+      "profiles": [
+        "module-integrity",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0814",
+      "title": "Avoid direct request superglobals in module log calls",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Selected PHP and PHTML module source avoids direct request superglobal references in arguments to enumerated log-like methods.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "request-logging"
+          }
+        }
+      ],
+      "profiles": [
+        "module-integrity",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0815",
+      "title": "DI preferences resolve to compatible concrete targets",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Preferences resolve to compatible concrete PHP classes in bounded indexed symbol context. Development without effective module order inspects each source declaration independently; effective merged DI is not established.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "di-preference"
+          }
+        }
+      ],
+      "profiles": [
+        "module-integrity",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": [
+        "reproduced_implementation_defect"
+      ]
+    },
+    {
+      "id": "MB-0816",
+      "title": "DI virtual types resolve to concrete classes",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Virtual type chains are acyclic and resolve to concrete classes in bounded indexed symbol context. Development without effective module order inspects each source declaration independently; cross-file effective resolution may remain unavailable.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "di-virtual-type"
+          }
+        }
+      ],
+      "profiles": [
+        "module-integrity",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": [
+        "reproduced_implementation_defect"
+      ]
+    },
+    {
+      "id": "MB-0817",
+      "title": "DI constructor arguments match supported signatures",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Named DI arguments match indexed constructor parameters and supported array parameter types. Development without module order evaluates per-file declarations, not effective merged DI.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "di-arguments"
+          }
+        }
+      ],
+      "profiles": [
+        "module-integrity",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0818",
+      "title": "DI plugins target interceptable declarations",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Enabled directly declared plugins use concrete plugin classes and supported hooks on interceptable target methods. Development without module order checks source declarations independently, without asserting effective runtime plugin activation.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "di-plugins"
+          }
+        }
+      ],
+      "profiles": [
+        "module-integrity",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": [
+        "reproduced_implementation_defect"
+      ]
+    },
+    {
+      "id": "MB-0819",
+      "title": "Module PHP syntax matches the configured target",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Selected PHP files avoid enumerated language features introduced after Composer config.platform.php.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "php-target"
+          }
+        }
+      ],
+      "profiles": [
+        "module-source",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0820",
+      "title": "Indexed public method declarations preserve their contracts",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Directly redeclared methods retain public visibility and staticness from their uniquely indexed public parent or interface declaration.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "php-contract"
+          }
+        }
+      ],
+      "profiles": [
+        "module-source",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0821",
+      "title": "Declared Magento Framework constraints match the installed version",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Selected modules declaring a magento/framework dependency accept the installed framework version under Composer constraint semantics.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "magento-platform"
+          }
+        }
+      ],
+      "profiles": [
+        "module-source",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0822",
+      "title": "Review request data reaching command and query calls",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Flag supported direct and single assignment flows from request superglobals into shell calls or named query text arguments.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "request-sinks"
+          }
+        }
+      ],
+      "profiles": [
+        "module-source",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0823",
+      "title": "Declarative schema XML satisfies its installed schema",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Selected global db_schema.xml documents have supported XML syntax and satisfy their declared installed XSD.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "declarative-schema"
+          }
+        }
+      ],
+      "profiles": [
+        "module-lifecycle",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0824",
+      "title": "Setup patch declarations and dependencies are compatible",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Indexed setup patch classes implement the interface for their directory and supported static dependencies resolve to compatible concrete patches without cycles.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "setup-patches"
+          }
+        }
+      ],
+      "profiles": [
+        "module-lifecycle",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0825",
+      "title": "Cron and queue declarations reference public handlers",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Supported global cron and queue declarations refer to public concrete methods resolved in bounded handler and dependency symbol context. Abstract/interface construction or unresolved inheritance is incomplete coverage, not a confirmed runtime defect.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "handler-references"
+          }
+        }
+      ],
+      "profiles": [
+        "module-lifecycle",
+        "development",
+        "prelaunch",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0826",
+      "title": "Review empty exception handlers",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Flag empty catch bodies in selected module PHP as suspected reliability issues.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "empty-catch"
+          }
+        }
+      ],
+      "profiles": [
+        "module-reliability",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0827",
+      "title": "Review query-like calls in loops",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Record query-like method calls directly inside loops in selected module PHP for performance review.",
+      "checks": [
+        {
+          "name": "magento_module_integrity",
+          "args": {
+            "kind": "loop-query"
+          }
+        }
+      ],
+      "profiles": [
+        "module-reliability",
+        "takeover"
+      ],
+      "capability": null,
+      "review_tags": []
+    },
+    {
+      "id": "MB-0828",
+      "title": "Composer dependency matches in local OSV snapshot",
+      "review_report": "docs/archive/current-state/qa-part3.md",
+      "criterion": "Collected Composer lock versions have no applicable active advisory in the required local OSV snapshot.",
+      "checks": [
+        {
+          "name": "composer_audit_offline",
+          "args": {
+            "cve_data": ".magebean/osv-db.json",
+            "require_explicit_snapshot": true
+          }
+        }
+      ],
+      "profiles": [
+        "development",
+        "prelaunch"
+      ],
+      "capability": "local_advisory_snapshot",
+      "review_tags": []
+    }
+  ],
+  "inactive_reference": [
+    {
+      "id": "MB-0004",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0799"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0010",
+      "archived_revision": 4,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0015",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0787"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0016",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0788"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0019",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0791"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0020",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0792"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0021",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0793",
+        "MB-0800"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0023",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0794"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0025",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0796"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0051",
+      "archived_revision": 2,
+      "classification": "insufficient_evidence",
+      "active": false,
+      "reason": "Missing-input behavior alone did not qualify the original maintenance/provider/KEV assertion. No manual-only conclusion is drawn.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0052",
+      "archived_revision": 2,
+      "classification": "insufficient_evidence",
+      "active": false,
+      "reason": "Missing-input behavior alone did not qualify the original maintenance/provider/KEV assertion. No manual-only conclusion is drawn.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0053",
+      "archived_revision": 2,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0806"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0054",
+      "archived_revision": 2,
+      "classification": "insufficient_evidence",
+      "active": false,
+      "reason": "Missing-input behavior alone did not qualify the original maintenance/provider/KEV assertion. No manual-only conclusion is drawn.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0058",
+      "archived_revision": 2,
+      "classification": "insufficient_evidence",
+      "active": false,
+      "reason": "Missing-input behavior alone did not qualify the original maintenance/provider/KEV assertion. No manual-only conclusion is drawn.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0060",
+      "archived_revision": 2,
+      "classification": "insufficient_evidence",
+      "active": false,
+      "reason": "Missing-input behavior alone did not qualify the original maintenance/provider/KEV assertion. No manual-only conclusion is drawn.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0064",
+      "archived_revision": 2,
+      "classification": "insufficient_evidence",
+      "active": false,
+      "reason": "Missing-input behavior alone did not qualify the original maintenance/provider/KEV assertion. No manual-only conclusion is drawn.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0073",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0798"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0075",
+      "archived_revision": 2,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0076",
+      "archived_revision": 2,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0077",
+      "archived_revision": 2,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0078",
+      "archived_revision": 4,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0079",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0730"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0081",
+      "archived_revision": 2,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0812",
+        "MB-0813"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0082",
+      "archived_revision": 3,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0083",
+      "archived_revision": 3,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0085",
+      "archived_revision": 2,
+      "classification": "external_context_required",
+      "active": false,
+      "reason": "Current implementation lacks the external inventory, operational or component evidence needed for a full assessment. Such inputs may be machine-provided.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0086",
+      "archived_revision": 3,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0087",
+      "archived_revision": 2,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0088",
+      "archived_revision": 2,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0089",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0802"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0090",
+      "archived_revision": 2,
+      "classification": "external_context_required",
+      "active": false,
+      "reason": "Current implementation lacks the external inventory, operational or component evidence needed for a full assessment. Such inputs may be machine-provided.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0092",
+      "archived_revision": 2,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0094",
+      "archived_revision": 2,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0811",
+        "MB-0812",
+        "MB-0813"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0095",
+      "archived_revision": 2,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0812",
+        "MB-0813"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0096",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0027",
+        "MB-0779",
+        "MB-0802",
+        "MB-0803"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0097",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0730"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0098",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0797"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0099",
+      "archived_revision": 2,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0813"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0101",
+      "archived_revision": 2,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0801"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0102",
+      "archived_revision": 2,
+      "classification": "external_context_required",
+      "active": false,
+      "reason": "Current implementation lacks the external inventory, operational or component evidence needed for a full assessment. Such inputs may be machine-provided.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0732",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0786",
+        "MB-0822"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0734",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0789"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0735",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0790",
+        "MB-0822"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0737",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0795",
+        "MB-0814"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0738",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0729",
+        "MB-0807"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0743",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0795"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0745",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0804"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0746",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0795",
+        "MB-0814"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0747",
+      "archived_revision": 1,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0748",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0780",
+        "MB-0800"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    }
+  ]
+}

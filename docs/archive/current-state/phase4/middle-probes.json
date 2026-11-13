@@ -1,0 +1,820 @@
+{
+  "scope": "read-only detector evaluation of inert temporary source; no sample source is executed, no external network",
+  "results": [
+    {
+      "id": "MB-0788",
+      "explicit_capability": "strict_native_api_policy",
+      "case": "fixed_local_file_read",
+      "check_outcome": "FAIL",
+      "severity": "low",
+      "message": "Source violates the declared native_network policy; see file and line evidence.",
+      "risk_kind": "observed_issue",
+      "confidence": "confirmed",
+      "category": "policy",
+      "needs_attention": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "check": "automated_source_policy",
+            "message": "Policy: Source violates the declared native_network policy; see file and line evidence.",
+            "reason_code": "SOURCE_POLICY_VIOLATION",
+            "kind": "observed_issue",
+            "evidence": {
+              "complete": true,
+              "gaps": [],
+              "files_read": 1,
+              "bytes_read": 62,
+              "scope": [
+                "app/code"
+              ],
+              "policy": "native_network",
+              "violations": [
+                {
+                  "file": "app/code/Acme/Probe/Probe.php",
+                  "line": 1,
+                  "construct": "file_get_contents",
+                  "source_sha256": "b7bad78f413dafff7f6179ef8461f96d73d5f9b85426ab1c6f94b4f0535c78f2",
+                  "byte_offset": 15
+                }
+              ],
+              "limitations": [
+                "Exact syntactic policy only; excludes dependencies, generated code and files outside the declared scope.",
+                "No dataflow, business authorization or runtime exploitability conclusion."
+              ],
+              "analysis_gaps": [],
+              "inspection_issues": []
+            },
+            "category": "policy",
+            "confidence": "confirmed",
+            "claim_type": "observed_policy_violation",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "severity": "low",
+            "guidance": {
+              "claim_type": "observed_policy_violation",
+              "impact": "The reported file/line contains the named construct. This is a coding-policy observation; local file access, a fixed command, UI randomness or a query-named method alone does not establish data exposure or injection.",
+              "action": "Inspect each named call and argument at the reported file/line. Trace input origin, receiver identity, authorization and output use before deciding whether to replace the API or document an approved exception to this explicit coding policy.",
+              "verification": "Test the affected behavior and its real trust boundary. Replacing an API or wrapping a call does not by itself validate input or remove an exploit path.",
+              "recheck": "Rerun MB-0788 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            }
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "FAIL"
+      },
+      "title": "Custom source avoids enumerated native network primitives"
+    },
+    {
+      "id": "MB-0792",
+      "explicit_capability": "strict_native_api_policy",
+      "case": "same_fixed_local_file_read",
+      "check_outcome": "FAIL",
+      "severity": "low",
+      "message": "Source violates the declared native_filesystem policy; see file and line evidence.",
+      "risk_kind": "observed_issue",
+      "confidence": "confirmed",
+      "category": "policy",
+      "needs_attention": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "check": "automated_source_policy",
+            "message": "Policy: Source violates the declared native_filesystem policy; see file and line evidence.",
+            "reason_code": "SOURCE_POLICY_VIOLATION",
+            "kind": "observed_issue",
+            "evidence": {
+              "complete": true,
+              "gaps": [],
+              "files_read": 1,
+              "bytes_read": 62,
+              "scope": [
+                "app/code"
+              ],
+              "policy": "native_filesystem",
+              "violations": [
+                {
+                  "file": "app/code/Acme/Probe/Probe.php",
+                  "line": 1,
+                  "construct": "file_get_contents",
+                  "source_sha256": "b7bad78f413dafff7f6179ef8461f96d73d5f9b85426ab1c6f94b4f0535c78f2",
+                  "byte_offset": 15
+                }
+              ],
+              "limitations": [
+                "Exact syntactic policy only; excludes dependencies, generated code and files outside the declared scope.",
+                "No dataflow, business authorization or runtime exploitability conclusion."
+              ],
+              "analysis_gaps": [],
+              "inspection_issues": []
+            },
+            "category": "policy",
+            "confidence": "confirmed",
+            "claim_type": "observed_policy_violation",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "severity": "low",
+            "guidance": {
+              "claim_type": "observed_policy_violation",
+              "impact": "The reported file/line contains the named construct. This is a coding-policy observation; local file access, a fixed command, UI randomness or a query-named method alone does not establish data exposure or injection.",
+              "action": "Inspect each named call and argument at the reported file/line. Trace input origin, receiver identity, authorization and output use before deciding whether to replace the API or document an approved exception to this explicit coding policy.",
+              "verification": "Test the affected behavior and its real trust boundary. Replacing an API or wrapping a call does not by itself validate input or remove an exploit path.",
+              "recheck": "Rerun MB-0792 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            }
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "FAIL"
+      },
+      "title": "Custom source avoids enumerated raw filesystem primitives"
+    },
+    {
+      "id": "MB-0794",
+      "explicit_capability": "strict_native_api_policy",
+      "case": "nonsecurity_ui_color_randomness",
+      "check_outcome": "FAIL",
+      "severity": "low",
+      "message": "Source violates the declared weak_prng policy; see file and line evidence.",
+      "risk_kind": "observed_issue",
+      "confidence": "confirmed",
+      "category": "policy",
+      "needs_attention": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "check": "automated_source_policy",
+            "message": "Policy: Source violates the declared weak_prng policy; see file and line evidence.",
+            "reason_code": "SOURCE_POLICY_VIOLATION",
+            "kind": "observed_issue",
+            "evidence": {
+              "complete": true,
+              "gaps": [],
+              "files_read": 1,
+              "bytes_read": 49,
+              "scope": [
+                "app/code"
+              ],
+              "policy": "weak_prng",
+              "violations": [
+                {
+                  "file": "app/code/Acme/Probe/Probe.php",
+                  "line": 1,
+                  "construct": "mt_rand",
+                  "source_sha256": "448d4201923f5207f76f55a9c6ede6a3f21c99908c63f67e23e676410bad1e9a",
+                  "byte_offset": 15
+                }
+              ],
+              "limitations": [
+                "Exact syntactic policy only; excludes dependencies, generated code and files outside the declared scope.",
+                "No dataflow, business authorization or runtime exploitability conclusion."
+              ],
+              "analysis_gaps": [],
+              "inspection_issues": []
+            },
+            "category": "policy",
+            "confidence": "confirmed",
+            "claim_type": "observed_policy_violation",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "severity": "low",
+            "guidance": {
+              "claim_type": "observed_policy_violation",
+              "impact": "The reported file/line contains the named construct. This is a coding-policy observation; local file access, a fixed command, UI randomness or a query-named method alone does not establish data exposure or injection.",
+              "action": "Inspect each named call and argument at the reported file/line. Trace input origin, receiver identity, authorization and output use before deciding whether to replace the API or document an approved exception to this explicit coding policy. A random UI color or nonsecurity identifier does not require a cryptographic claim; determine whether the value protects a secret or access decision.",
+              "verification": "Test the affected behavior and its real trust boundary. Replacing an API or wrapping a call does not by itself validate input or remove an exploit path.",
+              "recheck": "Rerun MB-0794 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            }
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "FAIL"
+      },
+      "title": "Custom source avoids enumerated weak randomness APIs"
+    },
+    {
+      "id": "MB-0789",
+      "explicit_capability": null,
+      "case": "constant_serialized_value_allowed_classes_false",
+      "check_outcome": "FAIL",
+      "severity": "medium",
+      "message": "Source violates the declared native_unserialize policy; see file and line evidence.",
+      "risk_kind": "observed_issue",
+      "confidence": "confirmed",
+      "category": "policy",
+      "needs_attention": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "check": "automated_source_policy",
+            "message": "Policy: Source violates the declared native_unserialize policy; see file and line evidence.",
+            "reason_code": "SOURCE_POLICY_VIOLATION",
+            "kind": "observed_issue",
+            "evidence": {
+              "complete": true,
+              "gaps": [],
+              "files_read": 1,
+              "bytes_read": 82,
+              "scope": [
+                "app/code"
+              ],
+              "policy": "native_unserialize",
+              "violations": [
+                {
+                  "file": "app/code/Acme/Probe/Probe.php",
+                  "line": 1,
+                  "construct": "unserialize",
+                  "source_sha256": "d5807630780b848968d197f8712ef1666a3ab98def47b5a9d77a2bd6772566ef",
+                  "byte_offset": 14
+                }
+              ],
+              "limitations": [
+                "Exact syntactic policy only; excludes dependencies, generated code and files outside the declared scope.",
+                "No dataflow, business authorization or runtime exploitability conclusion."
+              ],
+              "analysis_gaps": [],
+              "inspection_issues": []
+            },
+            "category": "policy",
+            "confidence": "confirmed",
+            "claim_type": "observed_policy_violation",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "severity": "low",
+            "guidance": {
+              "claim_type": "observed_policy_violation",
+              "impact": "The reported file/line contains the named construct. This is a coding-policy observation; local file access, a fixed command, UI randomness or a query-named method alone does not establish data exposure or injection.",
+              "action": "Inspect each named call and argument at the reported file/line. Trace input origin, receiver identity, authorization and output use before deciding whether to replace the API or document an approved exception to this explicit coding policy.",
+              "verification": "Test the affected behavior and its real trust boundary. Replacing an API or wrapping a call does not by itself validate input or remove an exploit path.",
+              "recheck": "Rerun MB-0789 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            }
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "FAIL"
+      },
+      "title": "Custom source avoids native unserialize calls"
+    },
+    {
+      "id": "MB-0790",
+      "explicit_capability": null,
+      "case": "fixed_command_no_request_input",
+      "check_outcome": "FAIL",
+      "severity": "medium",
+      "message": "Source violates the declared shell_execution policy; see file and line evidence.",
+      "risk_kind": "observed_issue",
+      "confidence": "confirmed",
+      "category": "policy",
+      "needs_attention": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "check": "automated_source_policy",
+            "message": "Policy: Source violates the declared shell_execution policy; see file and line evidence.",
+            "reason_code": "SOURCE_POLICY_VIOLATION",
+            "kind": "observed_issue",
+            "evidence": {
+              "complete": true,
+              "gaps": [],
+              "files_read": 1,
+              "bytes_read": 29,
+              "scope": [
+                "app/code"
+              ],
+              "policy": "shell_execution",
+              "violations": [
+                {
+                  "file": "app/code/Acme/Probe/Probe.php",
+                  "line": 1,
+                  "construct": "exec",
+                  "source_sha256": "144e00c22314bde2d7b4625330c8a34a7d2b2c0a246b9433d5b0c59123199bf3",
+                  "byte_offset": 6
+                }
+              ],
+              "limitations": [
+                "Exact syntactic policy only; excludes dependencies, generated code and files outside the declared scope.",
+                "No dataflow, business authorization or runtime exploitability conclusion."
+              ],
+              "analysis_gaps": [],
+              "inspection_issues": []
+            },
+            "category": "policy",
+            "confidence": "confirmed",
+            "claim_type": "observed_policy_violation",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "severity": "low",
+            "guidance": {
+              "claim_type": "observed_policy_violation",
+              "impact": "The reported file/line contains the named construct. This is a coding-policy observation; local file access, a fixed command, UI randomness or a query-named method alone does not establish data exposure or injection.",
+              "action": "Inspect each named call and argument at the reported file/line. Trace input origin, receiver identity, authorization and output use before deciding whether to replace the API or document an approved exception to this explicit coding policy.",
+              "verification": "Test the affected behavior and its real trust boundary. Replacing an API or wrapping a call does not by itself validate input or remove an exploit path.",
+              "recheck": "Rerun MB-0790 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            }
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "FAIL"
+      },
+      "title": "Custom source avoids enumerated shell/process primitives"
+    },
+    {
+      "id": "MB-0786",
+      "explicit_capability": "strict_native_api_policy",
+      "case": "query_named_non_sql_receiver",
+      "check_outcome": "FAIL",
+      "severity": "low",
+      "message": "Source violates the declared sql_literal_query policy; see file and line evidence.",
+      "risk_kind": "observed_issue",
+      "confidence": "confirmed",
+      "category": "policy",
+      "needs_attention": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "check": "automated_source_policy",
+            "message": "Policy: Source violates the declared sql_literal_query policy; see file and line evidence.",
+            "reason_code": "SOURCE_POLICY_VIOLATION",
+            "kind": "observed_issue",
+            "evidence": {
+              "complete": true,
+              "gaps": [],
+              "files_read": 1,
+              "bytes_read": 61,
+              "scope": [
+                "app/code"
+              ],
+              "policy": "sql_literal_query",
+              "violations": [
+                {
+                  "file": "app/code/Acme/Probe/Probe.php",
+                  "line": 1,
+                  "construct": "sql_first_argument_concatenated",
+                  "source_sha256": "377412736a4e3387b558de064959ad25fb0783150e60ec8c41583f0e0076c2c6"
+                }
+              ],
+              "limitations": [
+                "Exact syntactic policy only; excludes dependencies, generated code and files outside the declared scope.",
+                "No dataflow, business authorization or runtime exploitability conclusion."
+              ],
+              "analysis_gaps": [],
+              "inspection_issues": []
+            },
+            "category": "policy",
+            "confidence": "confirmed",
+            "claim_type": "observed_policy_violation",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "severity": "low",
+            "guidance": {
+              "claim_type": "observed_policy_violation",
+              "impact": "The reported file/line contains the named construct. This is a coding-policy observation; local file access, a fixed command, UI randomness or a query-named method alone does not establish data exposure or injection.",
+              "action": "Inspect each named call and argument at the reported file/line. Trace input origin, receiver identity, authorization and output use before deciding whether to replace the API or document an approved exception to this explicit coding policy. Confirm the receiver is a SQL interface before interpreting a query-named method as database access; verify binding and identifier handling separately.",
+              "verification": "Test the affected behavior and its real trust boundary. Replacing an API or wrapping a call does not by itself validate input or remove an exploit path.",
+              "recheck": "Rerun MB-0786 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            }
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "FAIL"
+      },
+      "title": "Direct named query methods use a literal first argument"
+    },
+    {
+      "id": "MB-0786",
+      "explicit_capability": "strict_native_api_policy",
+      "case": "approved_query_builder_passed_as_variable",
+      "check_outcome": "UNKNOWN",
+      "severity": "low",
+      "message": "[UNKNOWN] app/code/Acme/Probe/Probe.php:1: The query method receives a nonliteral first argument whose construction is unresolved. Trace where the query argument is built and verify parameter binding through the installed database adapter. Use a supported query analyzer or an explicit static query with separately bound values where appropriate; a variable query alone does not prove SQL injection.",
+      "risk_kind": null,
+      "confidence": null,
+      "category": null,
+      "needs_attention": false,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": false,
+        "findings": [],
+        "collection_gaps": [
+          {
+            "check": "automated_source_policy",
+            "message": "app/code/Acme/Probe/Probe.php:1: The query method receives a nonliteral first argument whose construction is unresolved.",
+            "reason_code": "sql_first_argument_not_static_literal",
+            "evidence": {
+              "inspection_issue": {
+                "file": "app/code/Acme/Probe/Probe.php",
+                "reason": "sql_first_argument_not_static_literal",
+                "message": "app/code/Acme/Probe/Probe.php:1: The query method receives a nonliteral first argument whose construction is unresolved.",
+                "action": "Trace where the query argument is built and verify parameter binding through the installed database adapter. Use a supported query analyzer or an explicit static query with separately bound values where appropriate; a variable query alone does not prove SQL injection.",
+                "fingerprint": "75ba9ffc9e3c8bd92a6ae960f1d0e7037abfa6dfb82f79ded1b8289c2f7a08a6",
+                "line": 1
+              },
+              "locations": [
+                {
+                  "file": "app/code/Acme/Probe/Probe.php",
+                  "line": 1
+                }
+              ]
+            },
+            "collection_guidance": {
+              "action": "Trace where the query argument is built and verify parameter binding through the installed database adapter. Use a supported query analyzer or an explicit static query with separately bound values where appropriate; a variable query alone does not prove SQL injection."
+            }
+          }
+        ],
+        "collection_complete": false,
+        "assessment_outcome": "UNKNOWN"
+      },
+      "title": "Direct named query methods use a literal first argument"
+    },
+    {
+      "id": "MB-0786",
+      "explicit_capability": "strict_native_api_policy",
+      "case": "literal_sql_and_bound_value",
+      "check_outcome": "PASS",
+      "severity": "low",
+      "message": "Every collected eligible source file satisfies the declared sql_literal_query syntax policy.",
+      "risk_kind": null,
+      "confidence": null,
+      "category": null,
+      "needs_attention": false,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": false,
+        "findings": [],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "PASS"
+      },
+      "title": "Direct named query methods use a literal first argument"
+    },
+    {
+      "id": "MB-0787",
+      "explicit_capability": null,
+      "case": "csrf_exemption_with_alternate_auth_unverified",
+      "check_outcome": "FAIL",
+      "severity": "medium",
+      "message": "Source violates the declared csrf_unconditional_bypass policy; see file and line evidence.",
+      "risk_kind": "observed_issue",
+      "confidence": "suspected",
+      "category": "security",
+      "needs_attention": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "check": "automated_source_policy",
+            "message": "Source violates the declared csrf_unconditional_bypass policy; see file and line evidence.",
+            "reason_code": "SOURCE_POLICY_VIOLATION",
+            "kind": "observed_issue",
+            "evidence": {
+              "complete": true,
+              "gaps": [],
+              "files_read": 1,
+              "bytes_read": 151,
+              "scope": [
+                "app/code"
+              ],
+              "policy": "csrf_unconditional_bypass",
+              "violations": [
+                {
+                  "file": "app/code/Acme/Probe/Probe.php",
+                  "line": 1,
+                  "construct": "unconditional_csrf_acceptance",
+                  "source_sha256": "723d614e739018e1db82158453eee471855682690d6cfb4c4aaf513731e8d1b7"
+                }
+              ],
+              "limitations": [
+                "Exact syntactic policy only; excludes dependencies, generated code and files outside the declared scope.",
+                "No dataflow, business authorization or runtime exploitability conclusion."
+              ],
+              "analysis_gaps": [],
+              "inspection_issues": []
+            },
+            "category": "security",
+            "confidence": "suspected",
+            "claim_type": "review_candidate",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "severity": "medium",
+            "guidance": {
+              "claim_type": "review_candidate",
+              "impact": "The reported pattern or supported output/declaration relationship warrants review. Credential validity, executable serving, alternate authorization and actual input influence require evidence specific to this location.",
+              "action": "Remove the unconditional true validateForCsrf override. Delegate to Magento validation where appropriate, or implement and test the provider-specific alternate request authentication before accepting a deliberately exempt callback. Do not merely rename the method or add an unused form-key helper.",
+              "verification": "In isolation, verify missing, invalid and foreign-session tokens cannot perform the protected state change; check valid requests and any authenticated webhook exception still work.",
+              "recheck": "Rerun MB-0787 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            }
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "FAIL"
+      },
+      "title": "No unconditional validateForCsrf acceptance override"
+    },
+    {
+      "id": "MB-0733",
+      "explicit_capability": null,
+      "case": "inline_js_phtml_output",
+      "check_outcome": "FAIL",
+      "severity": "high",
+      "message": "Dynamic template output lacks the supported context-specific encoding",
+      "risk_kind": "observed_issue",
+      "confidence": "suspected",
+      "category": "security",
+      "needs_attention": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "check": "code_phtml_escaped_output",
+            "message": "Dynamic template output lacks the supported context-specific encoding",
+            "reason_code": null,
+            "kind": "observed_issue",
+            "evidence": {
+              "scope": "supported direct PHP template output contexts",
+              "files_read": 1,
+              "outputs_assessed": 1,
+              "matches": [
+                {
+                  "file": "app/design/Acme/theme/sample.phtml",
+                  "line": 1,
+                  "byte_offset": 27,
+                  "source_sha256": "a6f4476065a8dc2078c6a9b8df4540d311b59644ab1ac86c38e6cb7c9c90670a",
+                  "context": "js_string",
+                  "kind": "unescaped_dynamic_output"
+                }
+              ],
+              "collection_gaps": []
+            },
+            "category": "security",
+            "confidence": "suspected",
+            "claim_type": "review_candidate",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "severity": "high",
+            "guidance": {
+              "claim_type": "review_candidate",
+              "impact": "The reported pattern or supported output/declaration relationship warrants review. Credential validity, executable serving, alternate authorization and actual input influence require evidence specific to this location.",
+              "action": "Use the recognized escaping helper for the actual output context and avoid assuming that an HTML helper is valid in JavaScript.",
+              "verification": "Validate the exact named inputs and supported scope used by the finding; resolve unavailable data before interpreting a clean result.",
+              "recheck": "Rerun MB-0733 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            }
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "FAIL"
+      },
+      "title": "Supported PHTML output uses context-appropriate escaping"
+    },
+    {
+      "id": "MB-0736",
+      "explicit_capability": null,
+      "case": "same_inline_js_phtml_output",
+      "check_outcome": "FAIL",
+      "severity": "high",
+      "message": "Dynamic template output lacks the supported context-specific encoding",
+      "risk_kind": "observed_issue",
+      "confidence": "suspected",
+      "category": "security",
+      "needs_attention": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "check": "code_js_context_escaping",
+            "message": "Dynamic template output lacks the supported context-specific encoding",
+            "reason_code": null,
+            "kind": "observed_issue",
+            "evidence": {
+              "scope": "supported direct PHP output in script strings/expressions",
+              "files_read": 1,
+              "outputs_assessed": 1,
+              "matches": [
+                {
+                  "file": "app/design/Acme/theme/sample.phtml",
+                  "line": 1,
+                  "byte_offset": 27,
+                  "source_sha256": "a6f4476065a8dc2078c6a9b8df4540d311b59644ab1ac86c38e6cb7c9c90670a",
+                  "context": "js_string",
+                  "kind": "unescaped_dynamic_output"
+                }
+              ],
+              "collection_gaps": []
+            },
+            "category": "security",
+            "confidence": "suspected",
+            "claim_type": "review_candidate",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "severity": "high",
+            "guidance": {
+              "claim_type": "review_candidate",
+              "impact": "The reported pattern or supported output/declaration relationship warrants review. Credential validity, executable serving, alternate authorization and actual input influence require evidence specific to this location.",
+              "action": "Use JS-string escaping or the supported encoding form for the actual inline JavaScript output; review unsupported browser contexts separately.",
+              "verification": "Validate the exact named inputs and supported scope used by the finding; resolve unavailable data before interpreting a clean result.",
+              "recheck": "Rerun MB-0736 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            }
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "FAIL"
+      },
+      "title": "Supported inline JavaScript output uses context-appropriate escaping"
+    },
+    {
+      "id": "MB-0728",
+      "explicit_capability": null,
+      "case": "declared_admin_minimum_seven",
+      "check_outcome": "FAIL",
+      "severity": "high",
+      "message": "Observed admin password minimum is below deployment policy",
+      "risk_kind": "observed_issue",
+      "confidence": "confirmed",
+      "category": "policy",
+      "needs_attention": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "check": "magento_admin_password_minimum_configured",
+            "message": "Policy: Observed admin password minimum is below deployment policy",
+            "reason_code": null,
+            "kind": "observed_issue",
+            "evidence": {
+              "source": "app/etc/env.php",
+              "observed": 7,
+              "minimum": 8,
+              "scope": "admin_password_minimum_deployment_policy"
+            },
+            "category": "policy",
+            "confidence": "confirmed",
+            "claim_type": "observed_policy_violation",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "severity": "medium",
+            "guidance": {
+              "claim_type": "observed_policy_violation",
+              "impact": "The exact observed value or construct differs from the stated Magebean or supplied baseline. This confirms that scoped policy comparison only, not an exploitable vulnerability.",
+              "action": "Investigate and change: Review the resolved Magento Admin minimum password length and installed validation rules. Configure or implement the supported organizational policy for the installed version; Magebean uses at least eight characters.",
+              "verification": "Validate the change: Test rejection of too-short new passwords and compatibility with existing authentication/IMS policy. Do not assume this configuration retroactively proves existing password strength.",
+              "recheck": "Rerun MB-0728 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            }
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "FAIL"
+      },
+      "title": "Configured admin password minimum is at least eight"
+    },
+    {
+      "id": "MB-0731",
+      "explicit_capability": null,
+      "case": "same_declared_admin_minimum_seven",
+      "check_outcome": "FAIL",
+      "severity": "high",
+      "message": "Observed admin password minimum is below deployment policy",
+      "risk_kind": "observed_issue",
+      "confidence": "confirmed",
+      "category": "policy",
+      "needs_attention": true,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": true,
+        "findings": [
+          {
+            "check": "magento_admin_password_minimum_configured",
+            "message": "Policy: Observed admin password minimum is below deployment policy",
+            "reason_code": null,
+            "kind": "observed_issue",
+            "evidence": {
+              "source": "app/etc/env.php",
+              "observed": 7,
+              "minimum": 8,
+              "scope": "admin_password_minimum_deployment_policy"
+            },
+            "category": "policy",
+            "confidence": "confirmed",
+            "claim_type": "observed_policy_violation",
+            "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+            "exploitability": "not_established",
+            "severity": "medium",
+            "guidance": {
+              "claim_type": "observed_policy_violation",
+              "impact": "The exact observed value or construct differs from the stated Magebean or supplied baseline. This confirms that scoped policy comparison only, not an exploitable vulnerability.",
+              "action": "Set the intended Admin minimum-password configuration to at least eight and verify that the installed/default source is the intended one.",
+              "verification": "Validate the exact named inputs and supported scope used by the finding; resolve unavailable data before interpreting a clean result.",
+              "recheck": "Rerun MB-0731 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+            }
+          }
+        ],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "FAIL"
+      },
+      "title": "Observed Admin password minimum is at least eight"
+    },
+    {
+      "id": "MB-0072",
+      "explicit_capability": null,
+      "case": "protected_deployment_env_not_vcs_history",
+      "check_outcome": "UNKNOWN",
+      "severity": "critical",
+      "message": "[UNKNOWN] No eligible working-tree matches; Git history could not be assessed: Git metadata (.git) is unavailable",
+      "risk_kind": null,
+      "confidence": null,
+      "category": null,
+      "needs_attention": false,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": false,
+        "findings": [],
+        "collection_gaps": [
+          {
+            "check": "git_history_scan",
+            "message": "[UNKNOWN] No eligible working-tree matches; Git history could not be assessed: Git metadata (.git) is unavailable",
+            "reason_code": null,
+            "evidence": {
+              "paths": [
+                "."
+              ],
+              "exclude_dirs": [
+                ".git",
+                "vendor",
+                "var",
+                "generated",
+                "node_modules",
+                "pub/media",
+                "pub/static",
+                "pub/cache",
+                "setup",
+                "dev/tests",
+                "dev/tools"
+              ],
+              "working_tree_files_scanned": 0,
+              "working_tree_findings": [],
+              "git_history_assessed": false,
+              "git_commits_scanned": 0,
+              "git_history_findings": [],
+              "git_index_findings": [],
+              "truncated": false,
+              "history_required": true,
+              "expected_runtime_secret_paths_excluded_from_working_tree": [
+                "app/etc/env.php"
+              ],
+              "scope": "Configured patterns; eligible nonbinary working-tree files excluding expected app/etc/env.php up to max_file_bytes; Git index and all available local Git refs (including env.php unless explicitly excluded); configured paths and exclusions. Not proof that all possible secrets are absent.",
+              "git_history_error": "Git metadata (.git) is unavailable",
+              "working_tree_gaps": []
+            }
+          }
+        ],
+        "collection_complete": false,
+        "assessment_outcome": "UNKNOWN"
+      },
+      "title": "No configured secret-pattern matches in collected VCS scope"
+    },
+    {
+      "id": "MB-0730",
+      "explicit_capability": null,
+      "case": "same_env_excluded_from_deployed_secret_scope",
+      "check_outcome": "PASS",
+      "severity": "critical",
+      "message": "No configured secret-pattern matches in the deployed working tree",
+      "risk_kind": null,
+      "confidence": null,
+      "category": null,
+      "needs_attention": false,
+      "risk_observation": {
+        "schema_version": 1,
+        "needs_attention": false,
+        "findings": [],
+        "collection_gaps": [],
+        "collection_complete": true,
+        "assessment_outcome": "PASS"
+      },
+      "title": "No configured secret patterns in deployed application files"
+    }
+  ]
+}

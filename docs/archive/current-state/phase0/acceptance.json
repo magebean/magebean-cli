@@ -1,0 +1,783 @@
+{
+  "schema_version": "1.0",
+  "status": "phase0_acceptance_plan",
+  "qa_observation_count": 49,
+  "cases": [
+    {
+      "id": "CS-001",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 0,
+      "rules": [
+        "MB-0067"
+      ],
+      "case": "stable-resolution-but-prefer-stable-omitted",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-002",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 1,
+      "rules": [
+        "MB-0065"
+      ],
+      "case": "locked-development-tool-wildcard",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-003",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 2,
+      "rules": [
+        "MB-0067"
+      ],
+      "case": "dev-resolution-allowed-with-prefer-stable",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-004",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 3,
+      "rules": [
+        "MB-0066"
+      ],
+      "case": "explicit-development-branch",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-005",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 4,
+      "rules": [
+        "MB-0040"
+      ],
+      "case": "file-session-backend-no-redis",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-006",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 5,
+      "rules": [
+        "MB-0031"
+      ],
+      "case": "persisted-production-declaration-only",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-007",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 6,
+      "rules": [
+        "MB-0062"
+      ],
+      "case": "release-date:2000-01-01T00:00:00Z",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-008",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 7,
+      "rules": [
+        "MB-0062"
+      ],
+      "case": "release-date:2026-02-30T00:00:00Z",
+      "phase": 1,
+      "kind": "confirmed_defect",
+      "expected_behavior": "Reject invalid-calendar or relative release timestamps as unavailable evidence, never PASS.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-009",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 8,
+      "rules": [
+        "MB-0062"
+      ],
+      "case": "release-date:yesterday",
+      "phase": 1,
+      "kind": "confirmed_defect",
+      "expected_behavior": "Reject invalid-calendar or relative release timestamps as unavailable evidence, never PASS.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-010",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 9,
+      "rules": [
+        "MB-0062"
+      ],
+      "case": "release-date:2026-11-11T01:19:01+00:00",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-011",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 10,
+      "rules": [
+        "MB-0063"
+      ],
+      "case": "repository-archived:false",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-012",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 11,
+      "rules": [
+        "MB-0063"
+      ],
+      "case": "repository-archived:true",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-013",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 12,
+      "rules": [
+        "MB-0039"
+      ],
+      "case": "indexer-currently-working",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-014",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 13,
+      "rules": [
+        "MB-0047"
+      ],
+      "case": "only-recent-error-cron-execution",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-015",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 14,
+      "rules": [
+        "MB-0048"
+      ],
+      "case": "only-error-no-pending-backlog",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-016",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 15,
+      "rules": [
+        "MB-0049"
+      ],
+      "case": "same-transitive-advisory-published:2000-01-01T00:00:00Z",
+      "phase": 2,
+      "kind": "inventory_provenance",
+      "expected_behavior": "Label locked, installed and development scope explicitly; a lock-only dev package is not asserted as an installed runtime component. Group matching advisory identities later in phase4.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-017",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 16,
+      "rules": [
+        "MB-0055"
+      ],
+      "case": "same-transitive-advisory-published:2000-01-01T00:00:00Z",
+      "phase": 2,
+      "kind": "inventory_provenance",
+      "expected_behavior": "Label locked, installed and development scope explicitly; a lock-only dev package is not asserted as an installed runtime component. Group matching advisory identities later in phase4.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-018",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 17,
+      "rules": [
+        "MB-0059"
+      ],
+      "case": "same-transitive-advisory-published:2000-01-01T00:00:00Z",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-019",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 18,
+      "rules": [
+        "MB-0049"
+      ],
+      "case": "same-transitive-advisory-published:2099-01-01T00:00:00Z",
+      "phase": 2,
+      "kind": "inventory_provenance",
+      "expected_behavior": "Label locked, installed and development scope explicitly; a lock-only dev package is not asserted as an installed runtime component. Group matching advisory identities later in phase4.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-020",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 19,
+      "rules": [
+        "MB-0055"
+      ],
+      "case": "same-transitive-advisory-published:2099-01-01T00:00:00Z",
+      "phase": 2,
+      "kind": "inventory_provenance",
+      "expected_behavior": "Label locked, installed and development scope explicitly; a lock-only dev package is not asserted as an installed runtime component. Group matching advisory identities later in phase4.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-021",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 20,
+      "rules": [
+        "MB-0059"
+      ],
+      "case": "same-transitive-advisory-published:2099-01-01T00:00:00Z",
+      "phase": 1,
+      "kind": "confirmed_defect",
+      "expected_behavior": "Future publication timestamp is unavailable; preserve independent advisory matching and do not claim organizational remediation SLA.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-022",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 21,
+      "rules": [
+        "MB-0049"
+      ],
+      "case": "no-dev-install-lock-still-has-development-only-advisory",
+      "phase": 2,
+      "kind": "inventory_provenance",
+      "expected_behavior": "Label locked, installed and development scope explicitly; a lock-only dev package is not asserted as an installed runtime component. Group matching advisory identities later in phase4.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-023",
+      "source_file": "docs/archive/current-state/qa-part1-probes.json",
+      "source_index": 22,
+      "rules": [
+        "MB-0055"
+      ],
+      "case": "no-dev-install-lock-still-has-development-only-advisory",
+      "phase": 2,
+      "kind": "inventory_provenance",
+      "expected_behavior": "Label locked, installed and development scope explicitly; a lock-only dev package is not asserted as an installed runtime component. Group matching advisory identities later in phase4.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-024",
+      "source_file": "docs/archive/current-state/qa-part2-probes.json",
+      "source_index": 0,
+      "rules": [
+        "MB-0788"
+      ],
+      "case": "fixed_local_file_read",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-025",
+      "source_file": "docs/archive/current-state/qa-part2-probes.json",
+      "source_index": 1,
+      "rules": [
+        "MB-0792"
+      ],
+      "case": "same_fixed_local_file_read",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-026",
+      "source_file": "docs/archive/current-state/qa-part2-probes.json",
+      "source_index": 2,
+      "rules": [
+        "MB-0794"
+      ],
+      "case": "nonsecurity_ui_color_randomness",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-027",
+      "source_file": "docs/archive/current-state/qa-part2-probes.json",
+      "source_index": 3,
+      "rules": [
+        "MB-0789"
+      ],
+      "case": "constant_serialized_value_allowed_classes_false",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-028",
+      "source_file": "docs/archive/current-state/qa-part2-probes.json",
+      "source_index": 4,
+      "rules": [
+        "MB-0790"
+      ],
+      "case": "fixed_command_no_request_input",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-029",
+      "source_file": "docs/archive/current-state/qa-part2-probes.json",
+      "source_index": 5,
+      "rules": [
+        "MB-0786"
+      ],
+      "case": "query_named_non_sql_receiver",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-030",
+      "source_file": "docs/archive/current-state/qa-part2-probes.json",
+      "source_index": 6,
+      "rules": [
+        "MB-0786"
+      ],
+      "case": "approved_query_builder_passed_as_variable",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-031",
+      "source_file": "docs/archive/current-state/qa-part2-probes.json",
+      "source_index": 7,
+      "rules": [
+        "MB-0786"
+      ],
+      "case": "literal_sql_and_bound_value",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-032",
+      "source_file": "docs/archive/current-state/qa-part2-probes.json",
+      "source_index": 8,
+      "rules": [
+        "MB-0787"
+      ],
+      "case": "csrf_exemption_with_alternate_auth_unverified",
+      "phase": 3,
+      "kind": "policy_or_scope_review",
+      "expected_behavior": "Retain the exact observed fact and label its applicable policy/context; do not infer an unsupported security or runtime conclusion.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-033",
+      "source_file": "docs/archive/current-state/qa-part2-probes.json",
+      "source_index": 9,
+      "rules": [
+        "MB-0733"
+      ],
+      "case": "inline_js_phtml_output",
+      "phase": 4,
+      "kind": "correlation",
+      "expected_behavior": "Preserve all distinct evidence but emit one underlying issue per shared scope/location/issue family; preserve per-rule assessment compatibility.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-034",
+      "source_file": "docs/archive/current-state/qa-part2-probes.json",
+      "source_index": 10,
+      "rules": [
+        "MB-0736"
+      ],
+      "case": "same_inline_js_phtml_output",
+      "phase": 4,
+      "kind": "correlation",
+      "expected_behavior": "Preserve all distinct evidence but emit one underlying issue per shared scope/location/issue family; preserve per-rule assessment compatibility.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-035",
+      "source_file": "docs/archive/current-state/qa-part2-probes.json",
+      "source_index": 11,
+      "rules": [
+        "MB-0728"
+      ],
+      "case": "declared_admin_minimum_seven",
+      "phase": 4,
+      "kind": "correlation",
+      "expected_behavior": "Preserve all distinct evidence but emit one underlying issue per shared scope/location/issue family; preserve per-rule assessment compatibility.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-036",
+      "source_file": "docs/archive/current-state/qa-part2-probes.json",
+      "source_index": 12,
+      "rules": [
+        "MB-0731"
+      ],
+      "case": "same_declared_admin_minimum_seven",
+      "phase": 4,
+      "kind": "correlation",
+      "expected_behavior": "Preserve all distinct evidence but emit one underlying issue per shared scope/location/issue family; preserve per-rule assessment compatibility.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-037",
+      "source_file": "docs/archive/current-state/qa-part2-probes.json",
+      "source_index": 13,
+      "rules": [
+        "MB-0072"
+      ],
+      "case": "protected_deployment_env_not_vcs_history",
+      "phase": 1,
+      "kind": "scope_conflict",
+      "expected_behavior": "Expected protected runtime env credential alone is not a secret-exposure finding. Preserve tracked/history/public exposure detection as distinct scopes.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-038",
+      "source_file": "docs/archive/current-state/qa-part2-probes.json",
+      "source_index": 14,
+      "rules": [
+        "MB-0730"
+      ],
+      "case": "same_env_excluded_from_deployed_secret_scope",
+      "phase": 1,
+      "kind": "scope_conflict",
+      "expected_behavior": "Expected protected runtime env credential alone is not a secret-exposure finding. Preserve tracked/history/public exposure detection as distinct scopes.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-039",
+      "source_file": "docs/archive/current-state/qa-part3-probes.json",
+      "source_index": 0,
+      "rules": [
+        "MB-0815",
+        "MB-0816",
+        "MB-0818"
+      ],
+      "case": "Preference resolves to child inheriting private constructor",
+      "phase": 1,
+      "kind": "confirmed_defect",
+      "expected_behavior": "The fully indexed inherited private constructor is rejected as non-instantiable; the PHP runtime Error remains the oracle. Missing ancestors alone remain unavailable.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-040",
+      "source_file": "docs/archive/current-state/qa-part3-probes.json",
+      "source_index": 1,
+      "rules": [
+        "MB-0815",
+        "MB-0816"
+      ],
+      "case": "PHP runtime cross-check of same synthetic inheritance pattern",
+      "phase": 1,
+      "kind": "confirmed_defect",
+      "expected_behavior": "The fully indexed inherited private constructor is rejected as non-instantiable; the PHP runtime Error remains the oracle. Missing ancestors alone remain unavailable.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-041",
+      "source_file": "docs/archive/current-state/qa-part3-probes.json",
+      "source_index": 2,
+      "rules": [
+        "MB-0817"
+      ],
+      "case": "Unexamined array assigned to callable constructor parameter",
+      "phase": 1,
+      "kind": "confirmed_defect",
+      "expected_behavior": "The fully indexed inherited private constructor is rejected as non-instantiable; the PHP runtime Error remains the oracle. Missing ancestors alone remain unavailable.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-042",
+      "source_file": "docs/archive/current-state/qa-part3-probes.json",
+      "source_index": 3,
+      "rules": [
+        "MB-0805"
+      ],
+      "case": "Exact source policy with package version \"1.0.0\"",
+      "phase": 1,
+      "kind": "input_validation",
+      "expected_behavior": "Valid complete package/source policy may pass; an empty required lock package version is unavailable rather than a complete-inventory PASS.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-043",
+      "source_file": "docs/archive/current-state/qa-part3-probes.json",
+      "source_index": 4,
+      "rules": [
+        "MB-0805"
+      ],
+      "case": "Exact source policy with package version \"\"",
+      "phase": 1,
+      "kind": "input_validation",
+      "expected_behavior": "Valid complete package/source policy may pass; an empty required lock package version is unavailable rather than a complete-inventory PASS.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-044",
+      "source_file": "docs/archive/current-state/qa-overlap-probes.json",
+      "source_index": 0,
+      "rules": [
+        "MB-0780"
+      ],
+      "case": "same_media_filename",
+      "phase": 4,
+      "kind": "correlation",
+      "expected_behavior": "Preserve all distinct evidence but emit one underlying issue per shared scope/location/issue family; preserve per-rule assessment compatibility.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-045",
+      "source_file": "docs/archive/current-state/qa-overlap-probes.json",
+      "source_index": 1,
+      "rules": [
+        "MB-0800"
+      ],
+      "case": "same_media_filename",
+      "phase": 4,
+      "kind": "correlation",
+      "expected_behavior": "Preserve all distinct evidence but emit one underlying issue per shared scope/location/issue family; preserve per-rule assessment compatibility.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-046",
+      "source_file": "docs/archive/current-state/qa-overlap-probes.json",
+      "source_index": 2,
+      "rules": [
+        "MB-0790"
+      ],
+      "case": "same_request_command_location",
+      "phase": 4,
+      "kind": "correlation",
+      "expected_behavior": "Preserve all distinct evidence but emit one underlying issue per shared scope/location/issue family; preserve per-rule assessment compatibility.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-047",
+      "source_file": "docs/archive/current-state/qa-overlap-probes.json",
+      "source_index": 3,
+      "rules": [
+        "MB-0822"
+      ],
+      "case": "same_request_command_location",
+      "phase": 4,
+      "kind": "correlation",
+      "expected_behavior": "Preserve all distinct evidence but emit one underlying issue per shared scope/location/issue family; preserve per-rule assessment compatibility.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-048",
+      "source_file": "docs/archive/current-state/qa-overlap-probes.json",
+      "source_index": 4,
+      "rules": [
+        "MB-0795"
+      ],
+      "case": "same_request_logging_location",
+      "phase": 4,
+      "kind": "correlation",
+      "expected_behavior": "Preserve all distinct evidence but emit one underlying issue per shared scope/location/issue family; preserve per-rule assessment compatibility.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    },
+    {
+      "id": "CS-049",
+      "source_file": "docs/archive/current-state/qa-overlap-probes.json",
+      "source_index": 5,
+      "rules": [
+        "MB-0814"
+      ],
+      "case": "same_request_logging_location",
+      "phase": 4,
+      "kind": "correlation",
+      "expected_behavior": "Preserve all distinct evidence but emit one underlying issue per shared scope/location/issue family; preserve per-rule assessment compatibility.",
+      "status": "planned",
+      "execution_note": "Phase0 records acceptance only; observed baseline output is not asserted as correct."
+    }
+  ],
+  "additional_regressions": [
+    {
+      "id": "REG-INSTALLED-VULNERABLE",
+      "phase": 2,
+      "rules": [
+        "MB-0049",
+        "MB-0055"
+      ],
+      "expected_behavior": "A genuinely installed vulnerable package stays actionable; deployment scope filtering must not hide it.",
+      "status": "planned"
+    },
+    {
+      "id": "REG-DEV-MODE",
+      "phase": 2,
+      "rules": [
+        "MB-0049",
+        "MB-0055"
+      ],
+      "expected_behavior": "Development/CI can intentionally assess installed dev tools with explicit dev provenance; local source checks remain usable offline.",
+      "status": "planned"
+    },
+    {
+      "id": "REG-SECRET-TRACKED",
+      "phase": 1,
+      "rules": [
+        "MB-0072",
+        "MB-0730",
+        "MB-0782"
+      ],
+      "expected_behavior": "An expected env location or0600 mode does not excuse credentials committed to Git or publicly exposed; preserve evidence without retaining secret values.",
+      "status": "planned"
+    },
+    {
+      "id": "REG-DI-PUBLIC",
+      "phase": 1,
+      "rules": [
+        "MB-0815",
+        "MB-0816",
+        "MB-0818"
+      ],
+      "expected_behavior": "Valid inherited public construction continues to pass; unknown ancestry is not invented as a private constructor.",
+      "status": "planned"
+    },
+    {
+      "id": "REG-LEGIT-TIMESTAMPS",
+      "phase": 1,
+      "rules": [
+        "MB-0059",
+        "MB-0062"
+      ],
+      "expected_behavior": "Valid absolute timestamps, timezone offsets and calendar boundaries retain correct age semantics.",
+      "status": "planned"
+    },
+    {
+      "id": "REG-PROFILE-MEMBERSHIP",
+      "phase": 5,
+      "rules": [
+        "MB-0733",
+        "MB-0736"
+      ],
+      "expected_behavior": "Built-in development/prelaunch templates run in their qualified source scope with no production-only checks added to development.",
+      "status": "planned"
+    },
+    {
+      "id": "REG-EXTERNAL-STANDARDS",
+      "phase": 6,
+      "rules": [],
+      "expected_behavior": "ASVS/PCI definitions and source-family profiles remain unchanged; importer and agent snapshots preserve historical identity.",
+      "status": "planned"
+    },
+    {
+      "id": "REG-PACKAGED-QUIET",
+      "phase": 6,
+      "rules": [],
+      "expected_behavior": "Source and both PHAR variants agree; default overview stays quiet for collection gaps, with structured coverage and exit distinctions preserved.",
+      "status": "planned"
+    }
+  ],
+  "phase_mapping": {
+    "0": "baseline_contract",
+    "1": "correctness_scope",
+    "2": "observation_provenance",
+    "3": "taxonomy_policy",
+    "4": "canonical_correlation",
+    "5": "profile_rollout",
+    "6": "integration_release"
+  }
+}

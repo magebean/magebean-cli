@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "status": "phase5_target_not_current_membership",
+  "decisions": [
+    {
+      "id": "MB-0043",
+      "profiles": [
+        "hardening",
+        "takeover"
+      ],
+      "condition": "Conditional relevant logrotate input; no mandatory invented project file."
+    },
+    {
+      "id": "MB-0093",
+      "profiles": [
+        "evidence"
+      ],
+      "condition": "Proposed optional document-lint profile; outside core and outside PCI-family profile."
+    },
+    {
+      "id": "MB-0731",
+      "profiles": [
+        "basic",
+        "hardening",
+        "prelaunch",
+        "takeover"
+      ],
+      "condition": "Select canonical MB-0728; keep compatible historical selector without independent duplicate findings."
+    },
+    {
+      "id": "MB-0733",
+      "profiles": [
+        "development",
+        "prelaunch",
+        "takeover",
+        "hardening"
+      ],
+      "condition": "Supported PHTML scope, correlated with JS subset."
+    },
+    {
+      "id": "MB-0736",
+      "profiles": [
+        "development",
+        "prelaunch",
+        "takeover",
+        "hardening"
+      ],
+      "condition": "Supported JS scope, preserving additional template coverage without duplicate positions."
+    },
+    {
+      "id": "MB-0739",
+      "profiles": [
+        "prelaunch",
+        "takeover",
+        "hardening"
+      ],
+      "condition": "Declared ini scope; correlate with aggregate debug observations."
+    },
+    {
+      "id": "MB-0740",
+      "profiles": [
+        "prelaunch",
+        "takeover",
+        "hardening"
+      ],
+      "condition": "Named declared hints; no runtime enforcement claim."
+    },
+    {
+      "id": "MB-0741",
+      "profiles": [
+        "hardening",
+        "prelaunch",
+        "takeover"
+      ],
+      "condition": "Explicit deployment baseline only; no inference that every alternative backend is insecure."
+    },
+    {
+      "id": "MB-0742",
+      "profiles": [
+        "prelaunch",
+        "takeover",
+        "hardening"
+      ],
+      "condition": "Named declaration inputs; preserve missing versus explicitly disabled."
+    },
+    {
+      "id": "MB-0744",
+      "profiles": [
+        "hardening",
+        "prelaunch",
+        "takeover",
+        "development"
+      ],
+      "condition": "Share library status with MB-0061; development maintenance is optional and source-only remains offline."
+    }
+  ]
+}

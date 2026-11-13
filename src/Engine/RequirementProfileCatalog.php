@@ -10,12 +10,23 @@ final class RequirementProfileCatalog
         $all=RequirementCatalog::read('internal-profiles')['profiles'];foreach($all as $key=>$p)if($key===$name||in_array($name,$p['aliases']??[],true))return self::validate($p);throw new \RuntimeException('Unknown internal requirement profile: '.$name);
     }
     public static function all():array{return RequirementCatalog::read('internal-profiles')['profiles'];}
+    /** Profile defaults are selected context, not evidence that a control works. Explicit false wins. */
+    public static function capabilities(array $profile,array $provided=[]): array
+    {
+        $defaults=$profile['default_capabilities']??[];
+        if ($defaults===[]) return $provided;
+        $resolved=array_fill_keys($defaults,true);
+        if (array_is_list($provided)) foreach($provided as $capability)$resolved[$capability]=true;
+        else foreach($provided as $capability=>$value)$resolved[$capability]=$value;
+        return $resolved;
+    }
+
     private static function validate(array $p):array
     {
         if(!is_array($p['requirement_ids']??null))throw new \RuntimeException('Profile requires requirement_ids.');$known=array_column(RequirementCatalog::loadAll()['rules'],null,'id');$seen=[];
         foreach($p['requirement_ids'] as $id){if(!is_string($id)||preg_match('/^MB-[0-9]+$/D',$id)!==1)throw new \RuntimeException('Unknown internal requirement identity in profile.');MagebeanRetirement::reject($id);$resolved=isset($known[$id])?[$id]:LegacyRequirementAliases::resolve($id);if(count($resolved)!==1||!isset($known[$resolved[0]]))throw new \RuntimeException('Unknown internal requirement identity in profile.');$seen[$resolved[0]]=true;}
         $p['requirement_ids']=array_keys($seen);
-        if (in_array($p['id']??'', ['basic','hardening','owasp-top-10-2025','module-integrity','module-source','module-lifecycle','module-reliability','development','prelaunch','takeover'],true)) {
+        if (in_array($p['id']??'', ['basic','hardening','owasp-top-10-2025','module-integrity','module-source','module-lifecycle','module-reliability','development','prelaunch','takeover','evidence'],true)) {
             if (($p['automation_only']??false)!==true || !empty($p['evidence_tasks'])) throw new \RuntimeException('Magebean profiles must be automated-only without manual evidence tasks.');
             foreach ($p['requirement_ids'] as $id) if (RequirementPolicy::requiresHuman($known[$id])) throw new \RuntimeException('Magebean profiles cannot include human-evidence requirements: '.$id);
         }
@@ -33,10 +44,15 @@ final class RequirementProfileCatalog
         $family=$p['family']??array_key_first($families);
         if($family!==null&&!in_array($family,['magebean','asvs','pci'],true))throw new \RuntimeException('Unknown requirement profile family.');
         if($families!==[]&&!isset($families[$family]))throw new \RuntimeException('Requirement profile family does not match its members.');
-        $expected=match($p['id']??''){'basic','hardening','owasp-top-10-2025','module-integrity','module-source','module-lifecycle','module-reliability','development','prelaunch','takeover'=>'magebean','asvs-l1','asvs-l2','asvs-l3'=>'asvs','pci','pci-dss-v4.0.1'=>'pci',default=>null};
+        $expected=match($p['id']??''){'basic','hardening','owasp-top-10-2025','module-integrity','module-source','module-lifecycle','module-reliability','development','prelaunch','takeover','evidence'=>'magebean','asvs-l1','asvs-l2','asvs-l3'=>'asvs','pci','pci-dss-v4.0.1'=>'pci',default=>null};
         if($expected!==null&&$family!==$expected)throw new \RuntimeException('Built-in profile must use its own requirement family.');
         if ($family === 'magebean' && !empty($p['evidence_tasks'])) throw new \RuntimeException('Magebean profiles cannot include manual evidence tasks.');
         if($family!==null)$p['family']=$family;
+        $defaults=$p['default_capabilities']??[];
+        if (!is_array($defaults)||!array_is_list($defaults)||count(array_unique($defaults,SORT_REGULAR))!==count($defaults)) throw new \RuntimeException('Profile default_capabilities must be a unique capability list.');
+        $memberCaps=[];foreach($p['requirement_ids'] as $id)if(isset($known[$id]['applicability']['capability']))$memberCaps[]=$known[$id]['applicability']['capability'];
+        foreach($defaults as $capability)if(!is_string($capability)||preg_match('/^[a-z][a-z0-9_]{0,63}$/D',$capability)!==1||!in_array($capability,$memberCaps,true))throw new \RuntimeException('Profile default capabilities must refer to contextual members.');
+        if($defaults!==[]&&$family!=='magebean')throw new \RuntimeException('Only Magebean profiles declare default capability context.');
         if(isset($p['assessment_level'])&&!in_array($p['assessment_level'],[1,2,3],true))throw new \RuntimeException('Invalid profile assessment level.');return $p;
     }
 }

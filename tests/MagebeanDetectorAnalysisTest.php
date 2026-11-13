@@ -75,7 +75,8 @@ foreach ([
         assertDetector(json_decode($json, true, 512, JSON_THROW_ON_ERROR)['findings'][0]['risk_observation'] === $risk, 'JSON preserves the envelope');
         (new SarifReporter())->write($result, $file);
         $sarif = json_decode(file_get_contents($file), true, 512, JSON_THROW_ON_ERROR)['runs'][0];
-        assertDetector(count($sarif['results']) === $expected + count($gaps) + ($case === 'informational' ? 1 : 0), 'SARIF distinguishes findings, information and gaps');
+        assertDetector(count($sarif['results']) === $expected + ($case === 'informational' ? 1 : 0), 'SARIF results contain findings and information only');
+        assertDetector(count($sarif['invocations'][0]['toolExecutionNotifications']??[])===count($gaps),'SARIF keeps independent collection notifications');
         assertDetector($sarif['properties']['magebean_detector_runs'][0]['detector_runs'][0]['suppressed_count'] === 1, 'SARIF retains suppression metadata');
         if ($case === 'partial') {
             assertDetector($sarif['results'][0]['locations'][0]['physicalLocation']['region']['startLine'] === 7, 'SARIF carries source location');

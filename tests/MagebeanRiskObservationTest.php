@@ -19,12 +19,12 @@ $heuristic=$base;$heuristic['obligations'][0]['proof']='heuristic';$heuristic['o
 $assessment=RequirementAssessmentEvaluator::evaluate($heuristic,static fn(string $name)=>$name==='gap'?$gap:$fail);
 $risk=MagebeanRiskObservation::fromAssessment($heuristic,$assessment);
 $assert($assessment->outcome===RequirementOutcome::Unknown&&$risk['assessment_outcome']==='UNKNOWN','Heuristic assessment stays UNKNOWN');
-$assert($risk['needs_attention']&&count($risk['findings'])===2,'Heuristic issue and UNKNOWN both become actionable findings');
+$assert($risk['needs_attention']&&count($risk['findings'])===1,'Actual issue remains actionable while UNKNOWN is diagnostic-only');
 $assert(!$risk['collection_complete']&&count($risk['collection_gaps'])===1,'Failure and independent collection gap coexist');
 $risk=MagebeanRiskObservation::fromAssessment($base,RequirementAssessmentEvaluator::evaluate($base,static fn()=>$pass));
 $assert(!$risk['needs_attention']&&$risk['findings']===[]&&$risk['collection_gaps']===[]&&$risk['collection_complete'],'Clean assessment has no manufactured risk');
 $risk=MagebeanRiskObservation::fromAssessment($base,RequirementAssessmentEvaluator::evaluate($base,static fn()=>$gap));
-$assert($risk['needs_attention']&&$risk['findings'][0]['kind']==='collection_issue','UNKNOWN becomes a collection finding without a security violation claim');
+$assert(!$risk['needs_attention']&&$risk['findings']===[],'UNKNOWN never becomes an ordinary risk finding');
 $assert(!$risk['collection_complete']&&count($risk['collection_gaps'])===1,'Gap-only observation remains visible');
 $alternative=$base;$alternative['obligations'][0]['op']='any';$alternative['obligations'][0]['checks']=[['name'=>'first'],['name'=>'second']];
 $assessment=RequirementAssessmentEvaluator::evaluate($alternative,static fn(string $name)=>$name==='first'?$fail:$pass);
@@ -49,6 +49,6 @@ $many=$base;$many['obligations'][0]['checks']=array_fill(0,105,['name'=>'source'
 $risk=MagebeanRiskObservation::fromAssessment($many,RequirementAssessmentEvaluator::evaluate($many,static fn()=>$fail));
 $assert(count($risk['findings'])===100&&$risk['findings_truncated']&&$risk['needs_attention']&&!$risk['collection_complete'],'Finding projection is bounded and explicitly truncated');
 $risk=MagebeanRiskObservation::fromAssessment($many,RequirementAssessmentEvaluator::evaluate($many,static fn()=>$gap));
-$assert(count($risk['collection_gaps'])===100&&$risk['collection_gaps_truncated']&&$risk['needs_attention']&&!$risk['collection_complete'],'Gap projection is bounded without inventing a finding');
+$assert(count($risk['collection_gaps'])===100&&$risk['collection_gaps_truncated']&&!$risk['needs_attention']&&!$risk['collection_complete'],'Gap projection is bounded without inventing a finding');
 foreach(['family','human']as$guard){$bad=$base;if($guard==='family')$bad['family']='asvs';else$bad['human_evidence']['required']=true;$rejected=false;try{MagebeanRiskObservation::fromAssessment($bad,$assessment);}catch(InvalidArgumentException){$rejected=true;}$assert($rejected,'Reject projection outside automated Magebean '.$guard);}
 echo "Magebean risk observation: $count assertions passed\n";

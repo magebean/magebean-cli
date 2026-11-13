@@ -29,8 +29,8 @@ try{
     if (!str_contains($auditHelp, '--profile')) throw new RuntimeException('Audit alias smoke test failed.');
     $profiles=json_decode((string)file_get_contents('src/Rules/requirements/internal-profiles.json'),true)['profiles'];
     $definitions=array_column(json_decode((string)file_get_contents('src/Rules/requirements/magebean-catalog.json'),true)['requirements'],null,'id');
-    foreach(['basic','hardening','owasp-top-10-2025','module-integrity','module-source','module-lifecycle','module-reliability','development','prelaunch','takeover']as$profile){
-        $expected=count(array_filter($profiles[$profile]['requirement_ids'],static fn(string$id):bool=>empty($definitions[$id]['applicability']['capability'])&&in_array('LOCAL',$definitions[$id]['target_modes'],true)));
+    foreach(['basic','hardening','owasp-top-10-2025','module-integrity','module-source','module-lifecycle','module-reliability','development','prelaunch','takeover','evidence']as$profile){
+        $expected=count(array_filter($profiles[$profile]['requirement_ids'],static fn(string$id):bool=>(empty($definitions[$id]['applicability']['capability'])||in_array($definitions[$id]['applicability']['capability'],$profiles[$profile]['default_capabilities']??[],true))&&in_array('LOCAL',$definitions[$id]['target_modes'],true)));
         $listing=buildRun([PHP_BINARY,$candidate,'rules:list','--profile='.$profile,'--no-ansi']);
         if(!str_contains($listing,'Total Rules Listed: '.$expected."\n"))throw new RuntimeException('Profile smoke test failed: '.$profile);
     }
@@ -49,6 +49,18 @@ try{
     $report['smoke_tests'][] = 'development-prelaunch-end-to-end';
     echo buildRun([PHP_BINARY, $root.'/tests/TakeoverProfileTest.php', $candidate]);
     $report['smoke_tests'][] = 'takeover-profile';
+    echo buildRun([PHP_BINARY, $root.'/tests/RetirementReassessmentTest.php', $candidate]);
+    $report['smoke_tests'][] = 'restored-rule-canonical-cli';
+    echo buildRun([PHP_BINARY, $root.'/tests/CurrentStatePhase1CorrectnessTest.php', $candidate]);
+    $report['smoke_tests'][] = 'current-state-phase1-correctness';
+    echo buildRun([PHP_BINARY, $root.'/tests/CurrentStatePhase2ProvenanceTest.php', $candidate]);
+    $report['smoke_tests'][] = 'current-state-phase2-provenance';
+    echo buildRun([PHP_BINARY, $root.'/tests/CurrentStatePhase3SemanticsTest.php', $candidate]);
+    $report['smoke_tests'][] = 'current-state-phase3-semantics';
+    echo buildRun([PHP_BINARY, $root.'/tests/CurrentStatePhase4CorrelationTest.php', $candidate]);
+    $report['smoke_tests'][] = 'current-state-phase4-correlation';
+    echo buildRun([PHP_BINARY, $root.'/tests/CurrentStatePhase5ProfilesTest.php', $candidate]);
+    $report['smoke_tests'][] = 'current-state-phase5-profiles';
     if(is_file($output)&&!copy($output,$build.'/previous-'.basename($output)))throw new RuntimeException('Cannot preserve previous release.');
     chmod($candidate,0755);
     if(!rename($candidate,$output))throw new RuntimeException('Cannot publish validated candidate.');

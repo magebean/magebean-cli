@@ -1,0 +1,154 @@
+<?php
+declare(strict_types=1);
+$archive=isset($argv[1])?realpath($argv[1]):null;
+if(isset($argv[1])&&!$archive)throw new RuntimeException('Supply a valid PHAR path.');
+require $archive?'phar://'.$archive.'/vendor/autoload.php':__DIR__.'/../vendor/autoload.php';
+use Magebean\Engine\{Context,RequirementCatalog,ScanRunner,MagebeanIssueCorrelation,CheckResult,CheckOutcome,ScanPlanner,ScanRequest,ScanReport,ScanReportAssembler};
+use Magebean\Engine\Checks\CheckRegistry;
+use Magebean\Engine\Reporting\{SarifReporter,HtmlReporter};
+use Magebean\Agent\AgentResultMapper;
+use Magebean\Console\FindingsConsoleRenderer;
+use Symfony\Component\Console\Output\BufferedOutput;
+$n=0;$assert=static function(bool $ok,string $m)use(&$n):void{++$n;if(!$ok)throw new RuntimeException($m);};
+$root=sys_get_temp_dir().'/mb-phase4-'.bin2hex(random_bytes(6));mkdir($root,0700);$server=null;
+$put=static function(string $p,mixed $value)use($root):void{$dir=dirname($root.'/'.$p);if(!is_dir($dir))mkdir($dir,0700,true);file_put_contents($root.'/'.$p,is_string($value)?$value:json_encode($value,JSON_THROW_ON_ERROR));};
+$rules=array_column(RequirementCatalog::read('magebean-catalog')['requirements'],null,'id');
+$context=new Context($root,'','',['meta'=>['launch_profile'=>'development']]);
+$scan=static function(array $ids,?CheckRegistry $registry=null,array $overrides=[])use($root,$rules,$context):array{
+    $selected=[];
+    foreach($ids as $id){$r=$rules[$id];if(isset($r['applicability']['capability']))$r['applicability']['state']='APPLICABLE';
+        if(isset($overrides[$id]))foreach($r['obligations'] as &$o)foreach($o['checks'] as &$c)$c['args']=array_replace($c['args']??[],$overrides[$id]);
+        unset($o,$c);$r['checks']=array_merge(...array_column($r['obligations'],'checks'));$selected[]=$r;}
+    return(new ScanRunner($context,['rules'=>$selected],null,$registry))->run();
+};
+$group=static fn(array $r):array=>MagebeanIssueCorrelation::group($r['findings']);
+try{
+    $put('pub/media/unexpected.php','not executed');$raw=$scan(['MB-0780','MB-0800']);$issues=$group($raw);
+    $assert(count($raw['findings'])===2&&count($issues)===1,'Same upload filename is one issue and two unchanged assessments');
+    $assert($issues[0]['rule_ids']===['MB-0780','MB-0800']&&count($issues[0]['contributors'])===2,'Upload grouping keeps both predicate observations');
+    $put('pub/media/unexpected.php','<?php echo 1;');$issues=$group($scan(['MB-0780','MB-0800']));
+    $assert(count($issues)===1&&count($issues[0]['contributors'])===3,'Filename and PHP content signals describe one artifact with all evidence retained');
+    $put('pub/media/.htaccess','SetHandler application/x-httpd-php');
+    $assert(count($group($scan(['MB-0780','MB-0800'])))===2,'A handler declaration is distinct from a script artifact');
+    $put('composer.json',['require'=>['magento/framework'=>'103.0.7']]);
+    $put('vendor/composer/installed.json',['packages'=>[['name'=>'magento/framework','version'=>'103.0.7','install-path'=>'../magento/framework']]]);
+    $put('vendor/magento/framework/.keep','');
+    $put('app/code/Acme/Probe/registration.php','<?php \Magento\Framework\Component\ComponentRegistrar::register(\Magento\Framework\Component\ComponentRegistrar::MODULE,"Acme_Probe",__DIR__);');
+    $put('app/code/Acme/Probe/etc/module.xml','<config><module name="Acme_Probe"/></config>');
+    $put('app/code/Acme/Probe/Runner.php','<?php namespace Acme\Probe; class Runner { public function run(){ \exec($_GET["command"]); } }');
+    $raw=$scan(['MB-0790','MB-0822']);$issues=$group($raw);$before=serialize($raw);
+    $assert(count($issues)===1&&$issues[0]['id']==='MB-0822','Flow-aware command signal is primary; native API occurrence is supporting context');
+    $assert($issues[0]['risk_observation']['findings'][0]['confidence']==='suspected'&&$issues[0]['severity']==='high','Confirmed syntax never upgrades suspected injection confidence or lowers its severity');
+    $assert($issues[0]['rule_ids']===['MB-0790','MB-0822'],'Both historical rule selectors remain visible');
+    $assert(serialize($raw)===$before,'Correlation never mutates original assessments');
+    $wireAliases=(new AgentResultMapper())->map($raw,[],[],[],$root,[
+        ['canonical_id'=>'MB-0790','requested_key'=>'LEGACY-COMMAND','assessment_item_id'=>'legacy'],
+        ['canonical_id'=>'MB-0822','requested_key'=>'MB-0822','assessment_item_id'=>'flow'],
+    ]);
+    $assert(count($wireAliases['results'])===2&&$wireAliases['summary']['canonical_issue_count']===1,'Alias transport preserves canonical correlation before requested IDs are remapped');
+    $assert($wireAliases['results'][0]['evidence']['canonical_issue_refs'][0]['issue_id']===$issues[0]['issue_id'],'Agent payloads carry portable canonical refs without replacing their requested keys');
+    $differentBytes=$raw;
+    $differentBytes['findings'][1]['risk_observation']['findings'][0]['evidence']['locations'][0]['source_sha256']=str_repeat('f',64);
+    $assert(count($group($differentBytes))===2,'Same byte position in different source snapshots is not proof of the same call');
+    $withoutAnchors=$raw;foreach($withoutAnchors['findings'] as &$f)foreach($f['risk_observation']['findings'] as &$r) {
+        foreach(['locations','violations'] as $k)foreach($r['evidence'][$k]??[] as $index=>$location)unset($r['evidence'][$k][$index]['byte_offset']);
+    }unset($f,$r);
+    $assert(count($group($withoutAnchors))===2,'Old line-only evidence is preserved without guessing that locations are equivalent');
+    $reverse=$raw;$reverse['findings']=array_reverse($reverse['findings']);
+    $assert($group($reverse)[0]['issue_id']===$issues[0]['issue_id'],'Canonical identity is independent of rule ordering');
+    foreach($reverse['findings'] as &$f)foreach($f['risk_observation']['findings']as &$r)$r['evidence']['observed_at']='2099-01-01T00:00:00Z';unset($f,$r);
+    $assert($group($reverse)[0]['issue_id']===$issues[0]['issue_id'],'Collection timestamps are not canonical identity');
+    $plan=(new ScanPlanner())->planCli(new ScanRequest($context->toScanContext(),['profile'=>'takeover','rules'=>'MB-0790,MB-0822']),CheckRegistry::fromContext($context));
+    $assembled=(new ScanReportAssembler())->assemble(ScanReport::fromLegacy($raw),$plan)->toLegacy();
+    $assert(count($assembled['findings'])===2&&count($assembled['risk_findings'])===2&&count($assembled['canonical_issues'])===1,'Raw report assessments remain separate from the canonical view');
+    $assert($assembled['summary']['needs_attention']===1&&$assembled['summary']['assessments_needing_attention']===2,'User-facing count is canonical while per-assessment attention remains inspectable');
+    $wire=(new AgentResultMapper())->map($raw,[],['MB-0790'=>['assessment_item_id'=>'api'],'MB-0822'=>['assessment_item_id'=>'flow']],[],$root);
+    $assert(count($wire['results'])===2&&$wire['summary']['needs_attention']===2&&$wire['summary']['canonical_issue_count']===1,'Agent wire correspondence and existing attention semantics stay compatible');
+    $assembled['meta']['rules_filter']=[];$output=new BufferedOutput();(new FindingsConsoleRenderer(100))->render($output,$assembled,$root);$text=$output->fetch();
+    $assert(str_contains($text,'1 finding need attention')&&str_contains($text,'Related rules: MB-0790, MB-0822'),'Console displays a single issue with both rule identities');
+    $assert(!str_contains($text,'Confirmed')&&!str_contains($text,'How to resolve')&&!str_contains($text,'Remediation guidance'),'Default console remains quiet');
+    (new SarifReporter())->write($assembled,$root.'/report.sarif');$sarif=json_decode(file_get_contents($root.'/report.sarif'),true);
+    $assert(count($sarif['runs'][0]['results'])===1&&count($sarif['runs'][0]['results'][0]['properties']['contributors'])===2,'SARIF publishes one canonical issue without losing contributors');
+    (new HtmlReporter('unused'))->write($assembled,$root.'/report.html');
+    $assert(str_contains(file_get_contents($root.'/report.html'),'Needs attention: 1'),'HTML uses the canonical count');
+    $put('app/code/Acme/Probe/Runner.php','<?php namespace Acme\Probe; class Runner { public function run(){ \exec($_GET["command"]); \exec("printf fixed"); } }');
+    $twoCalls=$scan(['MB-0790','MB-0822']);$issues=$group($twoCalls);
+    $assert(count($issues)===2,'Two command calls on one line have distinct byte identities');
+    unset($twoCalls['findings'][0]['risk_observation']['findings'][0]['evidence']['violations'][1]['byte_offset']);
+    $assert(count($group($twoCalls))===2,'Mixed precise and unsupported identities do not drop the uncorrelated remainder');
+    $put('app/code/Acme/Probe/Runner.php','<?php namespace Acme\Probe; class Runner { public function run(){ $logger->error("a",$_POST); $logger->error("b",$_POST); } }');
+    $issues=$group($scan(['MB-0795','MB-0814']));
+    $assert(count($issues)===2&&count($issues[0]['contributors'])===2&&count($issues[1]['contributors'])===2,'Same-line logging calls correlate per request occurrence, not merely line');
+    $put('app/code/Acme/Probe/view.phtml','<script>let a="<?= $escaper->escapeHtml($one) ?>"; let b="<?= $escaper->escapeHtml($two) ?>";</script>');
+    $issues=$group($scan(['MB-0733','MB-0736']));
+    $assert(count($issues)===2&&count($issues[0]['contributors'])===2,'Shared inline-JS/PHTML predicates correlate per output expression');
+    $put('app/etc/env.php',"<?php return ".var_export(['system'=>['default'=>['admin'=>['security'=>['minimum_password_length'=>7]]]],'cache'=>['frontend'=>['default'=>['backend'=>'File'],'page_cache'=>['backend'=>'File']]]],true).';');
+    $calls=0;$registry=new CheckRegistry();$registry->register('magento_admin_password_minimum_configured',static function(array $args)use(&$calls):array{++$calls;return[false,'minimum below policy',['source'=>'app/etc/env.php','observed'=>7,'minimum'=>$args['min_length'],'scope'=>'admin_password_minimum_deployment_policy']];});
+    $issues=$group($scan(['MB-0731','MB-0728'],$registry));
+    $assert($calls===1&&count($issues)===1&&$issues[0]['id']==='MB-0728','Exact password predicate executes once and prefers canonical selector');
+    $oldOnly=$group($scan(['MB-0731'],$registry));
+    $assert($oldOnly[0]['issue_id']===$issues[0]['issue_id']&&$oldOnly[0]['canonical_rule_id']==='MB-0728','Legacy-only selector retains the same canonical identity without changing its assessment ID');
+    $policy8=$scan(['MB-0728'],$registry);$policy12=$scan(['MB-0731'],$registry,['MB-0731'=>['min_length'=>12]]);
+    $assert(count(MagebeanIssueCorrelation::group(array_merge($policy8['findings'],$policy12['findings'])))===2,'Different password baselines are not equivalent merely because the source key matches');
+    $issues=$group($scan(['MB-0038','MB-0741']));$cache=array_values(array_filter($issues,static fn($i)=>$i['issue_family']==='cache-file-backend'));
+    $assert(count($cache)===2&&count($cache[0]['contributors'])===2,'File-backend components are shared per key');
+    $assert(count($issues)>count($cache),'Stronger Redis/Varnish preference remains a distinct predicate');
+    $calls=0;$registry=new CheckRegistry();$registry->register('composer_abandoned_api',static function(array $args)use(&$calls):array{
+        ++$calls;$rows=[['name'=>'acme/library','installed'=>'1.0.0','status_observation'=>['endpoint'=>'https://example.invalid/status','dataset_revision'=>'fixture']]];
+        if(empty($args['package_types']))$rows[]=['name'=>'acme/module','installed'=>'1.0.0','status_observation'=>['endpoint'=>'https://example.invalid/status','dataset_revision'=>'fixture']];
+        return[false,'Abandoned package status',['abandoned_packages'=>$rows,'dependency_inventory'=>['scope'=>'installed_dependency'],'package_observations'=>['acme/library'=>['scope'=>'installed_dependency','source_path'=>'vendor/composer/installed.json'],'acme/module'=>['scope'=>'installed_dependency','source_path'=>'vendor/composer/installed.json']]]];
+    });
+    $issues=$group($scan(['MB-0061','MB-0744'],$registry));
+    $assert($calls===2&&count($issues)===2,'Exact library-only component reuses one check; aggregate keeps separate module coverage');
+    $lib=array_values(array_filter($issues,static fn($i)=>($i['identity']['subject']['package']??'')==='acme/library'))[0];
+    $assert(count($lib['contributors'])===3,'All and library subsets are retained as context for the same abandoned package');
+
+    $app=['name'=>'fixture/app','version'=>'1.0.0','require'=>['fixture/lib'=>'1.0.0']];$lib=['name'=>'fixture/lib','version'=>'1.0.0'];
+    $put('composer.json',['require'=>['fixture/app'=>'^1.0']]);$put('composer.lock',['packages'=>[$app,$lib]]);$put('vendor/composer/installed.json',['packages'=>[$app,$lib]]);
+    $advisory=['id'=>'QA-ADVISORY','published'=>'2000-01-01T00:00:00Z','affected'=>[['package'=>['ecosystem'=>'Packagist','name'=>'fixture/lib'],'versions'=>['1.0.0'],'ranges'=>[['type'=>'SEMVER','events'=>[['introduced'=>'0'],['fixed'=>'1.1.0']]]]]]];
+    $put('feed.json',['schema_version'=>'magebean-osv-response-v1','advisories'=>[$advisory],'meta'=>['dataset_revision'=>'fixture-A']]);
+    $put('router.php','<?php header("Content-Type: application/json"); $request=json_decode(file_get_contents("php://input"),true); if(is_file(__DIR__."/fail-app") && in_array("fixture/app",array_column($request["packages"]??[],"name"),true)){http_response_code(503);echo "{}";return;} readfile(__DIR__."/feed.json");');
+    $socket=stream_socket_server('tcp://127.0.0.1:0');$host=stream_socket_get_name($socket,false);fclose($socket);
+    $server=proc_open([PHP_BINARY,'-S',$host,$root.'/router.php'],[1=>['file',$root.'/server.log','a'],2=>['file',$root.'/server.log','a']],$pipes,$root);
+    for($i=0;$i<100;$i++){if($s=@stream_socket_client('tcp://'.$host,timeout:0.05)){fclose($s);break;}usleep(10000);}
+    $args=['endpoint'=>'http://'.$host,'timeout_ms'=>1000];$ids=['MB-0049','MB-0055','MB-0056','MB-0059'];$overrides=array_fill_keys($ids,$args);
+    $raw=$scan($ids,null,$overrides);$issues=$group($raw);
+    $assert(count($issues)===1&&count($issues[0]['rule_ids'])===4,'Actual API match, dependency chain, blocked fixed version and publication age form one package/advisory issue');
+    $assert($issues[0]['id']==='MB-0049'&&count($issues[0]['contributors'])===4,'Primary advisory view retains every follow-up predicate as evidence');
+    $contextText=implode(' ',array_column($issues[0]['context'],'message'));
+    $assert(str_contains($contextText,'publication age')&&str_contains($contextText,'required by')&&str_contains($contextText,'declared constraint'),'Advisory correlation attaches age, dependency chain and fixed-version constraints as inspectable context');
+    $same=$group($scan(array_reverse($ids),null,$overrides));$assert($same[0]['issue_id']===$issues[0]['issue_id'],'Advisory identity remains stable across reruns and selection order');
+    $sameIdOtherPackage=$advisory;$sameIdOtherPackage['affected'][0]['package']['name']='fixture/app';
+    $put('feed.json',['schema_version'=>'magebean-osv-response-v1','advisories'=>[$advisory,$sameIdOtherPackage],'meta'=>['dataset_revision'=>'fixture-A']]);
+    $assert(count($group($scan($ids,null,$overrides)))===2,'One advisory ID on two distinct package identities is not one dependency issue');
+    $put('feed.json',['schema_version'=>'magebean-osv-response-v1','advisories'=>[$advisory],'meta'=>['dataset_revision'=>'fixture-A']]);
+    $locked=$scan(['MB-0049'],null,['MB-0049'=>$args+['dependency_scope'=>'locked']]);
+    $mixed=$raw;$mixed['findings']=array_merge($raw['findings'],$locked['findings']);
+    $assert(count($group($mixed))===2,'Locked-build and installed observations do not silently merge');
+    $put('snapshot.json',[$advisory]);$offline=$scan(['MB-0828'],null,['MB-0828'=>['cve_data'=>'snapshot.json']]);
+    $mixed['findings']=array_merge($raw['findings'],$offline['findings']);
+    $assert(count($group($mixed))===2,'Supplied snapshot and online feed remain distinct observation sources');
+    $feed=json_decode(file_get_contents($root.'/feed.json'),true);$feed['meta']['dataset_revision']='fixture-B';$put('feed.json',$feed);
+    $new=$scan(['MB-0049'],null,['MB-0049'=>$args]);$mixed['findings']=array_merge($raw['findings'],$new['findings']);
+    $assert(count($group($mixed))===2,'Different declared dataset revisions cannot be guessed equivalent');
+    $put('fail-app','fixture');$partial=$scan($ids,null,array_fill_keys($ids,$args+['batch_size'=>1]));
+    $partialIssues=$group($partial);
+    $assert(count($partialIssues)===1&&!$partialIssues[0]['risk_observation']['collection_complete'],'A known canonical advisory survives a failed unrelated batch without claiming complete collection');
+    $partialPlan=(new ScanPlanner())->planCli(new ScanRequest($context->toScanContext(),['profile'=>'takeover','rules'=>implode(',',$ids)]),CheckRegistry::fromContext($context));
+    $partialReport=(new ScanReportAssembler())->assemble(ScanReport::fromLegacy($partial),$partialPlan)->toLegacy();
+    $assert(count($partialReport['collection_issues'])>0&&!$partialReport['meta']['scan_complete']&&(new \Magebean\Engine\ScanExitPolicy())->code($partialReport)===3,'Correlation retains diagnostics and incomplete-scan exit semantics alongside known findings');
+    unlink($root.'/fail-app');
+    $registry=new CheckRegistry();foreach(['installed_magento_cron','installed_cron_cadence','fs_static_content_deployed','static_scopes_ready']as $name)$registry->register($name,static fn(array $a):array=>[false,'Independent predicate',['file'=>'same-file.php']]);
+    $assert(count($group($scan(['MB-0046','MB-0783','MB-0035','MB-0784'],$registry)))===4,'Complementary cron and artifact predicates stay separate even with the same file');
+    foreach(['magento_deployment_debug_flags_disabled','php_display_errors_disabled','production_worker_xdebug_absent'] as $name)$registry->register($name,static fn(array $a):array=>[false,'Separate source or process observation',['file'=>'same-file.php']]);
+    $assert(count($group($scan(['MB-0729','MB-0739','MB-0807'],$registry)))===3,'Declared flags and observed worker state are not automatically equivalent');
+    $legacy=$raw;$legacy['findings'][0]['risk_observation']['findings'][0]['evidence']['source']='unknown_feed';
+    $assert(count($group($legacy))===2,'Unsupported source identity remains visible as uncorrelated rather than dropped');
+    $unresolved=$legacy['findings'][0];$unresolved['risk_observation']['findings'][0]['evidence']['source']='unknown_feed';
+    $assert(count(MagebeanIssueCorrelation::group([$unresolved,$unresolved]))===2,'Unresolved observations are not auto-merged even when their owning IDs repeat');
+    echo "Current-state Phase 4 correlation: $n assertions passed\n";
+}finally{
+    if(is_resource($server)){proc_terminate($server);proc_close($server);}
+    $it=new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root,FilesystemIterator::SKIP_DOTS),RecursiveIteratorIterator::CHILD_FIRST);
+    foreach($it as$f)$f->isDir()&&!$f->isLink()?rmdir($f->getPathname()):unlink($f->getPathname());rmdir($root);
+}

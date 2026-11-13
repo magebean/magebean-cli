@@ -1,0 +1,62 @@
+[
+  {
+    "command": "php tests/AutomatedSourcePolicyTest.php",
+    "exit_code": 0,
+    "output": "Automated source policy: 64 assertions passed"
+  },
+  {
+    "command": "php tests/ProductionRuntimeCheckTest.php",
+    "exit_code": 0,
+    "output": "ProductionRuntimeCheckTest: 35 assertions passed"
+  },
+  {
+    "command": "php tests/DependencyPolicyCheckTest.php",
+    "exit_code": 0,
+    "output": "Dependency policy: 26 assertions passed"
+  },
+  {
+    "command": "php tests/LinuxWorkerObservationTest.php",
+    "exit_code": 0,
+    "output": "LinuxWorkerObservationTest: 7 assertions passed"
+  },
+  {
+    "command": "php tests/MagentoModuleAnalysisTest.php",
+    "exit_code": 0,
+    "output": "Magento module inventory and static indexes passed"
+  },
+  {
+    "command": "php tests/MagentoModuleIntegrityProfileTest.php",
+    "exit_code": 0,
+    "output": "Module integrity profile and CLI passed"
+  },
+  {
+    "command": "php tests/DevelopmentModuleDeclarationsTest.php",
+    "exit_code": 0,
+    "output": "Development module declarations: 12 assertions passed"
+  },
+  {
+    "command": "php tests/DevelopmentSourceQaRegressionTest.php",
+    "exit_code": 0,
+    "output": "Development source QA regressions: 28 assertions passed"
+  },
+  {
+    "command": "php tests/DevelopmentLifecycleAdvisoryRegressionTest.php",
+    "exit_code": 0,
+    "output": "Development lifecycle/advisory regression: 15 assertions passed"
+  },
+  {
+    "command": "php tests/DevelopmentPrelaunchProfileTest.php",
+    "exit_code": 0,
+    "output": "Development and prelaunch profiles passed"
+  },
+  {
+    "command": "php tests/OptionalCapabilityFindingsTest.php",
+    "exit_code": 0,
+    "output": "OptionalCapabilityFindingsTest: 12 assertions passed"
+  },
+  {
+    "command": "php tests/ScopedSourceFilesystemPolicyTest.php",
+    "exit_code": 0,
+    "output": "Scoped source/filesystem policy: 15 assertions passed"
+  }
+]

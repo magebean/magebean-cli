@@ -44,7 +44,9 @@ final class RequirementPolicy
         foreach ($pack['rules'] as $r) {
             if ($include!==[]&&!in_array($r['id'],$include,true)) continue;
             if (in_array($r['id'],$exclude,true)||RequirementCatalog::matchesControls($r,$excludeControls)) continue;
-            $selected[]=array_replace($r,$overrides[$r['id']]??[]);
+            $presented=array_replace($r,$overrides[$r['id']]??[]);
+            if (isset($overrides[$r['id']]['severity'])) $presented['presentation_severity_override']=true;
+            $selected[]=$presented;
         }
         $pack['rules']=$selected;return $pack;
     }

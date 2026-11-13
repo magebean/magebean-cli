@@ -17,7 +17,7 @@ final class FindingsConsoleRenderer
     public function render(OutputInterface $out,array $result,string $path):void
     {
         $detailed=!empty($result['meta']['rules_filter']);
-        $risks=array_values(array_filter($result['risk_findings']??[],static fn(array $f):bool=>($f['risk_observation']['needs_attention']??false)===true));
+        $risks=array_values(array_filter($result['canonical_issues']??$result['risk_findings']??[],static fn(array $f):bool=>($f['risk_observation']['needs_attention']??false)===true));
         $issues=$result['collection_issues']??[];
         $covered=[];
         foreach($risks as$f)foreach($f['risk_observation']['findings']??[]as$o)if(($o['kind']??'')==='collection_issue')$covered[($f['id']??'').'|'.($o['check']??'')]=true;
@@ -54,8 +54,13 @@ final class FindingsConsoleRenderer
         $out->writeln('');
         if(!empty($result['coverage_summary'])){
             $c=$result['coverage_summary'];
-            $this->line($out, sprintf('%d / %d rules executed', $c['executed'], $c['inventory']), '  Coverage  ', 'fg=gray');
-            if ($detailed && !empty($c['not_evaluated'])) $this->line($out, $c['not_evaluated'].' rules not evaluated', '            ', 'fg=gray');
+            $selected=isset($result['findings'])?count($result['findings']):(int)$c['executed'];
+            $context=count(array_filter($result['not_evaluated_requirements']??[],static fn(array $rule):bool=>in_array($rule['reason_code']??'', ['CAPABILITY_CONTEXT_MISSING','capability_not_declared'],true)));
+            $other=max(0,(int)($c['not_evaluated']??0)-$context);
+            $parts=[$selected.' selected'];
+            if($context>0)$parts[]=$context.' require additional context';
+            if($other>0)$parts[]=$other.' not selected';
+            $this->line($out, implode(' · ',$parts), '  Rules     ', 'fg=gray');
         }
         if($detailed&&($issues||!$covered))$this->line($out, (string)count($issues), '  Scan collection issues  ', 'fg='.($issues?'yellow':'gray'));
         $out->writeln('');
@@ -81,6 +86,7 @@ final class FindingsConsoleRenderer
             $out->writeln('');
             $severity=strtolower($finding['severity']??'low');
             $this->line($out,sprintf('%02d  %s  %s',$i+1,strtoupper($severity),$finding['id']??''),'',$this->severityStyle($severity).';options=bold');
+            if (count($finding['rule_ids']??[])>1) $this->line($out,'Related rules: '.implode(', ',$finding['rule_ids']),'  ','fg=gray');
             foreach($finding['risk_observation']['findings']as$observation){
                 $this->line($out,$observation['message']??'Observed issue','  ','options=bold');
                 if ($detailed && isset($observation['confidence'])) {
@@ -110,6 +116,7 @@ final class FindingsConsoleRenderer
                 foreach(array_slice($locations,0,$limit)as$location)$this->line($out,$location,'    ','fg=cyan');
                 if(count($locations)>$limit)$this->line($out,'+'.(count($locations)-$limit).' more locations; select this requirement for details.','    ','fg=gray');
             }
+            if ($detailed) foreach ($finding['context']??[] as $context) $this->line($out,$context['rule_id'].': '.$context['message'],'    ','fg=gray');
             $guide=$finding['requirement']['finding_guidance']??[];
             $collectionOnly=!array_filter($finding['risk_observation']['findings'],static fn(array $o):bool=>($o['kind']??'')!=='collection_issue');
             if($detailed)foreach(['interpretation'=>'Context','risk'=>'Risk','limitations'=>'Scope']as$key=>$label)if(!empty($guide[$key])&&is_string($guide[$key])){$this->line($out,$label,'  ','fg=cyan');$this->line($out,$guide[$key],'    ');}

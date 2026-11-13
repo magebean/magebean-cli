@@ -1,0 +1,17 @@
+{
+  "archive": "artifacts/magebean-one-time.phar",
+  "catalog_import": {
+    "rules": 735,
+    "profiles": 15,
+    "passes": 2,
+    "old_assessment_snapshots_preserved": true
+  },
+  "scope": "Archived mapper + freshly executed real policy and typed-flow evidence, requested-key fixture bindings, raw fail/error statuses; one current assessment with 2 items; isolated SQLite only",
+  "exit_code": 0,
+  "output": "PHPUnit 11.5.56 by Sebastian Bergmann and contributors.\n\nRuntime:       PHP 8.4.27\nConfiguration: /var/www/console-magebean/phpunit.xml\n\n.                                                                   1 / 1 (100%)\n\nTime: 00:01.240, Memory: 59.48 MB\n\nOK (1 test, 58 assertions)\n",
+  "expected_observations": 2,
+  "expected_projections": 2,
+  "expected_findings": 2,
+  "canonical_issue_count": 1,
+  "production_console_files_changed": false
+}

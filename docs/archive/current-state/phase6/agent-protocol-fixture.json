@@ -1,0 +1,165 @@
+{
+  "schema_version": "1.0",
+  "manifest_hash": "",
+  "summary": {
+    "needs_attention": 2,
+    "collection_issues": 0,
+    "canonical_issue_count": 1
+  },
+  "results": [
+    {
+      "rule_key": "MB-INSTANCE-001",
+      "status": "fail",
+      "message": "Policy: Source violates the declared shell_execution policy; see file and line evidence.",
+      "detail": [],
+      "evidence": {
+        "canonical_issue_refs": [
+          {
+            "issue_id": "mb-issue-v1:dcbfc995bb59575acf398aec11070342250dcbf6b88557de0c8eb425880afbcc",
+            "issue_family": "source-command-call",
+            "correlation_status": "evidence_identity",
+            "related_rule_ids": [
+              "MB-0790",
+              "MB-0822"
+            ]
+          }
+        ],
+        "risk_observation": {
+          "schema_version": 1,
+          "needs_attention": true,
+          "collection_complete": true,
+          "assessment_outcome": "FAIL",
+          "findings": [
+            {
+              "check": "automated_source_policy",
+              "message": "Policy: Source violates the declared shell_execution policy; see file and line evidence.",
+              "reason_code": "SOURCE_POLICY_VIOLATION",
+              "kind": "observed_issue",
+              "evidence": {
+                "complete": true,
+                "gaps": [],
+                "files_read": 2,
+                "bytes_read": 236,
+                "scope": [
+                  "app/code"
+                ],
+                "policy": "shell_execution",
+                "violations": [
+                  {
+                    "file": "app/code/Acme/Probe/Runner.php",
+                    "line": 1,
+                    "construct": "exec",
+                    "source_sha256": "99312cf2400520f95409e95bebc861007ffaa24ff1d01c460cf054886c7884f9",
+                    "byte_offset": 66
+                  }
+                ],
+                "limitations": [
+                  "Exact syntactic policy only; excludes dependencies, generated code and files outside the declared scope.",
+                  "No dataflow, business authorization or runtime exploitability conclusion."
+                ],
+                "analysis_gaps": [],
+                "inspection_issues": []
+              },
+              "category": "policy",
+              "confidence": "confirmed",
+              "claim_type": "observed_policy_violation",
+              "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+              "exploitability": "not_established",
+              "severity": "low",
+              "guidance": {
+                "claim_type": "observed_policy_violation",
+                "impact": "The reported file/line contains the named construct. This is a coding-policy observation; local file access, a fixed command, UI randomness or a query-named method alone does not establish data exposure or injection.",
+                "action": "Inspect each named call and argument at the reported file/line. Trace input origin, receiver identity, authorization and output use before deciding whether to replace the API or document an approved exception to this explicit coding policy.",
+                "verification": "Test the affected behavior and its real trust boundary. Replacing an API or wrapping a call does not by itself validate input or remove an exploit path.",
+                "recheck": "Rerun MB-0790 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+              }
+            }
+          ],
+          "collection_gaps": []
+        }
+      },
+      "checked_at": "2026-11-13T03:45:28+00:00",
+      "title": "Policy: Source violates the declared shell_execution policy; see file and line evidence."
+    },
+    {
+      "rule_key": "MB-INSTANCE-002",
+      "status": "error",
+      "message": "Request input reaches a command call.",
+      "detail": [],
+      "evidence": {
+        "canonical_issue_refs": [
+          {
+            "issue_id": "mb-issue-v1:dcbfc995bb59575acf398aec11070342250dcbf6b88557de0c8eb425880afbcc",
+            "issue_family": "source-command-call",
+            "correlation_status": "evidence_identity",
+            "related_rule_ids": [
+              "MB-0790",
+              "MB-0822"
+            ]
+          }
+        ],
+        "risk_observation": {
+          "schema_version": 1,
+          "needs_attention": true,
+          "collection_complete": true,
+          "assessment_outcome": "UNKNOWN",
+          "findings": [
+            {
+              "issue_key": "command",
+              "message": "Request input reaches a command call.",
+              "confidence": "suspected",
+              "category": "security",
+              "severity": "high",
+              "evidence": {
+                "subject": {
+                  "module": "Acme_Probe"
+                },
+                "locations": [
+                  {
+                    "file": "app/code/Acme/Probe/Runner.php",
+                    "line": 1,
+                    "byte_offset": 66,
+                    "source_sha256": "99312cf2400520f95409e95bebc861007ffaa24ff1d01c460cf054886c7884f9"
+                  }
+                ],
+                "reasoning": "A request superglobal at line 1 reaches a supported call directly or through one local assignment.",
+                "remediation": "Avoid passing request data to shell commands. Use fixed operations and validate inputs.",
+                "assumptions": [
+                  "Receiver type, surrounding guards and runtime execution are outside this bounded flow."
+                ]
+              },
+              "claim_type": "review_candidate",
+              "confidence_basis": "Confidence describes the observed condition or relationship only; exploitation, runtime reachability and business impact are not established by this label.",
+              "exploitability": "not_established",
+              "guidance": {
+                "claim_type": "review_candidate",
+                "impact": "The reported pattern or supported output/declaration relationship warrants review. Credential validity, executable serving, alternate authorization and actual input influence require evidence specific to this location.",
+                "action": "Review the exact reported source location and declared target.",
+                "verification": "Validate the corrected code against the intended deployment in staging.",
+                "recheck": "Rerun MB-0822 against the same release, profile and relevant file/key/package scope; compare the new evidence and inspect any independent collection gaps."
+              },
+              "detector": "magento-module-request-sinks",
+              "detector_version": "1.2",
+              "kind": "observed_issue",
+              "check": "magento_module_integrity",
+              "reason_code": null,
+              "fingerprint": "711619fbfe6e2c42d76c9393ea7e73af99827ebdfdd5ecc2e73c3e1bffc653d9"
+            }
+          ],
+          "collection_gaps": [],
+          "detector_runs": [
+            {
+              "detector": "magento-module-request-sinks",
+              "detector_version": "1.2",
+              "complete": true,
+              "suppressed_count": 0,
+              "suppressions": []
+            }
+          ]
+        }
+      },
+      "checked_at": "2026-11-13T03:45:28+00:00",
+      "title": "Request input reaches a command call."
+    }
+  ]
+}

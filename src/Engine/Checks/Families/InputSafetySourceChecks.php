@@ -12,14 +12,12 @@ final class InputSafetySourceChecks extends CodeSearchSupport
         $inc = $args['include_ext'] ?? ['php', 'phtml'];
         $max = max(1, (int)($args['max_results'] ?? 50));
         $rootsAbs = array_map(fn($p) => $this->ctx->abs($p), $roots);
-        $files = $this->collectFiles($rootsAbs, $inc);
+        $capture = $this->captureSafetySource($args + ['paths' => $roots, 'include_ext' => $inc], 'sql');
 
         $offenders = [];
-        foreach ($files as $file) {
-            $content = $this->collectors->files->read($file);
-            if ($content === false) {
-                continue;
-            }
+        foreach ($capture['files'] as $source) {
+            $file = $this->ctx->abs($source['file']);
+            $content = $source['content'];
 
             foreach ($this->rawSqlFindings($file, $content) as $finding) {
                 $offenders[] = $finding;
@@ -40,7 +38,8 @@ final class InputSafetySourceChecks extends CodeSearchSupport
             ];
         }
 
-        return [true, 'No unsafe raw SQL patterns detected'];
+        if ($capture['gaps'] !== [] || $capture['unresolved'] !== []) return [null, '[UNKNOWN] Source collection or flow resolution is incomplete; no safety conclusion is established', ['collection_gaps' => $capture['gaps'], 'unresolved' => $capture['unresolved']]];
+        return [true, 'No enumerated dynamic SQL construction pattern observed in complete bounded source'];
     }
 
     public function ssrfSafeguards(array $args): array
@@ -49,13 +48,12 @@ final class InputSafetySourceChecks extends CodeSearchSupport
         $inc = $args['include_ext'] ?? ['php'];
         $max = max(1, (int)($args['max_results'] ?? 50));
         $rootsAbs = array_map(fn($p) => $this->ctx->abs($p), $roots);
+        $capture = $this->captureSafetySource($args + ['paths' => $roots, 'include_ext' => $inc], 'ssrf');
 
         $offenders = [];
-        foreach ($this->collectFiles($rootsAbs, $inc) as $file) {
-            $content = $this->collectors->files->read($file);
-            if ($content === false) {
-                continue;
-            }
+        foreach ($capture['files'] as $source) {
+            $file = $this->ctx->abs($source['file']);
+            $content = $source['content'];
 
             foreach ($this->ssrfFindings($file, $content) as $finding) {
                 $offenders[] = $finding;
@@ -76,7 +74,8 @@ final class InputSafetySourceChecks extends CodeSearchSupport
             ];
         }
 
-        return [true, 'Outbound HTTP sinks include SSRF safeguard signals'];
+        if ($capture['gaps'] !== [] || $capture['unresolved'] !== []) return [null, '[UNKNOWN] Source collection or flow resolution is incomplete; no safety conclusion is established', ['collection_gaps' => $capture['gaps'], 'unresolved' => $capture['unresolved']]];
+        return [true, 'No enumerated unguarded HTTP sink pattern observed; runtime SSRF safety is not established'];
     }
 
     public function outboundEgressControls(array $args): array
@@ -85,15 +84,14 @@ final class InputSafetySourceChecks extends CodeSearchSupport
         $inc = $args['include_ext'] ?? ['php'];
         $max = max(1, (int)($args['max_results'] ?? 100));
         $rootsAbs = array_map(fn($p) => $this->ctx->abs($p), $roots);
+        $capture = $this->captureSafetySource($args + ['paths' => $roots, 'include_ext' => $inc], 'egress');
 
         $sinks = [];
         $failures = [];
         $filesRead = 0;
-        foreach ($this->collectFiles($rootsAbs, $inc) as $file) {
-            $content = $this->collectors->files->read($file);
-            if ($content === false) {
-                continue;
-            }
+        foreach ($capture['files'] as $source) {
+            $file = $this->ctx->abs($source['file']);
+            $content = $source['content'];
 
             $filesRead++;
             foreach ($this->outboundEgressFindings($file, $content) as $finding) {
@@ -137,11 +135,10 @@ final class InputSafetySourceChecks extends CodeSearchSupport
             return [false, implode("\n", $lines), $evidence];
         }
 
-        if ($sinks === []) {
-            return [true, 'No app-level outbound HTTP sinks detected', $evidence];
-        }
+        if ($sinks === [] && $capture['gaps'] === [] && $capture['unresolved'] === []) return [true, 'No enumerated app-level outbound sinks observed in complete bounded source', $evidence];
 
-        return [true, 'Outbound HTTP sinks include allowlist and timeout controls', $evidence];
+        if ($capture['gaps'] !== [] || $capture['unresolved'] !== []) return [null, '[UNKNOWN] Source collection or flow resolution is incomplete; no safety conclusion is established', ['collection_gaps' => $capture['gaps'], 'unresolved' => $capture['unresolved']]];
+        return [true, 'No enumerated unguarded outbound sink pattern observed; effective network restrictions are not established', $evidence];
     }
 
     public function unserializeSafety(array $args): array
@@ -150,13 +147,12 @@ final class InputSafetySourceChecks extends CodeSearchSupport
         $inc = $args['include_ext'] ?? ['php'];
         $max = max(1, (int)($args['max_results'] ?? 50));
         $rootsAbs = array_map(fn($p) => $this->ctx->abs($p), $roots);
+        $capture = $this->captureSafetySource($args + ['paths' => $roots, 'include_ext' => $inc], 'unserialize');
 
         $offenders = [];
-        foreach ($this->collectFiles($rootsAbs, $inc) as $file) {
-            $content = $this->collectors->files->read($file);
-            if ($content === false) {
-                continue;
-            }
+        foreach ($capture['files'] as $source) {
+            $file = $this->ctx->abs($source['file']);
+            $content = $source['content'];
 
             foreach ($this->unserializeFindings($file, $content) as $finding) {
                 $offenders[] = $finding;
@@ -177,7 +173,8 @@ final class InputSafetySourceChecks extends CodeSearchSupport
             ];
         }
 
-        return [true, 'No unsafe native unserialize() usage detected'];
+        if ($capture['gaps'] !== [] || $capture['unresolved'] !== []) return [null, '[UNKNOWN] Source collection or flow resolution is incomplete; no safety conclusion is established', ['collection_gaps' => $capture['gaps'], 'unresolved' => $capture['unresolved']]];
+        return [true, 'No enumerated unsafe native unserialize pattern observed in complete bounded source'];
     }
 
     public function commandExecutionSafety(array $args): array
@@ -186,13 +183,12 @@ final class InputSafetySourceChecks extends CodeSearchSupport
         $inc = $args['include_ext'] ?? ['php'];
         $max = max(1, (int)($args['max_results'] ?? 50));
         $rootsAbs = array_map(fn($p) => $this->ctx->abs($p), $roots);
+        $capture = $this->captureSafetySource($args + ['paths' => $roots, 'include_ext' => $inc], 'command');
 
         $offenders = [];
-        foreach ($this->collectFiles($rootsAbs, $inc) as $file) {
-            $content = $this->collectors->files->read($file);
-            if ($content === false) {
-                continue;
-            }
+        foreach ($capture['files'] as $source) {
+            $file = $this->ctx->abs($source['file']);
+            $content = $source['content'];
 
             foreach ($this->commandExecutionFindings($file, $content) as $finding) {
                 $offenders[] = $finding;
@@ -213,7 +209,8 @@ final class InputSafetySourceChecks extends CodeSearchSupport
             ];
         }
 
-        return [true, 'Command execution sinks are absent or guarded'];
+        if ($capture['gaps'] !== [] || $capture['unresolved'] !== []) return [null, '[UNKNOWN] Source collection or flow resolution is incomplete; no safety conclusion is established', ['collection_gaps' => $capture['gaps'], 'unresolved' => $capture['unresolved']]];
+        return [true, 'No enumerated unsafe command pattern observed in complete bounded source'];
     }
 
     public function dynamicExecutionSafety(array $args): array
@@ -222,13 +219,12 @@ final class InputSafetySourceChecks extends CodeSearchSupport
         $inc = $args['include_ext'] ?? ['php'];
         $max = max(1, (int)($args['max_results'] ?? 50));
         $rootsAbs = array_map(fn($p) => $this->ctx->abs($p), $roots);
+        $capture = $this->captureSafetySource($args + ['paths' => $roots, 'include_ext' => $inc], 'dynamic');
 
         $offenders = [];
-        foreach ($this->collectFiles($rootsAbs, $inc) as $file) {
-            $content = $this->collectors->files->read($file);
-            if ($content === false) {
-                continue;
-            }
+        foreach ($capture['files'] as $source) {
+            $file = $this->ctx->abs($source['file']);
+            $content = $source['content'];
 
             foreach ($this->dynamicExecutionFindings($file, $content) as $finding) {
                 $offenders[] = $finding;
@@ -249,7 +245,8 @@ final class InputSafetySourceChecks extends CodeSearchSupport
             ];
         }
 
-        return [true, 'No unsafe dynamic execution patterns detected'];
+        if ($capture['gaps'] !== [] || $capture['unresolved'] !== []) return [null, '[UNKNOWN] Source collection or flow resolution is incomplete; no safety conclusion is established', ['collection_gaps' => $capture['gaps'], 'unresolved' => $capture['unresolved']]];
+        return [true, 'No enumerated dynamic execution pattern observed in complete bounded source'];
     }
 
     public function pathTraversalSafety(array $args): array
@@ -258,13 +255,12 @@ final class InputSafetySourceChecks extends CodeSearchSupport
         $inc = $args['include_ext'] ?? ['php'];
         $max = max(1, (int)($args['max_results'] ?? 50));
         $rootsAbs = array_map(fn($p) => $this->ctx->abs($p), $roots);
+        $capture = $this->captureSafetySource($args + ['paths' => $roots, 'include_ext' => $inc], 'path');
 
         $offenders = [];
-        foreach ($this->collectFiles($rootsAbs, $inc) as $file) {
-            $content = $this->collectors->files->read($file);
-            if ($content === false) {
-                continue;
-            }
+        foreach ($capture['files'] as $source) {
+            $file = $this->ctx->abs($source['file']);
+            $content = $source['content'];
 
             foreach ($this->pathTraversalFindings($file, $content) as $finding) {
                 $offenders[] = $finding;
@@ -285,7 +281,8 @@ final class InputSafetySourceChecks extends CodeSearchSupport
             ];
         }
 
-        return [true, 'File path sinks are absent or guarded against traversal'];
+        if ($capture['gaps'] !== [] || $capture['unresolved'] !== []) return [null, '[UNKNOWN] Source collection or flow resolution is incomplete; no safety conclusion is established', ['collection_gaps' => $capture['gaps'], 'unresolved' => $capture['unresolved']]];
+        return [true, 'No enumerated unguarded path sink pattern observed; filesystem containment is not established'];
     }
 
     public function uploadSafety(array $args): array
@@ -294,13 +291,12 @@ final class InputSafetySourceChecks extends CodeSearchSupport
         $inc = $args['include_ext'] ?? ['php'];
         $max = max(1, (int)($args['max_results'] ?? 50));
         $rootsAbs = array_map(fn($p) => $this->ctx->abs($p), $roots);
+        $capture = $this->captureSafetySource($args + ['paths' => $roots, 'include_ext' => $inc], 'upload');
 
         $offenders = [];
-        foreach ($this->collectFiles($rootsAbs, $inc) as $file) {
-            $content = $this->collectors->files->read($file);
-            if ($content === false) {
-                continue;
-            }
+        foreach ($capture['files'] as $source) {
+            $file = $this->ctx->abs($source['file']);
+            $content = $source['content'];
 
             foreach ($this->uploadFindings($file, $content) as $finding) {
                 $offenders[] = $finding;
@@ -321,7 +317,8 @@ final class InputSafetySourceChecks extends CodeSearchSupport
             ];
         }
 
-        return [true, 'Upload flows are absent or include validation and storage safeguards'];
+        if ($capture['gaps'] !== [] || $capture['unresolved'] !== []) return [null, '[UNKNOWN] Source collection or flow resolution is incomplete; no safety conclusion is established', ['collection_gaps' => $capture['gaps'], 'unresolved' => $capture['unresolved']]];
+        return [true, 'No enumerated unsafe upload pattern observed; complete upload handling is not established'];
     }
 
     public function csprngSafety(array $args): array
@@ -330,13 +327,12 @@ final class InputSafetySourceChecks extends CodeSearchSupport
         $inc = $args['include_ext'] ?? ['php'];
         $max = max(1, (int)($args['max_results'] ?? 50));
         $rootsAbs = array_map(fn($p) => $this->ctx->abs($p), $roots);
+        $capture = $this->captureSafetySource($args + ['paths' => $roots, 'include_ext' => $inc], 'random');
 
         $offenders = [];
-        foreach ($this->collectFiles($rootsAbs, $inc) as $file) {
-            $content = $this->collectors->files->read($file);
-            if ($content === false) {
-                continue;
-            }
+        foreach ($capture['files'] as $source) {
+            $file = $this->ctx->abs($source['file']);
+            $content = $source['content'];
 
             foreach ($this->csprngFindings($file, $content) as $finding) {
                 $offenders[] = $finding;
@@ -357,41 +353,72 @@ final class InputSafetySourceChecks extends CodeSearchSupport
             ];
         }
 
-        return [true, 'No weak PRNG detected in security-sensitive randomness'];
+        if ($capture['gaps'] !== [] || $capture['unresolved'] !== []) return [null, '[UNKNOWN] Source collection or flow resolution is incomplete; no safety conclusion is established', ['collection_gaps' => $capture['gaps'], 'unresolved' => $capture['unresolved']]];
+        return [true, 'No enumerated weak-randomness pattern observed in complete bounded source'];
+    }
+
+    /** Complete bounded source is distinct from unsupported dynamic flow resolution. */
+    private function captureSafetySource(array $args, string $kind): array
+    {
+        $capture=(new \Magebean\Engine\Collectors\BoundedSourceInventory($this->collectors->session))->collect($this->ctx, $args + ['verify_stable'=>true]);
+        $unresolved=[];
+        $sinks=[
+            'ssrf'=>['curl_init','curl_exec','curl_setopt','curl_setopt_array','file_get_contents','fopen','fsockopen','stream_socket_client'],
+            'egress'=>['curl_init','curl_exec','curl_setopt','curl_setopt_array','file_get_contents','fopen','fsockopen','stream_socket_client'],
+            'path'=>['file_get_contents','fopen','readfile','file_put_contents','unlink','rename','copy','mkdir','rmdir'],
+            'upload'=>['move_uploaded_file'], 'unserialize'=>['unserialize'],
+            'command'=>['exec','system','shell_exec','passthru','popen','proc_open','pcntl_exec'],
+            'random'=>['rand','mt_rand','uniqid','lcg_value','shuffle','array_rand'],
+        ];
+        foreach($capture['files'] as $source){
+            if (!in_array($source['extension'],['php','phtml'],true)) continue;
+            try{$nodes=(new \Magebean\Engine\Collectors\MagentoStaticPhp())->parse($source['content']);}
+            catch(\PhpParser\Error){$unresolved[]=['file'=>$source['file'],'reason'=>'php_parse_unavailable'];continue;}
+            foreach((new \PhpParser\NodeFinder())->find($nodes,static fn($n):bool=>$n instanceof \PhpParser\Node\Expr\CallLike || $n instanceof \PhpParser\Node\Expr\Eval_) as $node){
+                if ($node instanceof \PhpParser\Node\Expr\Eval_){if($kind==='dynamic')$unresolved[]=['file'=>$source['file'],'reason'=>'dynamic_execution_context_unresolved'];continue;}
+                $dynamic=($node instanceof \PhpParser\Node\Expr\FuncCall && !$node->name instanceof \PhpParser\Node\Name)
+                    || (($node instanceof \PhpParser\Node\Expr\MethodCall || $node instanceof \PhpParser\Node\Expr\NullsafeMethodCall || $node instanceof \PhpParser\Node\Expr\StaticCall) && !$node->name instanceof \PhpParser\Node\Identifier);
+                $name=$node instanceof \PhpParser\Node\Expr\FuncCall && $node->name instanceof \PhpParser\Node\Name?strtolower(ltrim($node->name->toString(),'\\')):'';
+                if($dynamic || in_array($name,['call_user_func','call_user_func_array','forward_static_call','forward_static_call_array'],true)){
+                    $unresolved[]=['file'=>$source['file'],'reason'=>'indirect_call_unresolved'];continue;
+                }
+                if(in_array($name,$sinks[$kind]??[],true))$unresolved[]=['file'=>$source['file'],'reason'=>'sink_flow_or_guard_unresolved'];
+                if($kind==='sql' && in_array($name,['mysqli_query','mysql_query'],true)){
+                    $argument=$node->args[1]->value??null;
+                    if(!$argument instanceof \PhpParser\Node\Scalar\String_ && !$argument instanceof \PhpParser\Node\Expr\BinaryOp\Concat && !$argument instanceof \PhpParser\Node\Scalar\InterpolatedString)$unresolved[]=['file'=>$source['file'],'reason'=>'query_argument_unresolved'];
+                }
+                if($kind==='sql' && ($node instanceof \PhpParser\Node\Expr\StaticCall || $node instanceof \PhpParser\Node\Expr\NullsafeMethodCall) && $node->name instanceof \PhpParser\Node\Identifier
+                    && in_array(strtolower($node->name->toString()),['query','rawquery','fetchall','fetchrow','fetchone','fetchcol','fetchpairs'],true))$unresolved[]=['file'=>$source['file'],'reason'=>'query_receiver_flow_unresolved'];
+                if($kind==='sql' && $node instanceof \PhpParser\Node\Expr\MethodCall && $node->name instanceof \PhpParser\Node\Identifier
+                    && in_array(strtolower($node->name->toString()),['query','rawquery','fetchall','fetchrow','fetchone','fetchcol','fetchpairs'],true)){
+                    $argument=$node->args[0]->value??null;
+                    if(!$argument instanceof \PhpParser\Node\Scalar\String_ && !$argument instanceof \PhpParser\Node\Expr\BinaryOp\Concat && !$argument instanceof \PhpParser\Node\Scalar\InterpolatedString)$unresolved[]=['file'=>$source['file'],'reason'=>'query_argument_unresolved'];
+                }
+            }
+        }
+        return $capture+['unresolved'=>array_slice($unresolved,0,100)];
     }
 
     private function rawSqlFindings(string $file, string $content): array
     {
+        try { $nodes = (new \Magebean\Engine\Collectors\MagentoStaticPhp())->parse($content); }
+        catch (\PhpParser\Error) { return []; }
         $findings = [];
-
-        $patterns = [
-            'direct_db_api' => '~\b(?:mysqli_query|mysql_query)\s*\(|new\s+\\\\?PDO\s*\(~i',
-            'raw_query_method' => '~->\s*rawQuery\s*\(~i',
-            'adapter_sql_method' => '~->\s*(?:query|fetchAll|fetchRow|fetchOne|fetchCol|fetchPairs)\s*\((?P<arg>.{0,500})~is',
-            'write_method_string_condition' => '~->\s*(?:delete|update)\s*\((?P<arg>.{0,500})~is',
-        ];
-
-        foreach ($patterns as $kind => $regex) {
-            $count = preg_match_all($regex, $content, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER);
-            if ($count === false || $count < 1) {
-                continue;
-            }
-            foreach ($matches as $match) {
-                $offset = (int)$match[0][1];
-                $arg = isset($match['arg']) && is_array($match['arg']) ? (string)$match['arg'][0] : '';
-                if ($kind === 'adapter_sql_method' && !$this->looksLikeUnsafeSqlArgument($arg)) {
-                    continue;
-                }
-                if ($kind === 'write_method_string_condition' && !$this->looksLikeUnsafeConditionArgument($arg)) {
-                    continue;
-                }
-
-                $evidence = $this->matchEvidence($file, $content, $kind, $offset);
-                $evidence['kind'] = $kind;
-                $findings[] = $evidence;
+        foreach ((new \PhpParser\NodeFinder())->find($nodes, static fn($node): bool => $node instanceof \PhpParser\Node\Expr\MethodCall || $node instanceof \PhpParser\Node\Expr\FuncCall) as $node) {
+            $argument = null;
+            if ($node instanceof \PhpParser\Node\Expr\MethodCall && $node->name instanceof \PhpParser\Node\Identifier
+                && in_array(strtolower($node->name->toString()), ['query','rawquery','fetchall','fetchrow','fetchone','fetchcol','fetchpairs'], true)) $argument=$node->args[0]->value??null;
+            if ($node instanceof \PhpParser\Node\Expr\FuncCall && $node->name instanceof \PhpParser\Node\Name
+                && in_array(strtolower(ltrim($node->name->toString(),'\\')), ['mysqli_query','mysql_query'], true)) $argument=$node->args[1]->value??null;
+            $literal = static function ($expression) use (&$literal): bool {
+                return $expression instanceof \PhpParser\Node\Scalar\String_
+                    || ($expression instanceof \PhpParser\Node\Expr\BinaryOp\Concat && $literal($expression->left) && $literal($expression->right));
+            };
+            if ($literal($argument)) continue;
+            if ($argument instanceof \PhpParser\Node\Expr\BinaryOp\Concat || $argument instanceof \PhpParser\Node\Scalar\InterpolatedString) {
+                $findings[]=['file'=>$file,'line'=>$node->getStartLine(),'kind'=>'dynamic_sql_argument','scope'=>'SQL argument construction only; receiver type and exploitability unresolved'];
             }
         }
-
         return $findings;
     }
 

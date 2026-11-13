@@ -1,0 +1,406 @@
+{
+  "scope": "archive indices20:40; direct legacy handler probes, not current active requirement conclusions",
+  "cases": 40,
+  "results": {
+    "MB-0077": [
+      {
+        "case": "outbound_passport",
+        "outcome": "FAIL",
+        "message": "Raw sensitive PII appears in third-party outbound flows:\n    - /tmp/mb-retirement-proof-3de1039a6ec3/app/code/Acme/Probe/Probe.php:1 [raw_sensitive_pii_third_party_flow] passport_number",
+        "findings": 1,
+        "successor": null,
+        "database_rows": null
+      },
+      {
+        "case": "same_outbound_plus_unrelated_token",
+        "outcome": "PASS",
+        "message": "No raw sensitive PII detected in third-party outbound flows",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      }
+    ],
+    "MB-0078": [
+      {
+        "case": "strong_repository_config",
+        "outcome": "PASS",
+        "message": "Strong TLS protocol and cipher configuration found in nginx.conf",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      },
+      {
+        "case": "strong_first_file_and_weak_other_gateway",
+        "outcome": "PASS",
+        "message": "Strong TLS protocol and cipher configuration found in nginx.conf",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      }
+    ],
+    "MB-0079": [
+      {
+        "case": "literal_api_key",
+        "outcome": "FAIL",
+        "message": "API credentials found outside env.php or written to DB config paths:\n    - /tmp/mb-retirement-proof-df66f42f494a/app/code/Acme/Probe/Probe.php:1 [hardcoded_secret_array] api_key",
+        "findings": 1,
+        "successor": {
+          "id": "MB-0730",
+          "method": "real file scanner",
+          "outcome": "FAIL"
+        },
+        "database_rows": null
+      },
+      {
+        "case": "secret_in_actual_sqlite_not_source",
+        "outcome": "PASS",
+        "message": "API credential-like keys are present in env.php and no code/DB storage patterns were detected",
+        "findings": 0,
+        "successor": {
+          "id": "MB-0730",
+          "method": "real file scanner",
+          "outcome": "PASS"
+        },
+        "database_rows": 1
+      }
+    ],
+    "MB-0081": [
+      {
+        "case": "saas_callback_no_control",
+        "outcome": "FAIL",
+        "message": "SaaS integration entry points missing least-privilege ACL or IP allowlist:\n    - /tmp/mb-retirement-proof-a667d9a6153e/app/code/Acme/Probe/Controller/Webhook/Index.php:1 [public_callback] missing ip_allowlist",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      },
+      {
+        "case": "same_callback_unused_remote_addr",
+        "outcome": "PASS",
+        "message": "SaaS integration entry points use least-privilege ACL resources or IP allowlists",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      }
+    ],
+    "MB-0082": [
+      {
+        "case": "card_number_schema",
+        "outcome": "FAIL",
+        "message": "Raw cardholder data storage patterns detected:\n    - /tmp/mb-retirement-proof-93cf33eaf8d5/app/code/Acme/Probe/etc/db_schema.xml:1 [schema_column] card_number",
+        "findings": 1,
+        "successor": null,
+        "database_rows": null
+      },
+      {
+        "case": "actual_sqlite_pan_with_benign_source",
+        "outcome": "PASS",
+        "message": "No raw PAN or sensitive-authentication-data storage patterns detected",
+        "findings": 0,
+        "successor": null,
+        "database_rows": 1
+      }
+    ],
+    "MB-0083": [
+      {
+        "case": "pan_in_csv",
+        "outcome": "FAIL",
+        "message": "Cardholder data found in files, exports, or backups:\n    - /tmp/mb-retirement-proof-a5d770dd36ce/var/export/cards.csv:2 [pan] Luhn-valid PAN-like value ending 1111",
+        "findings": 1,
+        "successor": null,
+        "database_rows": null
+      },
+      {
+        "case": "same_pan_near_token_label",
+        "outcome": "PASS",
+        "message": "No cardholder data detected in high-risk files, exports, or backups",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      }
+    ],
+    "MB-0085": [
+      {
+        "case": "raw_card_form",
+        "outcome": "FAIL",
+        "message": "Payment method patterns may expand PCI scope:\n    - /tmp/mb-retirement-proof-3468f6edcbb4/app/design/Acme/theme/checkout.phtml:1 [raw_card_form_field] card_number",
+        "findings": 1,
+        "successor": null,
+        "database_rows": null
+      },
+      {
+        "case": "dynamic_field_no_documentation",
+        "outcome": "PASS",
+        "message": "No direct raw-card payment collection patterns detected",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      }
+    ],
+    "MB-0086": [
+      {
+        "case": "raw_card_form",
+        "outcome": "FAIL",
+        "message": "Raw card collection patterns detected in checkout code:\n    - /tmp/mb-retirement-proof-e06033342c68/app/design/Acme/theme/checkout.phtml:1 [raw_card_form_field] card_number",
+        "findings": 1,
+        "successor": null,
+        "database_rows": null
+      },
+      {
+        "case": "dynamic_field_no_documentation",
+        "outcome": "PASS",
+        "message": "No raw card collection patterns detected in custom checkout code",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      }
+    ],
+    "MB-0087": [
+      {
+        "case": "unlisted_script",
+        "outcome": "FAIL",
+        "message": "Payment page script sources detected without an inventory:\n    - /tmp/mb-retirement-proof-1f33887bf3f0/app/design/Acme/theme/checkout.phtml:1 [script_tag] https://unapproved.invalid/payment.js",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      },
+      {
+        "case": "same_script_unrelated_inventory",
+        "outcome": "PASS",
+        "message": "Payment page script inventory is present",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      }
+    ],
+    "MB-0088": [
+      {
+        "case": "script_without_controls",
+        "outcome": "FAIL",
+        "message": "Payment page scripts detected without allowlist or integrity controls:\n    - /tmp/mb-retirement-proof-cf550210f8f5/app/design/Acme/theme/checkout.phtml:1 [script_tag] https://unapproved.invalid/payment.js",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      },
+      {
+        "case": "script_unused_nonce_word",
+        "outcome": "PASS",
+        "message": "Payment page script allowlist or integrity controls are present",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      }
+    ],
+    "MB-0089": [
+      {
+        "case": "no_runtime_or_config",
+        "outcome": "FAIL",
+        "message": "Checkout CSP is incomplete or overly permissive:\n    - missing script-src, connect-src, frame-src, form-action, object-src, base-uri, report-uri/report-to",
+        "findings": 0,
+        "successor": {
+          "id": "MB-0802",
+          "method": "injected complete successful HTTPS response with no headers; no network/TLS claim",
+          "outcome": "FAIL"
+        },
+        "database_rows": null
+      },
+      {
+        "case": "directive_words_in_unused_string",
+        "outcome": "PASS",
+        "message": "Checkout CSP includes required directives and reporting controls",
+        "findings": 0,
+        "successor": {
+          "id": "MB-0802",
+          "method": "injected complete successful HTTPS response with no headers; no network/TLS claim",
+          "outcome": "FAIL"
+        },
+        "database_rows": null
+      }
+    ],
+    "MB-0090": [
+      {
+        "case": "no_monitoring",
+        "outcome": "FAIL",
+        "message": "Payment page tamper monitoring evidence is incomplete:\n    - missing payment/checkout page scope\n    - missing alerting destination or notification workflow\n    - missing CSP reporting or scheduled file/script integrity detection",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      },
+      {
+        "case": "marker_string_only",
+        "outcome": "PASS",
+        "message": "Payment page tamper monitoring has scope, detection/reporting, and alerting evidence",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      }
+    ],
+    "MB-0092": [
+      {
+        "case": "payment_callback_no_verifier",
+        "outcome": "FAIL",
+        "message": "Webhook handlers without required authentication hardening evidence:\n    - /tmp/mb-retirement-proof-d20c510fd1c1/app/code/Acme/Probe/Controller/Webhook/Index.php:1 [webhook_class] missing signature_header+timing_safe_signature_verify+timestamp+replay_window+idempotency",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      },
+      {
+        "case": "same_callback_unused_signature_string",
+        "outcome": "PASS",
+        "message": "Webhook handlers include required authentication hardening evidence",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      }
+    ],
+    "MB-0093": [
+      {
+        "case": "absent_checklist",
+        "outcome": "FAIL",
+        "message": "No readable PCI evidence checklist found",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      },
+      {
+        "case": "headings_only_no_evidence",
+        "outcome": "PASS",
+        "message": "PCI evidence checklist covers required manual evidence topics",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      }
+    ],
+    "MB-0094": [
+      {
+        "case": "controller_no_authorization",
+        "outcome": "FAIL",
+        "message": "Custom controllers or APIs missing authorization evidence:\n    - /tmp/mb-retirement-proof-e9b831b12d88/app/code/Acme/Probe/Controller/Export/Index.php:1 [controller_execute_without_authorization] <?php class Export { function execute(){ $service->export(); } }",
+        "findings": 1,
+        "successor": null,
+        "database_rows": null
+      },
+      {
+        "case": "same_controller_unused_isAllowed_word",
+        "outcome": "PASS",
+        "message": "No missing authorization evidence detected in sensitive custom controllers or APIs",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      }
+    ],
+    "MB-0095": [
+      {
+        "case": "anonymous_order_api",
+        "outcome": "FAIL",
+        "message": "High-risk anonymous API or GraphQL exposure detected:\n    - /tmp/mb-retirement-proof-cae47f68e62b/app/code/Acme/Probe/etc/webapi.xml:1 [high_risk_webapi_exposure] <routes><route url=\"/V1/orders/:id\" method=\"GET\"><service class=\"Acme\\Api\" method=\"get\"/><resources><resource ref=\"anonymous\"/></resources></route></routes>",
+        "findings": 1,
+        "successor": null,
+        "database_rows": null
+      },
+      {
+        "case": "undeclared_specific_acl",
+        "outcome": "PASS",
+        "message": "No high-risk anonymous API or GraphQL resolver exposure detected",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      }
+    ],
+    "MB-0096": [
+      {
+        "case": "no_header_declarations",
+        "outcome": "FAIL",
+        "message": "Security header baseline is incomplete:\n    - missing Content-Security-Policy\n    - missing X-Frame-Options DENY/SAMEORIGIN or CSP frame-ancestors\n    - missing X-Content-Type-Options nosniff",
+        "findings": 0,
+        "successor": {
+          "id": "MB-0803",
+          "method": "injected complete successful HTTPS response with no headers; no network/TLS claim",
+          "outcome": "FAIL"
+        },
+        "database_rows": null
+      },
+      {
+        "case": "unused_header_strings",
+        "outcome": "PASS",
+        "message": "Security header baseline is configured with CSP, frame protection, and nosniff",
+        "findings": 0,
+        "successor": {
+          "id": "MB-0803",
+          "method": "injected complete successful HTTPS response with no headers; no network/TLS claim",
+          "outcome": "FAIL"
+        },
+        "database_rows": null
+      }
+    ],
+    "MB-0097": [
+      {
+        "case": "literal_password",
+        "outcome": "FAIL",
+        "message": "Hardcoded secrets detected outside approved secret storage:\n    - /tmp/mb-retirement-proof-b31f798d6194/app/code/Acme/Probe/Probe.php:1 [named_secret_literal] password",
+        "findings": 1,
+        "successor": {
+          "id": "MB-0730",
+          "method": "real file scanner",
+          "outcome": "FAIL"
+        },
+        "database_rows": null
+      },
+      {
+        "case": "computed_password_literal_parts",
+        "outcome": "PASS",
+        "message": "No hardcoded secrets detected outside approved secret storage",
+        "findings": 0,
+        "successor": {
+          "id": "MB-0730",
+          "method": "real file scanner",
+          "outcome": "PASS"
+        },
+        "database_rows": null
+      }
+    ],
+    "MB-0098": [
+      {
+        "case": "literal_unsafe_flag",
+        "outcome": "FAIL",
+        "message": "Unsafe XML parsing patterns detected:\n    - /tmp/mb-retirement-proof-74e6479192ee/app/code/Acme/Probe/Probe.php:1 [dangerous_libxml_flags] <?php $flags=LIBXML_NOENT; $dom->loadXML($xml,$flags);",
+        "findings": 1,
+        "successor": {
+          "id": "MB-0797",
+          "method": "real file scanner",
+          "outcome": "FAIL"
+        },
+        "database_rows": null
+      },
+      {
+        "case": "same_flag_unrelated_blocked_word",
+        "outcome": "PASS",
+        "message": "No unsafe XML entity expansion patterns detected",
+        "findings": 0,
+        "successor": {
+          "id": "MB-0797",
+          "method": "real file scanner",
+          "outcome": "FAIL"
+        },
+        "database_rows": null
+      }
+    ],
+    "MB-0099": [
+      {
+        "case": "download_no_authorization",
+        "outcome": "FAIL",
+        "message": "Download/export endpoints missing authorization evidence:\n    - /tmp/mb-retirement-proof-6c5192b9618c/app/code/Acme/Probe/Controller/Export/Index.php:1 [download_export_controller_without_authorization] <?php class Export { function execute(){ $service->export(); } }",
+        "findings": 1,
+        "successor": null,
+        "database_rows": null
+      },
+      {
+        "case": "same_export_unused_isAllowed_word",
+        "outcome": "PASS",
+        "message": "All detected download/export endpoints include authorization evidence",
+        "findings": 0,
+        "successor": null,
+        "database_rows": null
+      }
+    ]
+  }
+}

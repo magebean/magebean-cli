@@ -758,7 +758,7 @@
     "hardening": {
       "id": "hardening",
       "title": "Magento Production Hardening",
-      "description": "Automated production hardening covering every Basic and Magebean OWASP automated requirement plus deeper technical checks. Reports security and readiness observations; unavailable data is an execution gap, never a manual task or implicit PASS. Does not claim complete production protection or ASVS/PCI compliance.",
+      "description": "Automated strict production baseline including Basic and Magebean OWASP requirements, scoped template/deployment observations and online library maintenance. Missing data is diagnostic; document/record lint belongs to the separate evidence profile. No ASVS/PCI certification is implied.",
       "requirement_ids": [
         "MB-0001",
         "MB-0002",
@@ -837,8 +837,15 @@
         "MB-0803",
         "MB-0804",
         "MB-0805",
-        "MB-0806",
-        "MB-0807"
+        "MB-0807",
+        "MB-0043",
+        "MB-0733",
+        "MB-0736",
+        "MB-0739",
+        "MB-0740",
+        "MB-0741",
+        "MB-0742",
+        "MB-0744"
       ],
       "aliases": [
         "production",
@@ -846,13 +853,18 @@
       ],
       "report_template": "standard",
       "family": "magebean",
-      "revision": 3,
+      "revision": 5,
       "coverage_includes": [
         "basic",
         "owasp-top-10-2025"
       ],
       "automation_only": true,
-      "automation_contract_version": 1
+      "automation_contract_version": 1,
+      "default_capabilities": [
+        "cache_backend_policy",
+        "dependency_maintenance",
+        "strict_native_api_policy"
+      ]
     },
     "owasp-top-10-2025": {
       "id": "owasp-top-10-2025",
@@ -908,7 +920,6 @@
         "MB-0802",
         "MB-0803",
         "MB-0804",
-        "MB-0806",
         "MB-0807"
       ],
       "aliases": [
@@ -919,7 +930,7 @@
       "family": "magebean",
       "automation_only": true,
       "automation_contract_version": 1,
-      "revision": 2
+      "revision": 3
     },
     "pci-dss-v4.0.1": {
       "id": "pci-dss-v4.0.1",
@@ -1274,7 +1285,7 @@
     "development": {
       "id": "development",
       "title": "Magento Development",
-      "description": "Offline module and source checks for a local Magento checkout.",
+      "description": "Offline local module, source and supported template checks. Online dependency maintenance and a supplied local advisory snapshot are optional capability contexts; production/HTTP/cron requirements are outside this profile.",
       "family": "magebean",
       "automation_only": true,
       "requirement_ids": [
@@ -1305,13 +1316,17 @@
         "MB-0791",
         "MB-0793",
         "MB-0797",
-        "MB-0828"
-      ]
+        "MB-0828",
+        "MB-0733",
+        "MB-0736",
+        "MB-0744"
+      ],
+      "revision": 2
     },
     "prelaunch": {
       "id": "prelaunch",
       "title": "Magento Prelaunch",
-      "description": "Review local source and release readiness with explicit staging URL coverage.",
+      "description": "Local source, supported template output and deployed release-readiness observations, with shared store-config URL discovery and online library maintenance. This is not verification of every business flow or overall production safety.",
       "family": "magebean",
       "automation_only": true,
       "requirement_ids": [
@@ -1366,13 +1381,25 @@
         "MB-0778",
         "MB-0779",
         "MB-0781",
-        "MB-0803"
+        "MB-0803",
+        "MB-0728",
+        "MB-0733",
+        "MB-0736",
+        "MB-0739",
+        "MB-0740",
+        "MB-0741",
+        "MB-0742",
+        "MB-0744"
+      ],
+      "revision": 2,
+      "default_capabilities": [
+        "dependency_maintenance"
       ]
     },
     "takeover": {
       "id": "takeover",
       "title": "Magento Agency Takeover",
-      "description": "Assess inherited security, module maintenance and operational risks when taking over an installed Magento project.",
+      "description": "Current inherited technical risks and maintenance context for agency takeover. Includes scoped source/template, deployment and online library observations; extra backend policy and supplied logrotate context are optional.",
       "family": "magebean",
       "automation_only": true,
       "requirement_ids": [
@@ -1453,7 +1480,37 @@
         "MB-0072",
         "MB-0799",
         "MB-0800",
-        "MB-0807"
+        "MB-0807",
+        "MB-0043",
+        "MB-0733",
+        "MB-0736",
+        "MB-0739",
+        "MB-0740",
+        "MB-0741",
+        "MB-0742",
+        "MB-0744"
+      ],
+      "revision": 2,
+      "default_capabilities": [
+        "dependency_maintenance"
+      ]
+    },
+    "evidence": {
+      "id": "evidence",
+      "title": "Magebean Evidence Record Lint",
+      "description": "Opt-in automated lint of supplied checklist topics and mitigation record structure/expiry. Does not verify technical mitigation, PCI compliance or overall store security. Rules do not query external APIs.",
+      "family": "magebean",
+      "automation_only": true,
+      "automation_contract_version": 1,
+      "revision": 1,
+      "report_template": "standard",
+      "default_capabilities": [
+        "evidence_document_lint",
+        "dependency_mitigation_policy"
+      ],
+      "requirement_ids": [
+        "MB-0093",
+        "MB-0806"
       ]
     }
   }

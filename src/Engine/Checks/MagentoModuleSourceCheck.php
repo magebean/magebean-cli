@@ -58,7 +58,7 @@ final class MagentoModuleSourceCheck
                     : 'Verify the selected module source and installed package metadata.',
             ];
         }
-        return MagebeanDetectorAnalysis::result('magento-module-'.$kind, '1.1', $findings, array_values($diagnostics));
+        return MagebeanDetectorAnalysis::result('magento-module-'.$kind, '1.2', $findings, array_values($diagnostics));
     }
 
     private function contracts(array $modules, array &$findings, array &$gaps): void
@@ -111,7 +111,7 @@ final class MagentoModuleSourceCheck
         $finder = new NodeFinder();
         foreach ($source['files'] as $file) {
             $this->collectors->session->checkpoint();
-            $path = $file['file'];
+            $path = $file['file'];$sourceHash=hash('sha256',$file['content']);
             $root = dirname($path);
             while ($root !== '.' && !isset($modules[$root])) $root = dirname($root);
             if (!isset($modules[$root])) continue;
@@ -152,7 +152,7 @@ final class MagentoModuleSourceCheck
                 $blocks[] = $scope instanceof Node\Stmt\Namespace_ ? $scope->stmts : ($scope->getStmts() ?? []);
             }
             foreach ($blocks as $statements) {
-                foreach (self::flows($statements, $declaredFunctions) as [$sink, $line, $sourceLine, $unresolved]) {
+                foreach (self::flows($statements, $declaredFunctions) as [$sink, $line, $sourceLine, $unresolved, $byteOffset]) {
                     if ($unresolved) {
                         $gaps[] = ['reason' => $unresolved, 'file' => $path];
                         continue;
@@ -161,7 +161,8 @@ final class MagentoModuleSourceCheck
                         $sink === 'command' ? 'Request input reaches a command call.' : 'Request input reaches query text.',
                         'A request superglobal at line '.$sourceLine.' reaches a supported call directly or through one local assignment.',
                         $sink === 'command' ? 'Avoid passing request data to shell commands. Use fixed operations and validate inputs.'
-                            : 'Use bound SQL parameters and validate the input at the boundary.', true, $sourceLine);
+                            : 'Use bound SQL parameters and validate the input at the boundary.', true, $sourceLine, $byteOffset);
+                    $findings[array_key_last($findings)]['locations'][0]['source_sha256']=$sourceHash;
                 }
             }
         }
@@ -213,11 +214,11 @@ final class MagentoModuleSourceCheck
                 [$sink, $unresolved] = self::flowSink($call, $declaredFunctions);
                 $arg = self::textArgument($call, $sink);
                 $source = $arg !== null && $sink !== null ? self::source($arg->value, $locals) : null;
-                if ($source !== null) yield [$sink, $call->getStartLine(), $source, $unresolved];
+                if ($source !== null) yield [$sink, $call->getStartLine(), $source, $unresolved, $call->getStartFilePos()];
                 elseif ($sink !== null && $arg === null) {
                     foreach ($call->args as $unsupported) {
                         if ($unsupported instanceof Node\Arg && ($source = self::source($unsupported->value, $locals)) !== null) {
-                            yield [$sink, $call->getStartLine(), $source, 'request_sink_argument_binding_unavailable'];
+                            yield [$sink, $call->getStartLine(), $source, 'request_sink_argument_binding_unavailable', $call->getStartFilePos()];
                             break;
                         }
                     }
@@ -277,9 +278,9 @@ final class MagentoModuleSourceCheck
         return null;
     }
 
-    private static function finding(array $module, string $file, int $line, string $key, string $message, string $reasoning, string $remediation, bool $suspected, ?int $sourceLine = null): array
+    private static function finding(array $module, string $file, int $line, string $key, string $message, string $reasoning, string $remediation, bool $suspected, ?int $sourceLine = null, ?int $byteOffset = null): array
     {
-        $locations = [['file' => $file, 'line' => $line]];
+        $locations = [['file' => $file, 'line' => $line]+($byteOffset!==null && $byteOffset>=0?['byte_offset'=>$byteOffset]:[])];
         if ($sourceLine !== null && $sourceLine !== $line) $locations[] = ['file' => $file, 'line' => $sourceLine];
         return compact('key', 'message', 'reasoning', 'remediation', 'locations') + [
             'category' => $suspected ? 'security' : 'correctness', 'confidence' => $suspected ? 'suspected' : 'confirmed',

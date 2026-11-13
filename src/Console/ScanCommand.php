@@ -23,7 +23,7 @@ final class ScanCommand extends Command
 
     /** Keep help text in one place */
     private const HELP = <<<'HELP'
-<fg=cyan;options=bold>Audit Magento 2 production readiness</> using selectable Magebean security profiles.
+<fg=cyan;options=bold>Audit current Magento 2 technical state</> using selectable Magebean security profiles.
 The default <fg=green;options=bold>basic</> profile selects Magento production-readiness requirements.
 Docs: <href=https://magebean.com/documentation>magebean.com/documentation</>
 
@@ -46,6 +46,12 @@ Docs: <href=https://magebean.com/documentation>magebean.com/documentation</>
   <fg=yellow>owasp</>      Application security requirements tagged with OWASP Top 10 categories.
   <fg=yellow>pci</>        Consolidated PCI requirements; human verification remains mandatory.
   <fg=yellow>hardening</>  Production hardening requirements.
+  <fg=yellow>development</> Offline source/config checks; dependency_maintenance is opt-in.
+  <fg=yellow>prelaunch</>   Prelaunch source/deployment checks, including online maintenance lookup.
+  <fg=yellow>takeover</>    Current technical risks and maintenance scope for project handover.
+  <fg=yellow>evidence</>    Opt-in document and mitigation-record lint; no security assurance.
+  Context: log_rotation_config enables supplied logrotate checks; cache_backend_policy
+  selects a strict backend baseline (default only in hardening). Explicit project false wins.
   <fg=yellow>FILE</>       Custom JSON path or a profile under .magebean/profiles.
 
 <options=bold>COMMAND OPTIONS</>
@@ -130,7 +136,7 @@ HELP;
             // HTML report output is disabled, so the HTML-only detail option is hidden for now.
             // ->addOption('detail', null, InputOption::VALUE_NONE, 'Include Details column in HTML report')
             ->addOption('standard', null, InputOption::VALUE_OPTIONAL, 'Legacy report selector: magebean (default) | owasp | pci | cwe; prefer --profile', 'magebean')
-            ->addOption('profile', null, InputOption::VALUE_OPTIONAL, 'Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | module-integrity | module-source | module-lifecycle | module-reliability | development | prelaunch | takeover | custom JSON')
+            ->addOption('profile', null, InputOption::VALUE_OPTIONAL, 'Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | module-integrity | module-source | module-lifecycle | module-reliability | development | prelaunch | takeover | evidence | custom JSON')
             ->addOption('modules', null, InputOption::VALUE_REQUIRED, 'Comma-separated Magento module names for module audit criteria')
             ->addOption('include-manual-review', null, InputOption::VALUE_NONE, 'Include human manual-review rules (excluded by default)')
             ->addOption('capabilities', null, InputOption::VALUE_OPTIONAL, 'Comma-separated application capabilities used to activate contextual profile rules')

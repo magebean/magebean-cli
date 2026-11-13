@@ -1,0 +1,57 @@
+{
+  "phase": 2,
+  "scope": "Synthetic fixture, loopback API and SQLite qualification only",
+  "acceptance_cases_passed": 6,
+  "cli_test_files_passed": 139,
+  "cli_test_failures": 0,
+  "phase2_assertions": 42,
+  "final_targeted_regression": [
+    {
+      "test": "tests/CurrentStatePhase2ProvenanceTest.php",
+      "exit_code": 0,
+      "output": "Current-state Phase 2 provenance: 40 assertions passed\n"
+    },
+    {
+      "test": "tests/DevelopmentModuleDeclarationsTest.php",
+      "exit_code": 0,
+      "output": "Development module declarations: 12 assertions passed\n"
+    },
+    {
+      "test": "tests/DevelopmentPrelaunchProfileTest.php",
+      "exit_code": 0,
+      "output": "Development and prelaunch profiles passed\n"
+    },
+    {
+      "test": "tests/MagentoModuleAnalysisTest.php",
+      "exit_code": 0,
+      "output": "Magento module inventory and static indexes passed\n"
+    },
+    {
+      "test": "tests/MagentoModuleIntegrityProfileTest.php",
+      "exit_code": 0,
+      "output": "Module integrity profile and CLI passed\n"
+    }
+  ],
+  "additional_regression_ids": [
+    "REG-INSTALLED-VULNERABLE",
+    "REG-DEV-MODE"
+  ],
+  "profiles_changed": false,
+  "profile_related_source_hashes_verified": 11,
+  "protected_standard_and_archive_definitions_changed": false,
+  "packaged_validation": [
+    {
+      "artifact": "magebean.phar",
+      "sha256": "ffcb6efa3924b76a619dee5e05324c9cd5204c0a6c1d91eeed9c0cbb9362a159",
+      "phase2_archived_assertions": 42,
+      "qualification_passed": true
+    },
+    {
+      "artifact": "artifacts/magebean-one-time.phar",
+      "sha256": "c798e1409d6d1d49e18a1083bb368685e7dacca1acaadab79dc684ad2f759f31",
+      "phase2_archived_assertions": 42,
+      "qualification_passed": true
+    }
+  ],
+  "final_suite_after_all_code_changes": true
+}

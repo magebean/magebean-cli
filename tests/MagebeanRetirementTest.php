@@ -35,7 +35,13 @@ retirementAssert(count($archive) === 60, 'All retired definitions are archived')
 foreach ($archive as $definition) {
     $id = $definition['id'];
     retirementAssert($definition['family'] === 'magebean' && RequirementPolicy::requiresHuman($definition), 'Only human-required Magebean definitions retire');
-    retirementAssert(!isset($active[$id]) && isset($allocations[$id]), 'Retirement reserves the ID without executing it');
+    retirementAssert(isset($allocations[$id]), 'Archive preserves allocation');
+    $review = array_column(RequirementCatalog::read('magebean-retirement-review')['requirements'], null, 'id');
+    retirementAssert(isset($review[$id]), 'Every archived ID has an evidence-based classification');
+    if ($review[$id]['active']) {
+        retirementAssert(isset($active[$id]) && $active[$id]['revision'] > $definition['revision'] && !RequirementPolicy::requiresHuman($active[$id]), 'Restored revision is scoped automation');
+        retirementAssert(MagebeanRetirement::diagnostic($id) === null, 'Restored selector is executable');
+    } else retirementAssert(!isset($active[$id]) && MagebeanRetirement::diagnostic($id) !== null, 'Unqualified broad criterion remains blocked');
 }
 foreach ($active as $definition) {
     retirementAssert($definition['family'] !== 'magebean' || !RequirementPolicy::requiresHuman($definition), 'Active Magebean catalog is automation-only');

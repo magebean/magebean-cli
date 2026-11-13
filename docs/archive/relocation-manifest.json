@@ -1,0 +1,800 @@
+{
+  "purpose": "Documentation relocation; original bytes are fingerprinted before path-only updates. Historical conclusions and counts are not current product documentation.",
+  "files": [
+    {
+      "from": "docs/api-reference.md",
+      "to": "docs/reference/api-reference.md",
+      "original_sha256": "84f234a5125b56af67e397ee47b81d3d113d627712b7c1128f3f65935efa0849"
+    },
+    {
+      "from": "docs/architecture.md",
+      "to": "docs/reference/architecture.md",
+      "original_sha256": "7cb1de6f014fb380b0e9ea0be1b7adc189b095b86b016080dffb92b9f18a826d"
+    },
+    {
+      "from": "docs/asvs-native-evidence.md",
+      "to": "docs/standards/asvs-native-evidence.md",
+      "original_sha256": "4ed254ff34866c70cf586ff3f2d7aa296b35dc5d73c2703d224d4765a24d5857"
+    },
+    {
+      "from": "docs/asvs-requirement-migration.md",
+      "to": "docs/archive/migrations/asvs-requirement-migration.md",
+      "original_sha256": "71ea7cf3234a570fd5889fa500fd302ff98cad3f6b839ea598d014395703d3ec"
+    },
+    {
+      "from": "docs/automation-compatibility-snapshot-review.json",
+      "to": "docs/archive/reviews/automation-compatibility-snapshot-review.json",
+      "original_sha256": "777692b23694e0e818716fb370bf275e72217d80c42eb37a18c5ad3d6f9c3e7d"
+    },
+    {
+      "from": "docs/automation-config-audit.json",
+      "to": "docs/archive/reviews/automation-config-audit.json",
+      "original_sha256": "5ad754c6b22b84eca4a31120fc20ffcc9d4d5933a5f25d2cb0326edca4107965"
+    },
+    {
+      "from": "docs/automation-feasibility/build-implementation.ps1",
+      "to": "docs/archive/automation-feasibility/build-implementation.ps1",
+      "original_sha256": "2452745746aa97f4061311273061dd91b477e02768d940e08269c918d8c85b0c"
+    },
+    {
+      "from": "docs/automation-feasibility/build-production-readonly-review.py",
+      "to": "docs/archive/automation-feasibility/build-production-readonly-review.py",
+      "original_sha256": "70f1116ef15e469b1a11a81e6ae29275bd99e8d780e9046c64076ce22612af2f"
+    },
+    {
+      "from": "docs/automation-feasibility/build-review.py",
+      "to": "docs/archive/automation-feasibility/build-review.py",
+      "original_sha256": "41239cb3bb9f98c01eb830e2d2dd331aeff9215117ea71db0ef81dd154897bc4"
+    },
+    {
+      "from": "docs/automation-feasibility/build-risk-first-profile-review.py",
+      "to": "docs/archive/automation-feasibility/build-risk-first-profile-review.py",
+      "original_sha256": "d9953492d2461803671138698e22f9de6e80d003b3bfe03776539dfc5f4e5ee6"
+    },
+    {
+      "from": "docs/automation-feasibility/build-source-implementation.ps1",
+      "to": "docs/archive/automation-feasibility/build-source-implementation.ps1",
+      "original_sha256": "4c54f0284b11fcf1e558ef18eb4fc3ba7607012ecb8998ade20d11f048a6f8bd"
+    },
+    {
+      "from": "docs/automation-feasibility/build-source-review.ps1",
+      "to": "docs/archive/automation-feasibility/build-source-review.ps1",
+      "original_sha256": "7b0ba33061d33dc870ae7beb73ebc3b5cd24e0d8c361736d6323814b14d80d0c"
+    },
+    {
+      "from": "docs/automation-feasibility/dependencies-implementation.json",
+      "to": "docs/archive/automation-feasibility/dependencies-implementation.json",
+      "original_sha256": "0a0cfcc0288316a1ce21190a71a3975f841183208f374ac05016887415d000a1"
+    },
+    {
+      "from": "docs/automation-feasibility/dependencies.json",
+      "to": "docs/archive/automation-feasibility/dependencies.json",
+      "original_sha256": "bfa9850c4164e2c2b03d03218719f576f759fb5aa69433881666ad6a81ee9b6a"
+    },
+    {
+      "from": "docs/automation-feasibility/implementation.json",
+      "to": "docs/archive/automation-feasibility/implementation.json",
+      "original_sha256": "98e82cb5f7ed0ab62cefc3ded4f0ce11cdb7c6ea2c1b87e65f012e300c02fa07"
+    },
+    {
+      "from": "docs/automation-feasibility/implementation.md",
+      "to": "docs/archive/automation-feasibility/implementation.md",
+      "original_sha256": "d99103f018ce2347ee1b63feef12e58b043b608af8f34fe3f335442038a29f25"
+    },
+    {
+      "from": "docs/automation-feasibility/probe-risk-first-pipeline.php",
+      "to": "docs/archive/automation-feasibility/probe-risk-first-pipeline.php",
+      "original_sha256": "0441a61d9d1443c0593511b3f8a91b07b0a2c66b6cd93cbd75f5583f1f323a31"
+    },
+    {
+      "from": "docs/automation-feasibility/probe-source.php",
+      "to": "docs/archive/automation-feasibility/probe-source.php",
+      "original_sha256": "ee1cc3cdf8978e56379aa2bacc43940ea3b7d7c06a60093548ffbe576b9925f0"
+    },
+    {
+      "from": "docs/automation-feasibility/production-checks.example.json",
+      "to": "docs/examples/production-checks.example.json",
+      "original_sha256": "c81829a529b75bb749de4f01488a46b99002726109aae472e75c6b8492ec9678"
+    },
+    {
+      "from": "docs/automation-feasibility/production-policy.md",
+      "to": "docs/guides/production-context.md",
+      "original_sha256": "446973a1117d9617c043692c39c828ef91bfaf1cc8a402e996fb18177e583523"
+    },
+    {
+      "from": "docs/automation-feasibility/production-readonly-review.json",
+      "to": "docs/archive/automation-feasibility/production-readonly-review.json",
+      "original_sha256": "c7cad8bdf1cc71eabaf866b940483e6a92e6ac485a1e7810453f3cf7283c3c26"
+    },
+    {
+      "from": "docs/automation-feasibility/production-readonly-review.md",
+      "to": "docs/archive/automation-feasibility/production-readonly-review.md",
+      "original_sha256": "bc88172a86a553ebeb1c325cf8439d361be88f74a81c315977847152bec4e600"
+    },
+    {
+      "from": "docs/automation-feasibility/provider-webhook-diagnostics.md",
+      "to": "docs/guides/provider-webhook-diagnostics.md",
+      "original_sha256": "ed0cb6a76713f9eef258ca71d9239680d681c2ee8604c6dff69334d90e4cfa54"
+    },
+    {
+      "from": "docs/automation-feasibility/review.csv",
+      "to": "docs/archive/automation-feasibility/review.csv",
+      "original_sha256": "a516ca38bc61763ddb5a55c9964b6d581ad0408e6edc484a1a7dbe278d934f02"
+    },
+    {
+      "from": "docs/automation-feasibility/review.json",
+      "to": "docs/archive/automation-feasibility/review.json",
+      "original_sha256": "909c4262b198e6de2eb4a362a8bca98cc5fcd6e0d58b6c12a6d4e9839d75a01f"
+    },
+    {
+      "from": "docs/automation-feasibility/review.md",
+      "to": "docs/archive/automation-feasibility/review.md",
+      "original_sha256": "8d67b4027c0a6065a9b51fc10ad2cac99dcdde2778685242b6dd608556a28c5a"
+    },
+    {
+      "from": "docs/automation-feasibility/risk-first-pipeline-probe.json",
+      "to": "docs/archive/automation-feasibility/risk-first-pipeline-probe.json",
+      "original_sha256": "4dd0d14b9997056ac85b5a80778c847bd1d1021acd8815dd8b0232e3e9addb61"
+    },
+    {
+      "from": "docs/automation-feasibility/risk-first-profile-review.csv",
+      "to": "docs/archive/automation-feasibility/risk-first-profile-review.csv",
+      "original_sha256": "f41e7abc326a02fb37d45303a0a0839c26a186608eb18bf5a263adba649c11f4"
+    },
+    {
+      "from": "docs/automation-feasibility/risk-first-profile-review.json",
+      "to": "docs/archive/automation-feasibility/risk-first-profile-review.json",
+      "original_sha256": "a5137e4984e187d80dea3a66cc02b20f4cb7bbbe728fa100fa65e58b65648b35"
+    },
+    {
+      "from": "docs/automation-feasibility/risk-first-profile-review.md",
+      "to": "docs/archive/automation-feasibility/risk-first-profile-review.md",
+      "original_sha256": "4988914eb4097840b84b3a01db37af0d572a5b62dedf0d372ce94bd6113fc1b3"
+    },
+    {
+      "from": "docs/automation-feasibility/root-probes.json",
+      "to": "docs/archive/automation-feasibility/root-probes.json",
+      "original_sha256": "81fdb56ec07790eb51db324bb00b9e79f6dc3e0f4b23dc7f916fe12dd73ee8fa"
+    },
+    {
+      "from": "docs/automation-feasibility/runtime-catalog-integration.json",
+      "to": "docs/archive/automation-feasibility/runtime-catalog-integration.json",
+      "original_sha256": "bb80d83afbb06adcb1cd6fde46481bafae6af8dfdaea83451c3067d71ae83ed8"
+    },
+    {
+      "from": "docs/automation-feasibility/runtime-implementation.json",
+      "to": "docs/archive/automation-feasibility/runtime-implementation.json",
+      "original_sha256": "c88c2836304db5aab9bbaa5e649c3458429e6b45865f641494b3a2079836b466"
+    },
+    {
+      "from": "docs/automation-feasibility/runtime.json",
+      "to": "docs/archive/automation-feasibility/runtime.json",
+      "original_sha256": "f3b9bb76718acf5f28d1c6c4cb7862822a3c149d1b0ec6e5da8c70cce4af12a5"
+    },
+    {
+      "from": "docs/automation-feasibility/source-catalog-integration.json",
+      "to": "docs/archive/automation-feasibility/source-catalog-integration.json",
+      "original_sha256": "00293552facca12bb839e825aae3079dadc47c0ed03bfc30b3a99c767982f27a"
+    },
+    {
+      "from": "docs/automation-feasibility/source-implementation.json",
+      "to": "docs/archive/automation-feasibility/source-implementation.json",
+      "original_sha256": "6c83bbd4807ea4a9182bf1d9ea23f528e8243dbaf205f529d5f4188b6477b78a"
+    },
+    {
+      "from": "docs/automation-feasibility/source-probes.json",
+      "to": "docs/archive/automation-feasibility/source-probes.json",
+      "original_sha256": "5c1f6c0de414afb7b70b4f12c6ea1f8bddffe8e8b5a96d38810a08489013340d"
+    },
+    {
+      "from": "docs/automation-feasibility/source.json",
+      "to": "docs/archive/automation-feasibility/source.json",
+      "original_sha256": "d745ce66f923ce37c93f48e84a117df88758160ce7560fd16b1c3133b5507461"
+    },
+    {
+      "from": "docs/automation-human-asvs-desk-review.json",
+      "to": "docs/archive/reviews/automation-human-asvs-desk-review.json",
+      "original_sha256": "e7993351cf75d289a2594b0264e96f7afef76e238beaadc8c696e5bac227a424"
+    },
+    {
+      "from": "docs/automation-inventory-audit.json",
+      "to": "docs/archive/reviews/automation-inventory-audit.json",
+      "original_sha256": "6fcd25bc81a951bd25a7c7cfe5aba86be6b00da514f91b02b9014f9aae5b2669"
+    },
+    {
+      "from": "docs/automation-network-audit.json",
+      "to": "docs/archive/reviews/automation-network-audit.json",
+      "original_sha256": "8b837409d21bc5b3ce79b63db54dcd756a880d89d3aa9dcb315819a57702f53e"
+    },
+    {
+      "from": "docs/automation-quality-review.md",
+      "to": "docs/archive/reviews/automation-quality-review.md",
+      "original_sha256": "d1c89365984431506a2d40a26010410b8f7847ba362dc1f5166ccf4cadfc809a"
+    },
+    {
+      "from": "docs/automation-source-dependency-audit.json",
+      "to": "docs/archive/reviews/automation-source-dependency-audit.json",
+      "original_sha256": "febcbe1e817c30a558a695f29a0fb98019d180b3830e2e567bed5f72cf95cc21"
+    },
+    {
+      "from": "docs/basic-adobe-review/build-review.php",
+      "to": "docs/archive/basic-adobe-review/build-review.php",
+      "original_sha256": "903a325dede502f102a68b244e70e158420f772988a610a46cd472142daff420"
+    },
+    {
+      "from": "docs/basic-adobe-review/implementation.md",
+      "to": "docs/archive/basic-adobe-review/implementation.md",
+      "original_sha256": "ac425adc769f0cde10c784ecd78ff552c6b7e9f68ec43227e55c02cd0410a76c"
+    },
+    {
+      "from": "docs/basic-adobe-review/observations.json",
+      "to": "docs/archive/basic-adobe-review/observations.json",
+      "original_sha256": "86eddc49b8d0f6ee37a9ed9a0a1d943185e45b81ed3248ca4208f296c272afc7"
+    },
+    {
+      "from": "docs/basic-adobe-review/probe-basic.php",
+      "to": "docs/archive/basic-adobe-review/probe-basic.php",
+      "original_sha256": "cec75e1d14eb21c86f2ace47f2021088d06d1a0f35215881296c677b6c420555"
+    },
+    {
+      "from": "docs/basic-adobe-review/requirements-review.json",
+      "to": "docs/archive/basic-adobe-review/requirements-review.json",
+      "original_sha256": "7e3dde7e9924099124a2d5f12c9ec1bdaf5cc4613dc9f71ebe36bdc621b2331d"
+    },
+    {
+      "from": "docs/basic-adobe-review/review.md",
+      "to": "docs/archive/basic-adobe-review/review.md",
+      "original_sha256": "3c3373baa3a8ff1040217b2161f3a46051c9ef8261898140f373e3e75a1d4e77"
+    },
+    {
+      "from": "docs/basic-adobe-review/source-mapping.md",
+      "to": "docs/archive/basic-adobe-review/source-mapping.md",
+      "original_sha256": "93132cf539341ee3a6c843b3b435e12db7bd66808f2dcb12e1515fbf21563114"
+    },
+    {
+      "from": "docs/basic-adobe-review/sources.json",
+      "to": "docs/archive/basic-adobe-review/sources.json",
+      "original_sha256": "f8f8cfb4af7961e59e5229ae5bb5b22f3e40debfa55c67f24bc82309d63cf571"
+    },
+    {
+      "from": "docs/cli-reference.md",
+      "to": "docs/guides/cli-reference.md",
+      "original_sha256": "424994ca2b50364de7b19deacca54825ec88a4921fc12e2ca0d91e4b5d12baff"
+    },
+    {
+      "from": "docs/compatibility-baseline.md",
+      "to": "docs/reference/compatibility-baseline.md",
+      "original_sha256": "5b17c3592edf67589b7cfc49c9265a2a1c61887b2130e57b6bb14576805651b0"
+    },
+    {
+      "from": "docs/current-state-implementation-plan.md",
+      "to": "docs/archive/current-state/implementation-plan.md",
+      "original_sha256": "08c8a6f393ab5f714d782e48706133a21c3c479c71f299b028395330829da5d6"
+    },
+    {
+      "from": "docs/current-state-phase0/README.md",
+      "to": "docs/archive/current-state/phase0/README.md",
+      "original_sha256": "45795dfe3cdb0f9b0980e8fb2100351887de635c3b9ca288d6c739c0a5f82ad3"
+    },
+    {
+      "from": "docs/current-state-phase0/acceptance.json",
+      "to": "docs/archive/current-state/phase0/acceptance.json",
+      "original_sha256": "909baf8839dcd786141d27b6a5fc17b7c3dd4ffbe8ee26e732ee742aed3cc9a0"
+    },
+    {
+      "from": "docs/current-state-phase0/baseline.json",
+      "to": "docs/archive/current-state/phase0/baseline.json",
+      "original_sha256": "fb50b0083ef38090f410f89372c1ca8f4ad19ceeeca2e5dc8ec7cb30dc8c302a"
+    },
+    {
+      "from": "docs/current-state-phase0/finding-contract.json",
+      "to": "docs/archive/current-state/phase0/finding-contract.json",
+      "original_sha256": "69d9a3c82ae5b8201b775a3e02715d91d13aac5970e0eb3efc3f917e3c1a3d12"
+    },
+    {
+      "from": "docs/current-state-phase0/profile-decisions.json",
+      "to": "docs/archive/current-state/phase0/profile-decisions.json",
+      "original_sha256": "b7e309bc51ca0988f2ed51b45723863e527dd81fbbcfa5143e4959dd297a81ec"
+    },
+    {
+      "from": "docs/current-state-phase1/README.md",
+      "to": "docs/archive/current-state/phase1/README.md",
+      "original_sha256": "1d912e5474ac4fbf5149f8df969608a7cad07af8860b94c072b70ba3bcb6b67b"
+    },
+    {
+      "from": "docs/current-state-phase1/part1-probes.json",
+      "to": "docs/archive/current-state/phase1/part1-probes.json",
+      "original_sha256": "0c2d70be87138c62da4a280d7457c22e5572ecea09fe3880330a3f381bae1cbb"
+    },
+    {
+      "from": "docs/current-state-phase1/part2-probes.json",
+      "to": "docs/archive/current-state/phase1/part2-probes.json",
+      "original_sha256": "25bc76d94993feaa0523eb9deb01d5ba5b0abcd4210b5d5a04001c81de679e03"
+    },
+    {
+      "from": "docs/current-state-phase1/part3-probes.json",
+      "to": "docs/archive/current-state/phase1/part3-probes.json",
+      "original_sha256": "c3e8b2638397d3f535585059d0a94331e5925f6af7255d7951d42db4c1a62140"
+    },
+    {
+      "from": "docs/current-state-phase1/verification.json",
+      "to": "docs/archive/current-state/phase1/verification.json",
+      "original_sha256": "a17aa5c669d45f07d038077e3176b7cc127724bbf2159830d818116fc3f608b2"
+    },
+    {
+      "from": "docs/current-state-phase2/README.md",
+      "to": "docs/archive/current-state/phase2/README.md",
+      "original_sha256": "ee3f9e07360ac07dc4c4c2ed8c2e444efefb9c5b178306068544ef1488d1e0ab"
+    },
+    {
+      "from": "docs/current-state-phase2/acceptance-results.json",
+      "to": "docs/archive/current-state/phase2/acceptance-results.json",
+      "original_sha256": "36e3ee63b9fd6bcbd0c471b3cd600eaccbc8097a8e73d9a84d7773c50f1ec29e"
+    },
+    {
+      "from": "docs/current-state-phase2/part1-probes.json",
+      "to": "docs/archive/current-state/phase2/part1-probes.json",
+      "original_sha256": "ae13608d93c0bb8f477b8baa81ce4221fc0734cd3e8f52e949a34b8fbf888cc0"
+    },
+    {
+      "from": "docs/current-state-phase2/verification.json",
+      "to": "docs/archive/current-state/phase2/verification.json",
+      "original_sha256": "2546d76ad3038b1ce2f6b29c11a013ee41a5a63ba739007518933e6fb4061ed4"
+    },
+    {
+      "from": "docs/current-state-phase3/README.md",
+      "to": "docs/archive/current-state/phase3/README.md",
+      "original_sha256": "00f783dc9786bd6771e8a033da6ca43c5af90d5c7d5bfa6b9a8c7eba648827b9"
+    },
+    {
+      "from": "docs/current-state-phase3/acceptance-results.json",
+      "to": "docs/archive/current-state/phase3/acceptance-results.json",
+      "original_sha256": "ae596ad987c493776259372c5798c23bf9f73112fa7f86e9a576673cc4638eab"
+    },
+    {
+      "from": "docs/current-state-phase3/part1-probes.json",
+      "to": "docs/archive/current-state/phase3/part1-probes.json",
+      "original_sha256": "b93477dd860f41535ac8242f4ea771bd7eb05b2177df8914e2d45f97f2324874"
+    },
+    {
+      "from": "docs/current-state-phase3/part2-probes.json",
+      "to": "docs/archive/current-state/phase3/part2-probes.json",
+      "original_sha256": "710969e21e0c6d780a619d06af608bc31c0f13e75bccb0acd8714e9067deb087"
+    },
+    {
+      "from": "docs/current-state-phase3/verification.json",
+      "to": "docs/archive/current-state/phase3/verification.json",
+      "original_sha256": "84b69800ca1f2c604196ee8fee0c0c6f5c672cd8864a3d1ea1f557914e515e01"
+    },
+    {
+      "from": "docs/current-state-phase4/README.md",
+      "to": "docs/archive/current-state/phase4/README.md",
+      "original_sha256": "c3705746230d35d5a790a45d2bf892bcf03c4238161bbecd9dd9a99341ae5c20"
+    },
+    {
+      "from": "docs/current-state-phase4/acceptance-results.json",
+      "to": "docs/archive/current-state/phase4/acceptance-results.json",
+      "original_sha256": "5207077218ecffd27f2ed258d4262e2853cf2f02747b608e2afb75e7a708889f"
+    },
+    {
+      "from": "docs/current-state-phase4/agent-protocol-fixture.json",
+      "to": "docs/archive/current-state/phase4/agent-protocol-fixture.json",
+      "original_sha256": "29e7cc97169d3cdb4a60e631e920b58355b3e0c087c100556241675c51d2da84"
+    },
+    {
+      "from": "docs/current-state-phase4/console-validation.json",
+      "to": "docs/archive/current-state/phase4/console-validation.json",
+      "original_sha256": "9eee1f9212819e7e54c3c6f03e8ec0b355a09bf974dee8be8b29d76a77560f57"
+    },
+    {
+      "from": "docs/current-state-phase4/middle-probes.json",
+      "to": "docs/archive/current-state/phase4/middle-probes.json",
+      "original_sha256": "f236d83c44edbfd9839f71f61f98629ea65e29d21be37090d795d3121ccd136f"
+    },
+    {
+      "from": "docs/current-state-phase4/overlap-probes.json",
+      "to": "docs/archive/current-state/phase4/overlap-probes.json",
+      "original_sha256": "19198691c1e2efd6536a2fb580c8761898a93ad9ad24e567f89e2e83a203748a"
+    },
+    {
+      "from": "docs/current-state-phase4/verification.json",
+      "to": "docs/archive/current-state/phase4/verification.json",
+      "original_sha256": "d3702abfcb6d08c1da65aa0251fbddaa89d11bba433d70495c394aa6d8f59301"
+    },
+    {
+      "from": "docs/current-state-phase5/README.md",
+      "to": "docs/archive/current-state/phase5/README.md",
+      "original_sha256": "0ddb99c5ce992d6017a97435cea04aac2e1a9973b840e14578c1e6517d581fed"
+    },
+    {
+      "from": "docs/current-state-phase5/membership.json",
+      "to": "docs/archive/current-state/phase5/membership.json",
+      "original_sha256": "6cd144fb24b170cfeb0720a3725ac11d255de107642dce0c70796073e7ba8461"
+    },
+    {
+      "from": "docs/current-state-phase5/verification.json",
+      "to": "docs/archive/current-state/phase5/verification.json",
+      "original_sha256": "9a1563a16194f51806d9d2e2462e94ffbb302b9c3188915fe267451a2154c2f4"
+    },
+    {
+      "from": "docs/current-state-phase6/README.md",
+      "to": "docs/archive/current-state/phase6/README.md",
+      "original_sha256": "a51c007084b230092f6759f0e3cca2a2550b3a9215dc8073eb487df6e33b9921"
+    },
+    {
+      "from": "docs/current-state-phase6/acceptance-results.json",
+      "to": "docs/archive/current-state/phase6/acceptance-results.json",
+      "original_sha256": "40acbab99c273b93d29c62e5a37b9e93c22907691784b5eb6d850fcfa2a9c923"
+    },
+    {
+      "from": "docs/current-state-phase6/agent-protocol-fixture.json",
+      "to": "docs/archive/current-state/phase6/agent-protocol-fixture.json",
+      "original_sha256": "d0cff6945d4c4cba7bcfb20bf9b8ac078edcf6599bef3db2811c15b684bd23b2"
+    },
+    {
+      "from": "docs/current-state-phase6/artifact-parity.json",
+      "to": "docs/archive/current-state/phase6/artifact-parity.json",
+      "original_sha256": "8c42e407de43249ac979cfa00edeec6739b5408614d1e5f83f13f412cb1eac76"
+    },
+    {
+      "from": "docs/current-state-phase6/build-one-time.log",
+      "to": "docs/archive/current-state/phase6/build-one-time.log",
+      "original_sha256": "7fac7fcbc5f8b88fb233675bf45c04e60c3e134438e8e7eca9244cb7db100cff"
+    },
+    {
+      "from": "docs/current-state-phase6/build-standard.log",
+      "to": "docs/archive/current-state/phase6/build-standard.log",
+      "original_sha256": "c1a53ee0d5bab2a8f06944f9aa5221b68ce2ae927efb21d4ac019e040bc1fcbd"
+    },
+    {
+      "from": "docs/current-state-phase6/cli-regression.log",
+      "to": "docs/archive/current-state/phase6/cli-regression.log",
+      "original_sha256": "051323c0791a590bd3eeef4513738c6961f538d5185cfe006c15756fe01ea1b5"
+    },
+    {
+      "from": "docs/current-state-phase6/console-catalog-regression.json",
+      "to": "docs/archive/current-state/phase6/console-catalog-regression.json",
+      "original_sha256": "af36db304fb32759b422bf4fc93d45ff5114e99845705680bcbdec97639b5c8e"
+    },
+    {
+      "from": "docs/current-state-phase6/console-validation-one-time.json",
+      "to": "docs/archive/current-state/phase6/console-validation-one-time.json",
+      "original_sha256": "f88668e210196fbb464d2b5176959aebe8fb5db98daa3ab2fdde0ad1a8b14eb9"
+    },
+    {
+      "from": "docs/current-state-phase6/console-validation-standard.json",
+      "to": "docs/archive/current-state/phase6/console-validation-standard.json",
+      "original_sha256": "0492b5c47181c8922fdd0c579b58ad6bd41353c3ef4d54f76b7b974988ff36b1"
+    },
+    {
+      "from": "docs/current-state-phase6/middle-probes.json",
+      "to": "docs/archive/current-state/phase6/middle-probes.json",
+      "original_sha256": "f236d83c44edbfd9839f71f61f98629ea65e29d21be37090d795d3121ccd136f"
+    },
+    {
+      "from": "docs/current-state-phase6/overlap-probes.json",
+      "to": "docs/archive/current-state/phase6/overlap-probes.json",
+      "original_sha256": "19198691c1e2efd6536a2fb580c8761898a93ad9ad24e567f89e2e83a203748a"
+    },
+    {
+      "from": "docs/current-state-phase6/performance.json",
+      "to": "docs/archive/current-state/phase6/performance.json",
+      "original_sha256": "b821b90c35a3a2330364b0adef05d1ed06d21336f5e634b4f785d91427f3c9c0"
+    },
+    {
+      "from": "docs/current-state-phase6/verification.json",
+      "to": "docs/archive/current-state/phase6/verification.json",
+      "original_sha256": "2a507cb62c6c5a4218a3de35ea1120812ec5fcda4c4e0457a50b2e290fcb07b0"
+    },
+    {
+      "from": "docs/current-state-qa-inventory.json",
+      "to": "docs/archive/current-state/qa-inventory.json",
+      "original_sha256": "10f49fe398f06c4bb012a4332c836e5e582210c7e4bbdae815253511017a60a9"
+    },
+    {
+      "from": "docs/current-state-qa-overlap-probes.json",
+      "to": "docs/archive/current-state/qa-overlap-probes.json",
+      "original_sha256": "938442542e018959be0644b724397eca2857bf65e72e1fb01c4156cd98e99b87"
+    },
+    {
+      "from": "docs/current-state-qa-part1-probes.json",
+      "to": "docs/archive/current-state/qa-part1-probes.json",
+      "original_sha256": "9eec380b0fcc10cd6e5a2a8ad165afe9b7b4ea121538727f7d8430bb6ec1afed"
+    },
+    {
+      "from": "docs/current-state-qa-part1.md",
+      "to": "docs/archive/current-state/qa-part1.md",
+      "original_sha256": "483dc1d005a14f2f241d2e19716f7e0b92347fec3dfe85c53086897a646e6946"
+    },
+    {
+      "from": "docs/current-state-qa-part2-probes.json",
+      "to": "docs/archive/current-state/qa-part2-probes.json",
+      "original_sha256": "4ff0a27ae7fdae1ef7d298c007729bcfaebda284e02c604de412668aaa39120c"
+    },
+    {
+      "from": "docs/current-state-qa-part2.md",
+      "to": "docs/archive/current-state/qa-part2.md",
+      "original_sha256": "90495c5fe6613c8e7b4bb4a46899881c6a38d51949a0e73023b41e60e8c7004d"
+    },
+    {
+      "from": "docs/current-state-qa-part3-probes.json",
+      "to": "docs/archive/current-state/qa-part3-probes.json",
+      "original_sha256": "b27b60b2cbb44949607fa5b37b96c3516ff76c8996ce6a209b345c02d88f3c25"
+    },
+    {
+      "from": "docs/current-state-qa-part3-tests.json",
+      "to": "docs/archive/current-state/qa-part3-tests.json",
+      "original_sha256": "b6391edcac3b11445e77f91cd90b0d2d57cff4d1d675aa51b7d70cdd4a97cb1b"
+    },
+    {
+      "from": "docs/current-state-qa-part3.md",
+      "to": "docs/archive/current-state/qa-part3.md",
+      "original_sha256": "324b3365e538bbb147aa42822ed1dc5d74fac46e7ae12fdb93697120306161b6"
+    },
+    {
+      "from": "docs/current-state-qa-report.md",
+      "to": "docs/archive/current-state/qa-report.md",
+      "original_sha256": "b58f00bdea4a72df94e5d1034c4de3acb3ab51f867e5d592d5b124212aa18883"
+    },
+    {
+      "from": "docs/development-profile-qa.md",
+      "to": "docs/archive/reviews/development-profile-qa.md",
+      "original_sha256": "ff4d9bfba2724b39e94f38b6c0db3c95726711e6910fcbcc0cdb5ac447aa7a25"
+    },
+    {
+      "from": "docs/hardening-production-coverage.md",
+      "to": "docs/archive/reviews/hardening-production-coverage.md",
+      "original_sha256": "44158a1f7bcc4b0dc84eeac03ac3e62868369fd8fe86ca12f028c4fde855c74e"
+    },
+    {
+      "from": "docs/hotfix-verification.md",
+      "to": "docs/guides/hotfix-verification.md",
+      "original_sha256": "a6dc5592b17ef601dc61c74d5e82c3b927016dbb140d189d0d48bb8724fa4e42"
+    },
+    {
+      "from": "docs/human-evidence-role-fix-review.json",
+      "to": "docs/archive/reviews/human-evidence-role-fix-review.json",
+      "original_sha256": "ef67bdcb885e619040bb213d62a55138c9005bf59c0f8061aaeb3a6e4c8d553a"
+    },
+    {
+      "from": "docs/human-pci-source-corrections.json",
+      "to": "docs/archive/reviews/human-pci-source-corrections.json",
+      "original_sha256": "776e653e4c67645bfa18a7cbffd439946c148da84beb8ec427574da749f867cc"
+    },
+    {
+      "from": "docs/human-pci-unaligned-desk-review.json",
+      "to": "docs/archive/reviews/human-pci-unaligned-desk-review.json",
+      "original_sha256": "0a3c7bb65caaf27c7a1f391b6f0efb42be14e12bbb0200d062d6d70251a20e5d"
+    },
+    {
+      "from": "docs/magebean-automated-only-profiles.md",
+      "to": "docs/guides/profiles.md",
+      "original_sha256": "f5fa223f93872cbb9e148ae8be942684e57a6ff559cdc6a0d2e268f38e1191af"
+    },
+    {
+      "from": "docs/magebean-development-prelaunch-profiles.md",
+      "to": "docs/guides/development-prelaunch.md",
+      "original_sha256": "8022712325991543a3d293f6b4b2b7743463f72cbdb1d195c6936b41b56ebf0d"
+    },
+    {
+      "from": "docs/magebean-finding-guidance-review.md",
+      "to": "docs/archive/reviews/magebean-finding-guidance-review.md",
+      "original_sha256": "f90ebfb96a5b159285b5f08c74595f95af2f4020a0c66eebb065725227476673"
+    },
+    {
+      "from": "docs/magebean-findings-first.md",
+      "to": "docs/guides/findings-and-output.md",
+      "original_sha256": "07c352ec1ad9ca14c9776ea9c14c7dc915526cfd17ce4ecb29ebb74821149725"
+    },
+    {
+      "from": "docs/magebean-guidance-review.md",
+      "to": "docs/archive/reviews/magebean-guidance-review.md",
+      "original_sha256": "a84e0e526cd06313e116fdc7ec5d4e86ae39757f43f4f216c05b81b152118eb6"
+    },
+    {
+      "from": "docs/magebean-osv-api-spec.md",
+      "to": "docs/archive/reviews/magebean-osv-api-spec.md",
+      "original_sha256": "34019687a9de3e62e8012484aaba1706b1864cf475029c35976432eb8acf018e"
+    },
+    {
+      "from": "docs/magebean-takeover-profile.md",
+      "to": "docs/guides/takeover.md",
+      "original_sha256": "9112ef708f71dfb93c4bb1ef76bec7cb1c3f0dd33c6bc007397b4205eeccfbb4"
+    },
+    {
+      "from": "docs/module-code-audit-expansion.md",
+      "to": "docs/archive/plans/module-code-audit-expansion.md",
+      "original_sha256": "2d520459108732f8310a2086e24bc9aef6d5e9a9ba4cd59461f4f717ecd81306"
+    },
+    {
+      "from": "docs/needs-attention-result-handling.md",
+      "to": "docs/archive/reviews/needs-attention-result-handling.md",
+      "original_sha256": "0353a2c9564f429d051f1e5544b8c17f57ec12b0527b767efeb1b4ce969d14bf"
+    },
+    {
+      "from": "docs/nonstandard-profile-observations.json",
+      "to": "docs/archive/reviews/nonstandard-profile-observations.json",
+      "original_sha256": "fd1f8c52fd8aee16fe8321329333ccb84e003390b2396eff2b9761eb86ac7927"
+    },
+    {
+      "from": "docs/nonstandard-profile-review.json",
+      "to": "docs/archive/reviews/nonstandard-profile-review.json",
+      "original_sha256": "f39bf2663af843ec0692a05a08ef8d6cc45298c5d10fabb4c94172799ee0eff6"
+    },
+    {
+      "from": "docs/nonstandard-profile-review.md",
+      "to": "docs/archive/reviews/nonstandard-profile-review.md",
+      "original_sha256": "5c27e827b414f592c0b49a4f24d2ca20618b93c59a1089f09d1f3558ebd6136a"
+    },
+    {
+      "from": "docs/owasp-scan-quality-review.json",
+      "to": "docs/archive/reviews/owasp-scan-quality-review.json",
+      "original_sha256": "fcf8b8a4ec03f69fec5c818b81e8191e93e0ff5920c9eeeebee834c79e855662"
+    },
+    {
+      "from": "docs/owasp-scan-quality-review.md",
+      "to": "docs/archive/reviews/owasp-scan-quality-review.md",
+      "original_sha256": "ac061987f20f2ab247e2a69134bc1bf53a779b7401200c88dd07eb1a99b85837"
+    },
+    {
+      "from": "docs/pci-dss-v4.0.1-automation-candidate-review.md",
+      "to": "docs/archive/reviews/pci-dss-v4.0.1-automation-candidate-review.md",
+      "original_sha256": "fae624653833ea25317c3d582d8f94db63b49bcfc87797a043f0badc4050d97b"
+    },
+    {
+      "from": "docs/pci-dss-v4.0.1-coverage.md",
+      "to": "docs/standards/pci-coverage.md",
+      "original_sha256": "de34805c9e30070583f8362b58e3971ab30b96774c5f7a9ecc3c0628ae020836"
+    },
+    {
+      "from": "docs/pci-dss-v4.0.1-gap-triage.md",
+      "to": "docs/archive/reviews/pci-dss-v4.0.1-gap-triage.md",
+      "original_sha256": "54b9b8be69d1e20c7c5c6be388b2a79cc80766185ceb5e80e1f0eadfcb4aa525"
+    },
+    {
+      "from": "docs/pci-dss-v4.0.1-requirement-02-review.md",
+      "to": "docs/archive/reviews/pci-dss-v4.0.1-requirement-02-review.md",
+      "original_sha256": "4ac914d1e8d43e05db1df0f8f89bf36b4ea1724d3b27da7361a0aeecade6ee96"
+    },
+    {
+      "from": "docs/pci-dss-v4.0.1-requirement-02.2.2-design.md",
+      "to": "docs/archive/reviews/pci-dss-v4.0.1-requirement-02.2.2-design.md",
+      "original_sha256": "56d690c49cf1f8ca0295ad16cae4c365b657fe8aa7b37eda7edf6353d6aafc6d"
+    },
+    {
+      "from": "docs/pci-dss-v4.0.1-workflow.md",
+      "to": "docs/standards/pci-workflow.md",
+      "original_sha256": "d7df0d609955bf04c112a1b5060e814803b624074a1112bdacf3499d2575823b"
+    },
+    {
+      "from": "docs/prelaunch-profile-qa.md",
+      "to": "docs/archive/reviews/prelaunch-profile-qa.md",
+      "original_sha256": "0e4874c466b863e942bfbfdf7b97dd12d716e3d1060c4a5b5e0a9d6cf746f99d"
+    },
+    {
+      "from": "docs/production-execution-error-triage.md",
+      "to": "docs/guides/troubleshooting.md",
+      "original_sha256": "57554cfe91cc2432caffa8ef5ca35944b83c3a7fa3bbd91c4292a1734c4e2e7d"
+    },
+    {
+      "from": "docs/production-profile-spec.json",
+      "to": "docs/archive/plans/production-profile-spec.json",
+      "original_sha256": "e7cb762ee03f9e69e9f2c976abe07f95c4815f4abf1125f1a16396071fda1620"
+    },
+    {
+      "from": "docs/production-profile-spec.md",
+      "to": "docs/archive/plans/production-profile-spec.md",
+      "original_sha256": "8a621d5e2fc966974c0ace577e1dfcf2236d414d6980b013b188c584c456a9d1"
+    },
+    {
+      "from": "docs/qa-remediation.md",
+      "to": "docs/archive/reviews/qa-remediation.md",
+      "original_sha256": "dad9899dc370af032d9a6e00c5bfdffd3e46a0351d4598d90d958254b49da8d6"
+    },
+    {
+      "from": "docs/release-packaging.md",
+      "to": "docs/reference/release-packaging.md",
+      "original_sha256": "0f8f2cf73a22982c03f10f552668984b45c83bda97f8e4359026cf962a39963a"
+    },
+    {
+      "from": "docs/requirement-migration.md",
+      "to": "docs/archive/migrations/requirement-migration.md",
+      "original_sha256": "bf9a1cf70591b4c95a2c7d8a6aa68b27d64f5702abf2a845293179011a4667b2"
+    },
+    {
+      "from": "docs/requirement-model.md",
+      "to": "docs/reference/requirement-model.md",
+      "original_sha256": "e8b12043c87163b71aca7a67bde4c89b95c293d06a42fddfbd1e9aed6fb853eb"
+    },
+    {
+      "from": "docs/requirement-review.md",
+      "to": "docs/archive/reviews/requirement-review.md",
+      "original_sha256": "6ac45a1170da1ad0005c7c558e3318f6143840c7a9c827464f44e013daa5d6fe"
+    },
+    {
+      "from": "docs/requirement-source-families.md",
+      "to": "docs/reference/requirement-source-families.md",
+      "original_sha256": "988cf62f9f3bd45c012c48020c902651fe6ecba1ef13d6d33ea43e46c64936b0"
+    },
+    {
+      "from": "docs/retirement-binding-probes.json",
+      "to": "docs/archive/retirement/retirement-binding-probes.json",
+      "original_sha256": "d10fdff1dd41a3182e3830f28be614ea578a12d75c96ffa21b621dba2607f97b"
+    },
+    {
+      "from": "docs/retirement-evidence-part1-results.json",
+      "to": "docs/archive/retirement/retirement-evidence-part1-results.json",
+      "original_sha256": "4aadd7ddb1f6f3af05cb26836c55ae1d5b5c18612c707e79c3173a6601a2b333"
+    },
+    {
+      "from": "docs/retirement-evidence-part1.md",
+      "to": "docs/archive/retirement/retirement-evidence-part1.md",
+      "original_sha256": "d5e6d585d873df886c903a1067bf55a52299ef600da2cd5d1d53e90d2a720c11"
+    },
+    {
+      "from": "docs/retirement-evidence-part2-probes.json",
+      "to": "docs/archive/retirement/retirement-evidence-part2-probes.json",
+      "original_sha256": "fd8a34db4194e55589e2ae925595d40e728f95e612bdb3beebcf8fc472f1b264"
+    },
+    {
+      "from": "docs/retirement-evidence-part2-results.json",
+      "to": "docs/archive/retirement/retirement-evidence-part2-results.json",
+      "original_sha256": "78f82270a27554b1a1536e50aa056d633a0f165a3d56c6bfd017f973cf5d1b3a"
+    },
+    {
+      "from": "docs/retirement-evidence-part2.md",
+      "to": "docs/archive/retirement/retirement-evidence-part2.md",
+      "original_sha256": "3e45936350cb73fa4e299393222cc376374f96e6d6facb18a5344d25630d968b"
+    },
+    {
+      "from": "docs/retirement-evidence-part3-probes.json",
+      "to": "docs/archive/retirement/retirement-evidence-part3-probes.json",
+      "original_sha256": "574b1faebafe6fbf973e2b42df60ed5281e4a55b708ce35fae2ddc612bc5bd00"
+    },
+    {
+      "from": "docs/retirement-evidence-part3-tests.json",
+      "to": "docs/archive/retirement/retirement-evidence-part3-tests.json",
+      "original_sha256": "a2bdd1d7d22d29cb5ecc211c44c6a2489fa525a59f5c1ce871b65a572c3677cf"
+    },
+    {
+      "from": "docs/retirement-evidence-part3.md",
+      "to": "docs/archive/retirement/retirement-evidence-part3.md",
+      "original_sha256": "21d43f6aa3b821932a90345d773f7b9ecbb70a94c26dcebeee4be067ae154867"
+    },
+    {
+      "from": "docs/retirement-evidence-review.md",
+      "to": "docs/archive/retirement/retirement-evidence-review.md",
+      "original_sha256": "f4be7cf1dfc2d0e99f537cae11f3adfb0bc14048158268fedad0247efe102e2b"
+    },
+    {
+      "from": "docs/retirement-reassessment.md",
+      "to": "docs/archive/retirement/retirement-reassessment.md",
+      "original_sha256": "8fe010deaf63b116f41d8e36dbc57732ec379f1471aa052bf07867cdc127e54d"
+    },
+    {
+      "from": "docs/runtime-url-discovery.md",
+      "to": "docs/guides/runtime-url-discovery.md",
+      "original_sha256": "f170f33e24c3035fe8d7afe05052f91a344e56d185e7d97c83351e0c72e03a14"
+    },
+    {
+      "from": "docs/scan-collectors.md",
+      "to": "docs/reference/scan-collectors.md",
+      "original_sha256": "2c8a0e16668a1c5f398fc9b72fed7330f5504bac418eda330f8c5400902ea5c7"
+    },
+    {
+      "from": "docs/scan-contracts.md",
+      "to": "docs/reference/scan-contracts.md",
+      "original_sha256": "f97c071d9580ba6e40fe106c062c61c121240a0aa27253cc74e5674fa5e71141"
+    },
+    {
+      "from": "docs/scan-planning.md",
+      "to": "docs/reference/scan-planning.md",
+      "original_sha256": "8ee00c5d2ef45fb7dec61d0480d09f6684d19be44c1572c60c81f3194b910175"
+    },
+    {
+      "from": "docs/scan-reliability.md",
+      "to": "docs/reference/scan-reliability.md",
+      "original_sha256": "d6dd8c351ecd69d4cdeec51d308ab03e8398837873bd66ed9ecde6f5c70fa763"
+    }
+  ]
+}

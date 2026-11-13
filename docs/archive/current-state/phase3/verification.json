@@ -1,0 +1,35 @@
+{
+  "phase": 3,
+  "validation_scope": "Synthetic source, API/SQLite fixtures and archived code only; no live-store claim.",
+  "reviewed_semantic_identities": 110,
+  "cli_test_files_passed": 140,
+  "cli_test_failures": 0,
+  "phase3_assertions": 263,
+  "qa_acceptance_cases_passed": 23,
+  "profile_membership_changed": false,
+  "profile_related_hashes_verified": 11,
+  "protected_standard_and_archive_definitions_changed": false,
+  "wire_schema_version_changed": false,
+  "assessment_cardinality_changed": false,
+  "intentional_projection_changes": [
+    "policy category and bounded default priority",
+    "typed confidence preserved; confirmed never means exploitation",
+    "evidence lint informational and opt-in",
+    "collection diagnostics removed from ordinary risk findings and SARIF results",
+    "exact supplied-record/advisory links do not close findings"
+  ],
+  "packaged_validation": [
+    {
+      "artifact": "magebean.phar",
+      "sha256": "82d0f528937b45543a26de62fe0b2ad5fba4863d63fb9a547b61be7b680c3390",
+      "phase3_archived_assertions": 263,
+      "qualification_passed": true
+    },
+    {
+      "artifact": "artifacts/magebean-one-time.phar",
+      "sha256": "a660b7a2d6ba39de177c5c8fa700d27d532a3185b75f8472bfba481f358dea13",
+      "phase3_archived_assertions": 263,
+      "qualification_passed": true
+    }
+  ]
+}

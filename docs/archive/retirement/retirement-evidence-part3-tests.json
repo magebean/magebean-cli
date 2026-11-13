@@ -1,0 +1,52 @@
+[
+  {
+    "command": "php tests/PciEvidenceCheckTest.php",
+    "exit_code": 0,
+    "output": "PciEvidenceCheckTest: PASS"
+  },
+  {
+    "command": "php tests/AdminAclCheckTest.php",
+    "exit_code": 0,
+    "output": "AdminAclCheckTest: PASS"
+  },
+  {
+    "command": "php tests/BasicAdminConfigurationTest.php",
+    "exit_code": 0,
+    "output": "BasicAdminConfigurationTest: 32 assertions passed"
+  },
+  {
+    "command": "php tests/AutomatedSourcePolicyTest.php",
+    "exit_code": 0,
+    "output": "Automated source policy: 64 assertions passed"
+  },
+  {
+    "command": "php tests/ProductionRuntimeCheckTest.php",
+    "exit_code": 0,
+    "output": "ProductionRuntimeCheckTest: 35 assertions passed"
+  },
+  {
+    "command": "php tests/BasicExposureCheckTest.php",
+    "exit_code": 0,
+    "output": "BasicExposureCheckTest: 16 assertions passed"
+  },
+  {
+    "command": "php tests/PrelaunchDeploymentQaRegressionTest.php",
+    "exit_code": 0,
+    "output": "Prelaunch deployment QA: 23 assertions passed; representative tree 0.021s"
+  },
+  {
+    "command": "php tests/PrelaunchHttpQaRegressionTest.php",
+    "exit_code": 0,
+    "output": "Prelaunch HTTP QA regressions: 22 assertions passed"
+  },
+  {
+    "command": "php tests/OwaspScanQualityTest.php",
+    "exit_code": 0,
+    "output": "OwaspScanQualityTest: 151 assertions passed"
+  },
+  {
+    "command": "php tests/ComposerMaintenanceCoverageTest.php",
+    "exit_code": 0,
+    "output": "Composer maintenance coverage: 11 assertions passed"
+  }
+]

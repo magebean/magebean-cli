@@ -12,7 +12,7 @@ allocation=read(base/'allocation-manifest.json')
 ledger=read(base/'reconciliation-ledger.json')
 profiles=read(base/'internal-profiles.json')
 backlog=read(base/'magebean-automation-backlog.json')
-rows=read(root/'docs/automation-feasibility/source-implementation.json')
+rows=read(root/'docs/archive/automation-feasibility/source-implementation.json')
 groups={}
 for row in rows:
     if row['ready'] and row['new_id_required']:
@@ -80,6 +80,6 @@ for kind,source_rows in groups.items():
 aggregate['requirements']=catalog['requirements']+read(base/'asvs-catalog.json')['requirements']+read(base/'pci-catalog.json')['requirements']
 counts=ledger['counts'];counts['active_internal_requirements']=len(aggregate['requirements']);counts['historical_allocations']=len(allocation['allocations']);counts['families']['magebean']=len(catalog['requirements']);counts['accepted_scoped_criteria']=sum(r.get('review_state')=='accepted_scoped_criterion' for r in aggregate['requirements']);counts['human_evidence_required']=sum(bool(r.get('human_evidence',{}).get('required')) for r in aggregate['requirements'])
 for name,value in [('magebean-catalog.json',catalog),('internal-catalog.json',aggregate),('allocation-manifest.json',allocation),('reconciliation-ledger.json',ledger),('internal-profiles.json',profiles)]:write(base/name,value)
-write(root/'docs/automation-feasibility/source-implementation.json',rows)
-write(root/'docs/automation-feasibility/source-catalog-integration.json',{'added':added,'catalog_counts':counts,'profile_counts':{k:len(v['requirement_ids']) for k,v in profiles['profiles'].items()}})
+write(root/'docs/archive/automation-feasibility/source-implementation.json',rows)
+write(root/'docs/archive/automation-feasibility/source-catalog-integration.json',{'added':added,'catalog_counts':counts,'profile_counts':{k:len(v['requirement_ids']) for k,v in profiles['profiles'].items()}})
 print(json.dumps({'added':added,'profile_counts':{k:len(v['requirement_ids']) for k,v in profiles['profiles'].items()},'next_id':allocation['next_id']},indent=2))

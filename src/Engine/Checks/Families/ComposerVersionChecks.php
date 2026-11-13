@@ -182,6 +182,13 @@ final class ComposerVersionChecks extends ComposerSupport
 
     public function yankedApi(array $args): array
     {
+        // These compatibility predicates assess locked build declarations, not installed runtime bytes.
+        $selection=$this->dependencySelection(array_replace($args,['dependency_scope'=>'locked']));
+        return $this->withDependencyProvenance($this->yankedApiLocked($args),$selection);
+    }
+
+    private function yankedApiLocked(array $args): array
+    {
         if (($problem = $this->strictInventoryProblem($args, false)) !== null) return $problem;
         $lockFile = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
         if (!is_file($lockFile)) {
@@ -260,6 +267,13 @@ final class ComposerVersionChecks extends ComposerSupport
         return [true, 'All requested installed package versions explicitly have non-withdrawn status', $evidence];
     }
     public function marketplaceOutdatedApi(array $args): array
+    {
+        // These compatibility predicates assess locked build declarations, not installed runtime bytes.
+        $selection=$this->dependencySelection(array_replace($args,['dependency_scope'=>'locked']));
+        return $this->withDependencyProvenance($this->marketplaceOutdatedApiLocked($args),$selection);
+    }
+
+    private function marketplaceOutdatedApiLocked(array $args): array
     {
         $lockFile = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
         if (!is_file($lockFile)) {
@@ -430,6 +444,13 @@ final class ComposerVersionChecks extends ComposerSupport
     }
 
     public function directOutdatedApi(array $args): array
+    {
+        // These compatibility predicates assess locked build declarations, not installed runtime bytes.
+        $selection=$this->dependencySelection(array_replace($args,['dependency_scope'=>'locked']));
+        return $this->withDependencyProvenance($this->directOutdatedApiLocked($args),$selection);
+    }
+
+    private function directOutdatedApiLocked(array $args): array
     {
         if (($problem = $this->strictInventoryProblem($args, true)) !== null) return $problem;
         $lockFile = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');

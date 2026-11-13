@@ -39,14 +39,14 @@ try {
     $put('app/code/Fixture/Example/Example.php', '<?php function action() { \exec($_GET["command"]); }');
 
     $catalog = array_column(RequirementCatalog::loadAll()['rules'], null, 'id');
-    foreach (['development' => 28, 'prelaunch' => 52] as $profile => $count) {
+    foreach (['development' => 31, 'prelaunch' => 60] as $profile => $count) {
         $members = RequirementProfileCatalog::load($profile)['requirement_ids'];
         launchAssert(count($members) === $count && count(array_unique($members)) === $count, 'Profile membership is canonical and unique.');
         foreach ($members as $id) {
             launchAssert($catalog[$id]['family'] === 'magebean' && !RequirementPolicy::requiresHuman($catalog[$id]), 'Profile stays automated and Magebean-owned.');
         }
         [$exit, $listing] = $cli(['rules:list', '--profile='.$profile]);
-        launchAssert($exit === 0 && str_contains($listing, 'Total Rules Listed: '.($count-1)), $listing);
+        launchAssert($exit === 0 && str_contains($listing, 'Total Rules Listed: '.($count-2)), $listing);
     }
 
     [$auditExit, $auditOut] = $cli(['audit', '--profile=development', '--rules=MB-0822']);
@@ -54,7 +54,7 @@ try {
     launchAssert($exit === 1 && str_contains($out, 'Fixture_Example') && str_contains($out, 'Request input reaches a command call'), $out);
     launchAssert($auditExit === $exit && str_contains($auditOut, 'Fixture_Example') && str_contains($auditOut, 'Request input reaches a command call'), $auditOut);
     [$exit, $out] = $cli(['rules:list', '--profile=development', '--capabilities=local_advisory_snapshot']);
-    launchAssert($exit === 0 && str_contains($out, 'Total Rules Listed: 28'), $out);
+    launchAssert($exit === 0 && str_contains($out, 'Total Rules Listed: 30'), $out);
     [$exit, $out] = $cli(['scan', '--profile=development', '--path=.', '--rules=MB-0828', '--capabilities=local_advisory_snapshot']);
     launchAssert($exit === 3 && str_contains($out, 'advisory snapshot unavailable'), $out);
     $put('.magebean/osv-db.json', '[{"id":"FIXTURE-001","affected":[{"package":{"ecosystem":"Packagist","name":"magento/framework"},"versions":["103.0.1"]}]}]');
@@ -62,14 +62,14 @@ try {
     launchAssert($exit === 0, $out);
     $put('.magebean/osv-db.json', '[{"id":"FIXTURE-001","affected":[{}]}]');
     [$exit, $out] = $cli(['scan', '--profile=development', '--path=.', '--rules=MB-0828', '--capabilities=local_advisory_snapshot']);
-    launchAssert($exit === 3 && str_contains($out, 'invalid affected package'), $out);
+    launchAssert($exit === 3 && str_contains(preg_replace('/\s+/',' ',$out), 'invalid affected package'), $out);
     $put('.magebean/osv-db.json', '[{"id":"FIXTURE-001","withdrawn":"2024-01-01T00:00:00Z","affected":[{"package":{"ecosystem":"Packagist","name":"magento/framework"},"versions":["103.0.6"]}]}]');
     [$exit, $out] = $cli(['scan', '--profile=development', '--path=.', '--rules=MB-0828', '--capabilities=local_advisory_snapshot']);
     launchAssert($exit === 0, $out);
     [$exit, $out] = $cli(['scan', '--profile=development', '--path=.', '--rules=MB-0031']);
     launchAssert($exit === 1 && str_contains($out, 'outside the selected'), $out);
     [$exit, $out] = $cli(['scan', '--profile=development', '--path=.']);
-    launchAssert($exit === 3 && str_contains($out, 'Running 27 audit rules') && str_contains($out, 'Request input reaches a command call') && !str_contains($out, 'Deployment mode is not production') && !str_contains($out, 'Local advisory snapshot unavailable'), $out);
+    launchAssert($exit === 3 && str_contains($out, 'Running 29 audit rules') && str_contains($out, 'Request input reaches a command call') && !str_contains($out, 'Deployment mode is not production') && !str_contains($out, 'Local advisory snapshot unavailable'), $out);
 
     $put('bin/magento', '<?php throw new RuntimeException("Do not bootstrap the fixture");');
     $put('app/etc/config.php', '<?php return ["modules" => ["Fixture_Example" => 1]];');
@@ -101,7 +101,7 @@ try {
     [$exit, $out] = $cli($args);
     launchAssert($exit === 1 && str_contains($out, 'Tested endpoint: http://'.$host) && !str_contains($out, 'Runtime URL unavailable'), 'Prelaunch discovers the configured endpoint without --url: '.$out);
     [$exit, $out] = $cli(['scan', '--profile=prelaunch', '--path=.', '--url=http://'.$host]);
-    launchAssert($exit === 3 && str_contains($out, 'Running 51 audit rules') && str_contains($out, 'MB-0031'), $out);
+    launchAssert($exit === 3 && str_contains($out, 'Running 58 audit rules') && str_contains($out, 'MB-0031'), $out);
     proc_terminate($server);
     proc_close($server);
     $server = null;

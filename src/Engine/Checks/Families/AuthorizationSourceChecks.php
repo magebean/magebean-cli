@@ -67,7 +67,7 @@ final class AuthorizationSourceChecks extends CodeSearchSupport
             return [false, implode("\n", $lines), $evidence];
         }
 
-        return [true, $filesRead === 0 ? 'No API or GraphQL files found to scan' : 'No high-risk anonymous API or GraphQL resolver exposure detected', $evidence];
+        return [null, '[UNKNOWN] No supported exposure candidate found; effective API/GraphQL exposure and approved scope remain unresolved', $evidence];
     }
 
     public function customAuthorizationChecks(array $args): array
@@ -124,7 +124,7 @@ final class AuthorizationSourceChecks extends CodeSearchSupport
             return [false, implode("\n", $lines), $evidence];
         }
 
-        return [true, $filesRead === 0 ? 'No custom controller/API files found to scan' : 'No missing authorization evidence detected in sensitive custom controllers or APIs', $evidence];
+        return [null, '[UNKNOWN] No supported missing-gate candidate found; effective function/object authorization remains unresolved', $evidence];
     }
 
     public function downloadExportAuthorization(array $args): array
@@ -186,10 +186,10 @@ final class AuthorizationSourceChecks extends CodeSearchSupport
         }
 
         if ($filesRead === 0) {
-            return [true, 'No custom download/export files found to scan', $evidence];
+            return [null, '[UNKNOWN] No readable download/export source was collected', $evidence];
         }
 
-        return [true, $endpointsSeen === 0 ? 'No custom download/export endpoints detected' : 'All detected download/export endpoints include authorization evidence', $evidence];
+        return [null, '[UNKNOWN] Download/export declarations were inspected; effective identity and object ownership enforcement remain unresolved', $evidence];
     }
 
     public function mediaExecutableCode(array $args): array
@@ -371,7 +371,7 @@ final class AuthorizationSourceChecks extends CodeSearchSupport
 
     private function hasGraphqlResolverAuthEvidence(string $content): bool
     {
-        return preg_match('~\b(?:UserContextInterface|getUserId\s*\(|getUserType\s*\(|AuthorizationInterface|isAllowed|isLoggedIn|customerSession|CustomerSession|getCustomerId|GraphQlAuthorizationException|GraphQlAuthenticationException|NoSuchEntityException|authorized|authenticate\s*\()\b~i', $content) === 1;
+        return $this->hasLeadingDenyGuard($content, ['resolve']);
     }
 
     private function resolverClassToPath(string $class): ?string
@@ -409,7 +409,7 @@ final class AuthorizationSourceChecks extends CodeSearchSupport
             if (!$this->hasSensitiveAuthorizationWorkflow($relative . "\n" . $window)) {
                 continue;
             }
-            if ($this->hasControllerAuthorizationEvidence($relative, $window, $scanContent)) {
+            if ($this->hasControllerAuthorizationEvidence($relative, $window, $scanContent, $offset)) {
                 continue;
             }
 
@@ -469,23 +469,42 @@ final class AuthorizationSourceChecks extends CodeSearchSupport
         return preg_match('~\b(?:order|orders|customer|customers|invoice|shipment|creditmemo|refund|download|export|report|address|quote|cart|wishlist|payment|transaction|token|admin)\b~i', $text) === 1;
     }
 
-    private function hasControllerAuthorizationEvidence(string $relative, string $window, string $fileContent): bool
+    private function hasControllerAuthorizationEvidence(string $relative, string $window, string $fileContent, int $offset): bool
     {
-        if (preg_match('~\bconst\s+ADMIN_RESOURCE\s*=\s*([\'\"])(?!Magento_Backend::admin\b|Magento_Adminhtml::admin\b)(?P<resource>[^\'\"]+)\1~i', $fileContent) === 1) {
-            return true;
-        }
+        return $this->hasLeadingDenyGuard($fileContent, ['execute'], $offset);
+    }
 
-        $haystack = $relative . "\n" . $window . "\n" . $fileContent;
-        if (preg_match('~\b(?:_authorization|AuthorizationInterface|isAllowed|_isAllowed|denyAccess|AclInterface|authorize\s*\(|canAccess|isGranted)\b~i', $haystack) === 1) {
-            return true;
+    /** A supported leading negative authorization check must terminate before any following body statements. */
+    private function hasLeadingDenyGuard(string $content, array $methods, ?int $offset = null): bool
+    {
+        try { $nodes = (new \PhpParser\ParserFactory())->createForNewestSupportedVersion()->parse($content) ?? []; }
+        catch (\PhpParser\Error) { return false; }
+        foreach ((new \PhpParser\NodeFinder())->findInstanceOf($nodes, \PhpParser\Node\Stmt\ClassMethod::class) as $method) {
+            if (!in_array(strtolower($method->name->toString()), $methods, true)) continue;
+            if ($offset !== null && ($offset < $method->getStartFilePos() || $offset > $method->getEndFilePos())) continue;
+            $body = array_values(array_filter($method->stmts ?? [], static fn(\PhpParser\Node $n): bool => !$n instanceof \PhpParser\Node\Stmt\Nop));
+            $guard = $body[0] ?? null;
+            if (!$guard instanceof \PhpParser\Node\Stmt\If_ || !$guard->cond instanceof \PhpParser\Node\Expr\BooleanNot || $guard->elseifs !== [] || $guard->else !== null) continue;
+            $call = $guard->cond->expr;
+            if (!$call instanceof \PhpParser\Node\Expr\MethodCall || !$call->name instanceof \PhpParser\Node\Identifier
+                || !in_array(strtolower($call->name->name), ['isallowed','isloggedin','canaccess','isgranted'], true)) continue;
+            $branch = array_values(array_filter($guard->stmts, static fn(\PhpParser\Node $n): bool => !$n instanceof \PhpParser\Node\Stmt\Nop));
+            if (count($branch) !== 1) continue;
+            if ($branch[0] instanceof \PhpParser\Node\Stmt\Return_ || ($branch[0] instanceof \PhpParser\Node\Stmt\Expression && $branch[0]->expr instanceof \PhpParser\Node\Expr\Throw_)) return true;
         }
-        if (preg_match('~\b(?:customerSession|CustomerSession|SessionFactory|getCustomerId|isLoggedIn|authenticate\s*\(|loginUrl|customer\/account\/login|CustomerAuthorization)\b~i', $haystack) === 1) {
-            return true;
-        }
-        if (preg_match('~\b(?:getCustomerId\s*\(\s*\)|customer_id|customerId|owner_id|user_id)\b[\s\S]{0,240}(?:===|==|!==|!=|equals?|compare|in_array)|(?:===|==|!==|!=)[\s\S]{0,240}\b(?:getCustomerId\s*\(\s*\)|customer_id|customerId|owner_id|user_id)\b~i', $haystack) === 1) {
-            return true;
-        }
+        return false;
+    }
 
+    private function declaredAclResource(string $resource): bool
+    {
+        foreach ($this->collectFiles([$this->ctx->abs('app/code')], ['xml']) as $file) {
+            if (!str_ends_with(str_replace(chr(92), '/', $file), '/etc/acl.xml')) continue;
+            $text = $this->collectors->files->read($file);
+            if (!is_string($text)) continue;
+            if (preg_match_all('~<resource\b[^>]*\bid\s*=\s*([\'\"])(.*?)\1~is', $text, $matches)) {
+                if (in_array($resource, $matches[2], true)) return true;
+            }
+        }
         return false;
     }
 
@@ -502,15 +521,13 @@ final class AuthorizationSourceChecks extends CodeSearchSupport
                 continue;
             }
             if (preg_match('~^self$~i', $resource) === 1) {
-                if ($customerScoped) {
-                    return true;
-                }
+                if ($customerScoped) return true;
                 continue;
             }
             if (preg_match('~^(?:Magento_Webapi::all|Magento_Backend::admin|Magento_Adminhtml::admin)$~i', $resource) === 1 || preg_match('~::all$~i', $resource) === 1) {
                 continue;
             }
-            return true;
+            if ($this->declaredAclResource($resource)) return true;
         }
 
         return false;
@@ -537,7 +554,7 @@ final class AuthorizationSourceChecks extends CodeSearchSupport
             }
 
             $endpointsSeen++;
-            if ($this->hasControllerAuthorizationEvidence($relative, $window, $scanContent)) {
+            if ($this->hasControllerAuthorizationEvidence($relative, $window, $scanContent, $offset)) {
                 continue;
             }
 
@@ -604,15 +621,13 @@ final class AuthorizationSourceChecks extends CodeSearchSupport
                 continue;
             }
             if (preg_match('~^self$~i', $resource) === 1) {
-                if ($customerScoped) {
-                    return true;
-                }
+                if ($customerScoped) return true;
                 continue;
             }
             if (preg_match('~^(?:Magento_Webapi::all|Magento_Backend::admin|Magento_Adminhtml::admin)$~i', $resource) === 1 || preg_match('~::all$~i', $resource) === 1) {
                 continue;
             }
-            return true;
+            if ($this->declaredAclResource($resource)) return true;
         }
 
         return false;

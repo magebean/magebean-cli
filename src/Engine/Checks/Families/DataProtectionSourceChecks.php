@@ -68,7 +68,7 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
             return [false, implode("\n", $lines), $evidence];
         }
 
-        return [true, 'No raw sensitive PII detected in third-party outbound flows', $evidence];
+        return [null, '[UNKNOWN] No supported outbound PII candidate was found; runtime payload minimization and approved field scope were not established', $evidence];
     }
 
     public function unsafeXmlParsing(array $args): array
@@ -120,7 +120,8 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
             return [false, implode("\n", $lines), $evidence];
         }
 
-        return [true, $filesRead === 0 ? 'No PHP files found to scan for unsafe XML parsing' : 'No unsafe XML entity expansion patterns detected', $evidence];
+        if ($filesRead === 0) return [null, '[UNKNOWN] No readable PHP files were inspected for XML constructs', $evidence];
+        return [null, '[UNKNOWN] No enumerated unsafe XML source pattern found; dynamic flags and parser runtime behavior remain unresolved', $evidence];
     }
 
     public function hardcodedSecrets(array $args): array
@@ -182,7 +183,7 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
             return [false, implode("\n", $lines), $evidence];
         }
 
-        return [true, $filesRead === 0 ? 'No custom code/config files found to scan for hardcoded secrets' : 'No hardcoded secrets detected outside approved secret storage', $evidence];
+        return [null, '[UNKNOWN] No supported literal secret candidate found; dynamic values and uncollected secret stores remain unresolved', $evidence];
     }
 
     public function apiKeyStorage(array $args): array
@@ -241,7 +242,7 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
         }
 
         if ($filesRead === 0) {
-            return [false, 'No application code/config files found to verify API credential storage', $evidence];
+            return [null, '[UNKNOWN] No application code/config files found to inspect API credential storage', $evidence];
         }
 
         $envCount = (int)($envEvidence['credential_keys'] ?? 0);
@@ -249,7 +250,7 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
             ? 'API credential-like keys are present in env.php and no code/DB storage patterns were detected'
             : 'No API credential code/DB storage patterns detected; env.php credential keys were not found';
 
-        return [true, $message, $evidence];
+        return [null, '[UNKNOWN] '.$message.'. Database and external secret storage were not inspected', $evidence];
     }
 
     public function thirdPartyLoggingSanitized(array $args): array
@@ -302,10 +303,10 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
         }
 
         if ($filesRead === 0) {
-            return [false, 'No application code files found to verify third-party log sanitization', $evidence];
+            return [null, '[UNKNOWN] No readable application code was available for third-party logging', $evidence];
         }
 
-        return [true, 'Third-party sensitive logging is absent or sanitized', $evidence];
+        return [null, '[UNKNOWN] No supported third-party log candidate found; opaque payloads and sanitizer behavior remain unresolved', $evidence];
     }
 
     public function saasIntegrationScoped(array $args): array
@@ -345,7 +346,7 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
         ];
 
         if ($filesRead === 0) {
-            return [false, 'No application code/config files found to verify SaaS integration scoping', $evidence];
+            return [null, '[UNKNOWN] No application code/config files found to inspect SaaS declarations', $evidence];
         }
 
         if ($failures !== []) {
@@ -367,10 +368,10 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
         }
 
         if ($surfaces === []) {
-            return [true, 'No SaaS integration entry points detected', $evidence];
+            return [null, '[UNKNOWN] No supported SaaS entry point was detected; provider grants and deployed restrictions were not inspected', $evidence];
         }
 
-        return [true, 'SaaS integration entry points use least-privilege ACL resources or IP allowlists', $evidence];
+        return [null, '[UNKNOWN] Static SaaS declarations were collected; provider grants and runtime enforcement were not verified', $evidence];
     }
 
     public function sensitiveLogging(array $args): array
@@ -406,7 +407,7 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
             ];
         }
 
-        return [true, 'No raw sensitive data logging detected'];
+        return [null, '[UNKNOWN] No supported sensitive logging candidate found; opaque payloads and sanitizer behavior are unresolved'];
     }
 
     public function magentoApiCryptoSession(array $args): array
@@ -469,9 +470,6 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
             }
             foreach ($matches as $match) {
                 $offset = (int)$match[0][1];
-                if ($kind === 'dangerous_libxml_flags' && $this->isSafeLibxmlFlagContext($searchable, $offset)) {
-                    continue;
-                }
                 $evidence = $this->matchEvidence($file, $content, $kind, $offset);
                 $evidence['kind'] = $kind;
                 $findings[] = $evidence;
@@ -606,7 +604,33 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
             }
         }
 
+        return array_merge($findings, $this->constantSecretFindings($file, $content));
+    }
+
+    private function constantSecretFindings(string $file, string $content): array
+    {
+        if (!in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), ['php', 'phtml'], true)) return [];
+        try { $nodes = (new \PhpParser\ParserFactory())->createForNewestSupportedVersion()->parse($content) ?? []; }
+        catch (\PhpParser\Error) { return []; }
+        $findings = [];
+        foreach ((new \PhpParser\NodeFinder())->find($nodes, static fn(\PhpParser\Node $n): bool => $n instanceof \PhpParser\Node\ArrayItem || $n instanceof \PhpParser\Node\Expr\Assign) as $node) {
+            $key = $node instanceof \PhpParser\Node\ArrayItem ? ($node->key instanceof \PhpParser\Node\Scalar\String_ ? $node->key->value : '') : ($node->var instanceof \PhpParser\Node\Expr\Variable && is_string($node->var->name) ? $node->var->name : '');
+            $value = $node instanceof \PhpParser\Node\ArrayItem ? $node->value : $node->expr;
+            if (!preg_match('~(?:password|passwd|api[_-]?key|secret|token|private[_-]?key)~i', $key) || !$value instanceof \PhpParser\Node\Expr\BinaryOp\Concat) continue;
+            $literal = $this->constantSecretString($value);
+            if ($literal === null || !$this->looksLikeStoredSecretLiteral($literal)) continue;
+            $findings[] = ['file' => $this->relativeFile($file), 'line' => $node->getStartLine(), 'kind' => 'constant_concatenated_secret', 'field' => $key, 'snippet' => '[REDACTED: literal secret candidate]'];
+        }
         return $findings;
+    }
+
+    private function constantSecretString(\PhpParser\Node $node, int $depth = 0): ?string
+    {
+        if ($depth > 16) return null;
+        if ($node instanceof \PhpParser\Node\Scalar\String_) return strlen($node->value) <= 4096 ? $node->value : null;
+        if (!$node instanceof \PhpParser\Node\Expr\BinaryOp\Concat) return null;
+        $left = $this->constantSecretString($node->left, $depth + 1); $right = $this->constantSecretString($node->right, $depth + 1);
+        return $left !== null && $right !== null && strlen($left) + strlen($right) <= 4096 ? $left.$right : null;
     }
 
     private function envCredentialKeyEvidence(string $envFile): array
@@ -672,9 +696,6 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
             $offset = (int)$match['field'][1];
             $window = $this->codeWindow($searchable, $offset, 1800);
             if (!$this->hasThirdPartyOutboundFlowSignal($window)) {
-                continue;
-            }
-            if ($this->hasPiiMinimizationSignal($window)) {
                 continue;
             }
 
@@ -794,7 +815,7 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
     private function saasAclControlEvidence(?string $resource, string $haystack): array
     {
         $hasSpecificAcl = $resource !== null && !$this->isBroadSaasAclResource($resource);
-        $hasIpAllowlist = $this->hasSaasIpAllowlistSignal($haystack);
+        $hasIpAllowlist = false; // A variable/header keyword is not an enforcing IP gate.
         $missing = [];
         if (!$hasSpecificAcl && !$hasIpAllowlist) {
             $missing[] = 'least_privilege_acl_or_ip_allowlist';
@@ -819,7 +840,7 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
             }
         }
 
-        $hasIpAllowlist = $this->hasSaasIpAllowlistSignal($haystack);
+        $hasIpAllowlist = false; // A variable/header keyword is not an enforcing IP gate.
         $missing = [];
         if (!$hasSpecificAcl && !$hasIpAllowlist) {
             $missing[] = 'least_privilege_acl_or_ip_allowlist';
@@ -836,7 +857,7 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
 
     private function saasIpAllowlistControlEvidence(string $haystack): array
     {
-        $hasIpAllowlist = $this->hasSaasIpAllowlistSignal($haystack);
+        $hasIpAllowlist = false; // A variable/header keyword is not an enforcing IP gate.
         return [
             'ok' => $hasIpAllowlist,
             'has_ip_allowlist' => $hasIpAllowlist,
@@ -894,66 +915,36 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
 
     private function thirdPartyLoggingFindings(string $file, string $content): array
     {
-        $findings = [];
-        $searchable = $this->maskPhpStringsAndComments($content);
-        $regex = '~(?P<logger>\$this->\s*[_A-Za-z0-9]*logger|\$[A-Za-z_][A-Za-z0-9_]*logger|\$logger)\s*->\s*(?P<method>debug|info|notice|warning|error|critical|alert|emergency|log)\s*\((?P<args>.{0,900})~is';
-
-        if (preg_match_all($regex, $searchable, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER) < 1) {
-            return [];
-        }
-
-        foreach ($matches as $match) {
-            $offset = (int)$match[0][1];
-            $window = $this->codeWindow($content, $offset, 1400);
-            $args = isset($match['args']) && is_array($match['args']) ? (string)$match['args'][0] : '';
-            $text = $window . "\n" . $args;
-
-            if (!$this->hasThirdPartyLoggingSignal($text, $file)) {
-                continue;
-            }
-            if (!$this->hasThirdPartyLogSensitiveSignal($text)) {
-                continue;
-            }
-            if ($this->hasRedactionSignal($text)) {
-                continue;
-            }
-
-            $evidence = $this->matchEvidence($file, $content, 'third_party_sensitive_logging', $offset);
-            $evidence['kind'] = (string)$match['method'][0];
-            $evidence['risk'] = $this->sensitiveLoggingRisk($text);
-            $findings[] = $evidence;
-        }
-
-        return $findings;
+        return $this->loggingArgumentFindings($file, $content, true);
     }
 
     private function sensitiveLoggingFindings(string $file, string $content): array
     {
-        $findings = [];
-        $searchable = $this->maskPhpStringsAndComments($content);
-        $regex = '~(?P<logger>\$this->\s*[_A-Za-z0-9]*logger|\$[A-Za-z_][A-Za-z0-9_]*logger|\$logger)\s*->\s*(?P<method>debug|info|notice|warning|error|critical|alert|emergency|log)\s*\((?P<args>.{0,900})~is';
+        return $this->loggingArgumentFindings($file, $content, false);
+    }
 
-        if (preg_match_all($regex, $searchable, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER) < 1) {
-            return [];
-        }
-
-        foreach ($matches as $match) {
-            $offset = (int)$match[0][1];
-            $window = $this->codeWindow($content, $offset, 1400);
-            $args = isset($match['args']) && is_array($match['args']) ? (string)$match['args'][0] : '';
-            if (!$this->hasSensitiveLoggingSignal($window . "\n" . $args)) {
-                continue;
+    private function loggingArgumentFindings(string $file, string $content, bool $thirdParty): array
+    {
+        try { $nodes = (new \PhpParser\ParserFactory())->createForNewestSupportedVersion()->parse($content) ?? []; }
+        catch (\PhpParser\Error) { return []; }
+        $finder = new \PhpParser\NodeFinder(); $findings = [];
+        foreach ($finder->findInstanceOf($nodes, \PhpParser\Node\Expr\MethodCall::class) as $call) {
+            if (!$call->name instanceof \PhpParser\Node\Identifier || !in_array(strtolower($call->name->name), ['log','debug','info','notice','warning','error','critical','alert','emergency'], true)) continue;
+            $receiver = $call->var;
+            $logger = $receiver instanceof \PhpParser\Node\Expr\Variable && is_string($receiver->name) ? $receiver->name : ($receiver instanceof \PhpParser\Node\Expr\PropertyFetch && $receiver->name instanceof \PhpParser\Node\Identifier ? $receiver->name->name : '');
+            if (!str_contains(strtolower($logger), 'logger')) continue;
+            foreach ($call->args as $arg) {
+                if (!$arg instanceof \PhpParser\Node\Arg) continue;
+                $dynamic = $finder->findFirst($arg->value, static fn(\PhpParser\Node $n): bool => $n instanceof \PhpParser\Node\Expr\Variable || $n instanceof \PhpParser\Node\Expr\PropertyFetch || $n instanceof \PhpParser\Node\Expr\ArrayDimFetch);
+                if ($dynamic === null) continue;
+                $text = substr($content, $arg->value->getStartFilePos(), $arg->value->getEndFilePos() - $arg->value->getStartFilePos() + 1);
+                $sensitive = $thirdParty ? $this->hasThirdPartyLogSensitiveSignal($text) : $this->hasSensitiveLoggingSignal($text);
+                if (!$sensitive && !preg_match('/\$_(?:GET|POST|REQUEST|COOKIE|SERVER|FILES)\b/', $text)) continue;
+                if ($thirdParty && !$this->hasThirdPartyLoggingSignal($content, $file)) continue;
+                $findings[] = ['file'=>$this->relativeFile($file),'line'=>$call->getStartLine(),'kind'=>$call->name->name,'risk'=>$this->sensitiveLoggingRisk($text),'snippet'=>'[REDACTED: sensitive argument candidate]'];
+                break;
             }
-            if ($this->hasRedactionSignal($window . "\n" . $args)) {
-                continue;
-            }
-
-            $evidence = $this->matchEvidence($file, $content, 'sensitive_logging', $offset);
-            $evidence['kind'] = (string)$match['method'][0];
-            $evidence['risk'] = $this->sensitiveLoggingRisk($window . "\n" . $args);
-            $findings[] = $evidence;
         }
-
         return $findings;
     }
 
@@ -1007,7 +998,7 @@ final class DataProtectionSourceChecks extends CodeSearchSupport
 
     private function hasSensitiveLoggingSignal(string $text): bool
     {
-        return preg_match('~[A-Za-z0-9_.-]*(?:password|passwd|pwd|token|access[_-]?token|refresh[_-]?token|authorization|auth(?:orization)?[_-]?header|bearer|cookie|set[_-]?cookie|session(?:[_-]?id)?|secret|api[_-]?key|private[_-]?key|cvv|cvc|card[_-]?number|card|pan|payment|expiry|exp[_-]?month|exp[_-]?year)[A-Za-z0-9_.-]*~i', $text) === 1
+        return preg_match('~[A-Za-z0-9_.-]*(?:email|telephone|phone|address|dob|password|passwd|pwd|token|access[_-]?token|refresh[_-]?token|authorization|auth(?:orization)?[_-]?header|bearer|cookie|set[_-]?cookie|session(?:[_-]?id)?|secret|api[_-]?key|private[_-]?key|cvv|cvc|card[_-]?number|card|pan|payment|expiry|exp[_-]?month|exp[_-]?year)[A-Za-z0-9_.-]*~i', $text) === 1
             || preg_match('~\b(?:Authorization|Cookie|Set-Cookie|X-Api-Key)\b~i', $text) === 1;
     }
 

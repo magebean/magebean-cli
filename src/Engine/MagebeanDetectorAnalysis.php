@@ -44,7 +44,9 @@ final class MagebeanDetectorAnalysis
                     || in_array('..', explode('/', $file), true) || preg_match('/[\x00-\x1f]/', $file)) {
                     throw new \InvalidArgumentException('Detector locations must be project-relative.');
                 }
-                $locations[] = ['file' => self::text($file)] + (isset($location['line']) ? ['line' => max(1, (int) $location['line'])] : []);
+                $locations[] = ['file' => self::text($file)] + (isset($location['line']) ? ['line' => max(1, (int) $location['line'])] : [])
+                    + (isset($location['byte_offset']) && is_int($location['byte_offset']) && $location['byte_offset']>=0 ? ['byte_offset'=>$location['byte_offset']] : [])
+                    + (is_string($location['source_sha256']??null) && preg_match('/^[a-f0-9]{64}$/D',$location['source_sha256']) ? ['source_sha256'=>$location['source_sha256']] : []);
             }
             $subject = [];
             foreach (['module', 'package', 'version', 'area', 'symbol'] as $field) {

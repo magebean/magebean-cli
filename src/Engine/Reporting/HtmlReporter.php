@@ -217,7 +217,7 @@ final class HtmlReporter
     private function writeRiskReport(array $result, string $outFile): void
     {
         $escape = static fn(mixed $value): string => htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
-        $risks = array_values(array_filter($result['risk_findings'] ?? [], static fn(array $f): bool => ($f['risk_observation']['needs_attention'] ?? false) === true));
+        $risks = array_values(array_filter($result['canonical_issues'] ?? $result['risk_findings'] ?? [], static fn(array $f): bool => ($f['risk_observation']['needs_attention'] ?? false) === true));
         $issues = array_values($result['collection_issues'] ?? []);
         $covered=[];
         foreach($risks as$f)foreach($f['risk_observation']['findings']??[]as$o)if(($o['kind']??'')==='collection_issue')$covered[($f['id']??'').'|'.($o['check']??'')]=true;
@@ -230,6 +230,7 @@ final class HtmlReporter
         $html .= '<p>Observations identify work to investigate; absence of findings does not establish complete production protection.</p></section>';
         foreach ($risks as $finding) {
             $html .= '<section><span class="badge">Needs attention</span><h2>' . $escape($finding['id'] ?? '') . ' — ' . $escape($finding['title'] ?? 'Risk observation') . '</h2><p>Severity: ' . $escape($finding['severity'] ?? 'Low') . ' · ' . $escape($finding['requirement']['lane'] ?? 'security') . '</p>';
+            if (count($finding['rule_ids']??[])>1) $html.='<p>Related rules: '.$escape(implode(', ',$finding['rule_ids'])).'</p>';
             foreach ($finding['risk_observation']['findings'] ?? [] as $observation) {
                 $html .= '<h3>' . $escape($observation['check'] ?? 'Observation') . '</h3><p>' . $escape($observation['message'] ?? 'Risk indicator observed') . '</p>';
                 if(($observation['kind']??'')==='collection_issue'&&!empty($observation['evidence']['collection_guidance']['action']))$html.='<p>Collection action: '.$escape($observation['evidence']['collection_guidance']['action']).'</p>';
@@ -244,6 +245,7 @@ final class HtmlReporter
                     if ($file !== '') $html .= '<p><code>' . $escape($file) . (isset($location['line']) ? ':' . (int)$location['line'] : '') . '</code> ' . $escape($location['construct'] ?? $location['reason'] ?? '') . '</p>';
                 }
             }
+            foreach ($finding['context']??[] as $context) $html.='<p>'.$escape($context['rule_id'].': '.$context['message']).'</p>';
             // Wire assessment statuses remain in JSON. Present risk observations and actionable guidance here.
             $guidanceFinding = $finding; unset($guidanceFinding['details']);
             $html .= $this->renderDetails($guidanceFinding);

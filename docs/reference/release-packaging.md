@@ -1,0 +1,15 @@
+# Release packaging
+
+Build from the repository root with `php tools/build-phar.php`. Use `--one-time` for `artifacts/magebean-one-time.phar`; the standard output is `magebean.phar`. Both configurations apply the same runtime-only policy. Composer and the standalone `box.phar` must be installed as build tools; PHP requires Phar/zlib and process execution. No production deployment is performed by building.
+
+`box.json` and `box.one-time.json` select `bin/`, `src/`, `resources/`, composer.json and LICENSE. Their finder is scoped exclusively to `vendor/`; vendor is deliberately absent from `directories`, since explicitly including it would bypass Box's dev-package filter. `exclude-dev-files` and production autoload regeneration are enabled. Vendor test/doc directories, nested archives, environment files and incidental readmes/changelogs are excluded; package license files remain eligible.
+
+The wrapper creates a uniquely named candidate under ignored `build/` and invokes Box using a generated configuration. It checks every archive path against runtime roots and composer.lock production package identities. Artifacts, build tools, nested PHARs, tests/docs and non-runtime packages fail the release check. All runtime dependencies and essential application/catalog files must be present. The wrapper runs CLI version/command/profile checks and scans isolated fixtures through the packaged engine, including source inspection details and standards profile loading. Only then does it preserve the previous binary and publish the validated candidate. A process lock prevents concurrent wrapper builds.
+
+The previous release is stored as `build/previous-magebean.phar` (or the corresponding one-time filename); repeated builds replace that immediate-previous backup. `build/release-manifest.json` records the latest build. `build/release-manifest-standard.json` and `build/release-manifest-one-time.json` retain the corresponding per-variant size, SHA-256, package/file counts and smoke results. Build staging and backups cannot be swept into future releases by the vendor-only finder. Development vendor dependencies remain installed; Box regenerates the packaged production autoloader without removing the developer toolchain.
+
+Direct `php box.phar compile` also uses the corrected narrow file selection, but `tools/build-phar.php` is the recommended release entry point because it adds manifest rejection, smoke tests and candidate-before-publication behavior.
+
+Every candidate runs restored-rule and profile fixtures plus Phase 1–5 regression gates against its archived autoloader. Build logs and manifests describe the actual candidate, not a perpetual binary hash. Current inventory is 110 Magebean requirements and 15 profiles, with hardening selecting 80 locally by default.
+
+Before handoff, run `php tools/update-baseline-doc.php --check` and `python3 tools/check-docs.py`. Optional sibling Console SQLite integration and synthetic performance tools are documented in the [archived qualification](../archive/current-state/phase6/README.md). Recorded hashes, timings and counts describe that revision; they do not certify later artifacts or a live store.

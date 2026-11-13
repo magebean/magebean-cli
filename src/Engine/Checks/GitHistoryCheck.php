@@ -62,11 +62,11 @@ final class GitHistoryCheck
         $workingTree = $this->scanWorkingTree(
             $repoRoot,
             $paths,
-            $excludeDirs,
+            array_values(array_unique([...$excludeDirs, 'app/etc/env.php'])),
             $patterns,
             $maxResults,
             $maxFileBytes,
-            !$requireHistory
+            true
         );
         } catch (\Throwable $error) {
             return [null, '[UNKNOWN] Working-tree traversal failed: ' . $error->getMessage()];
@@ -79,7 +79,7 @@ final class GitHistoryCheck
             $maxResults
         ) : ['assessed' => false, 'commits_scanned' => 0, 'findings' => [], 'truncated' => false, 'error' => null];
 
-        $findings = array_merge($workingTree['findings'], $history['findings']);
+        $findings = array_merge($workingTree['findings'], $history['index_findings'] ?? [], $history['findings']);
         $evidence = [
             'paths' => $paths,
             'exclude_dirs' => $excludeDirs,
@@ -88,9 +88,11 @@ final class GitHistoryCheck
             'git_history_assessed' => $history['assessed'],
             'git_commits_scanned' => $history['commits_scanned'],
             'git_history_findings' => $history['findings'],
+            'git_index_findings' => $history['index_findings'] ?? [],
             'truncated' => $workingTree['truncated'] || $history['truncated'],
             'history_required' => $requireHistory,
-            'scope' => $requireHistory ? 'Configured patterns; eligible nonbinary working-tree files up to max_file_bytes; all available local Git refs; configured paths and exclusions. Not proof that all possible secrets are absent.' : 'Configured patterns in readable nonbinary deployed working-tree files; configured paths and exclusions. Git history is outside this requirement.',
+            'expected_runtime_secret_paths_excluded_from_working_tree' => ['app/etc/env.php'],
+            'scope' => $requireHistory ? 'Configured patterns; eligible nonbinary working-tree files excluding expected app/etc/env.php up to max_file_bytes; Git index and all available local Git refs (including env.php unless explicitly excluded); configured paths and exclusions. Not proof that all possible secrets are absent.' : 'Configured patterns in readable nonbinary deployed working-tree files excluding expected app/etc/env.php; configured paths and exclusions. Git history is outside this requirement.',
             'git_history_error' => $history['error'],
             'working_tree_gaps' => $workingTree['gaps'],
         ];
@@ -116,7 +118,7 @@ final class GitHistoryCheck
         if ($requireHistory && !$history['assessed']) {
             return [
                 null,
-                '[UNKNOWN] Working tree is clean, but Git history could not be assessed: '
+                '[UNKNOWN] No eligible working-tree matches; Git history could not be assessed: '
                     . $history['error'],
                 $evidence,
             ];
@@ -124,7 +126,7 @@ final class GitHistoryCheck
 
         return [
             true,
-            $requireHistory ? 'No configured secret-pattern matches in the eligible working tree or ' . $history['commits_scanned'] . ' Git commit(s)' : 'No configured secret-pattern matches in the deployed working tree',
+            $requireHistory ? 'No configured secret-pattern matches in the eligible working tree or ' . $history['commits_scanned'] . ' Git commit(s), plus the Git index' : 'No configured secret-pattern matches in the deployed working tree',
             $evidence,
         ];
     }
@@ -223,20 +225,33 @@ final class GitHistoryCheck
         }
 
         $commits = preg_split('/\r?\n/', trim($revisionOutput), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $ere = implode('|', array_map(static fn(string $pattern): string => '(' . $pattern . ')', $patterns));
+        $pathspecs = $paths;
+        foreach ($excludeDirs as $excludeDir) {
+            $pathspecs[] = ':(exclude)' . $excludeDir;
+            $pathspecs[] = ':(exclude)' . $excludeDir . '/**';
+        }
+        // The staged version can contain credentials even before its first commit.
+        [$indexExit, $indexOutput] = $this->run(array_merge(
+            ['git', '-C', $repoRoot, 'grep', '--cached', '-I', '-i', '-n', '-P', $ere, '--'], $pathspecs
+        ));
+        if (!in_array($indexExit, [0, 1], true)) return $this->historyUnavailable('Git index pattern scan failed');
+        $indexFindings = [];
+        foreach (preg_split('/\r?\n/', trim($indexOutput), -1, PREG_SPLIT_NO_EMPTY) ?: [] as $line) {
+            if (preg_match('/^(.+?):([0-9]+):/', $line, $match)) {
+                $indexFindings[] = ['scope' => 'git_index', 'path' => $match[1], 'line' => (int)$match[2]];
+                if (count($indexFindings) >= $maxResults) break;
+            }
+        }
         if ($commits === []) {
             return [
                 'assessed' => true,
                 'commits_scanned' => 0,
                 'findings' => [],
-                'truncated' => false,
+                'index_findings' => $indexFindings,
+                'truncated' => count($indexFindings) >= $maxResults,
                 'error' => null,
             ];
-        }
-
-        $ere = implode('|', array_map(static fn(string $pattern): string => '(' . $pattern . ')', $patterns));
-        $pathspecs = $paths;
-        foreach ($excludeDirs as $excludeDir) {
-            $pathspecs[] = ':(exclude)' . $excludeDir . '/**';
         }
 
         $findings = [];
@@ -253,7 +268,7 @@ final class GitHistoryCheck
             if (!in_array($exit, [0, 1], true)) {
                 return $this->historyUnavailable(
                     'git grep failed' . ($error !== '' ? ': ' . trim($error) : '')
-                );
+                ) + ['index_findings' => $indexFindings];
             }
             if ($exit === 1 || trim($output) === '') {
                 continue;
@@ -285,7 +300,8 @@ final class GitHistoryCheck
             'assessed' => true,
             'commits_scanned' => count($commits),
             'findings' => $findings,
-            'truncated' => $truncated,
+            'index_findings' => $indexFindings,
+            'truncated' => $truncated || count($indexFindings) >= $maxResults,
             'error' => null,
         ];
     }
@@ -293,6 +309,10 @@ final class GitHistoryCheck
     private function filesUnder(string $target, string $repoRoot, array $excludeDirs): iterable
     {
         if (is_file($target)) {
+            $relative = $this->relativePath($repoRoot, $target);
+            foreach ($excludeDirs as $excludeDir) {
+                if ($relative === $excludeDir || str_starts_with($relative, $excludeDir . '/')) return;
+            }
             yield new \SplFileInfo($target);
             return;
         }

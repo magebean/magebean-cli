@@ -25,7 +25,7 @@ final class DependencyPolicyCheck
         // Exact declarations account for private hosts, path repositories and disabled defaults.
         if ($this->canonical($repositories) !== $this->canonical($policy['root_repositories'])) $fail[] = ['scope' => 'root_repositories', 'reason' => 'declaration_policy_mismatch'];
         foreach (array_merge($lock['packages'], $lock['packages-dev'] ?? []) as $package) {
-            if (!is_array($package) || !is_string($package['name'] ?? null) || trim($package['name']) === '' || !is_string($package['version'] ?? null)) { $unknown[] = ['reason' => 'malformed_package']; continue; }
+            if (!is_array($package) || !is_string($package['name'] ?? null) || trim($package['name']) === '' || !is_string($package['version'] ?? null) || trim($package['version']) === '') { $unknown[] = ['reason' => 'malformed_package']; continue; }
             $name = strtolower($package['name']);
             if (isset($seen[$name])) { $unknown[] = ['package' => $name, 'reason' => 'duplicate_package']; continue; }
             $seen[$name] = true;
@@ -60,10 +60,15 @@ final class DependencyPolicyCheck
         $generated = $this->date($data['generated_at'] ?? null);
         $maxAge = max(1, (int)($args['max_age_days'] ?? 30));
         if ($generated === null || $generated > time() || time() - $generated > $maxAge * 86400) return $this->unknown('Mitigation inventory timestamp is missing, invalid, future or stale');
-        $fail = []; $unknown = []; $seen = [];
+        $fail = []; $unknown = []; $seen = []; $references=[];
         foreach ($data['records'] as $record) {
             if (!is_array($record) || !is_string($record['id'] ?? null) || trim($record['id']) === '') { $unknown[] = ['reason' => 'record_identity_missing']; continue; }
             $id = $record['id'];
+            if (count($references)<100 && preg_match('~^[a-z0-9_.-]+/[a-z0-9_.-]+$~D',(string)($record['package']??''))
+                && preg_match('/^[A-Za-z0-9][A-Za-z0-9._+-]{0,127}$/D',(string)($record['advisory']??''))
+                && preg_match('/^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$/D',(string)($record['version']??''))) {
+                $references[]=['record_id'=>$id,'package'=>$record['package'],'version'=>$record['version'],'advisory'=>$record['advisory'],'basis'=>'supplied_record_claim_only'];
+            }
             if (isset($seen[$id])) { $fail[] = ['id' => $id, 'reason' => 'duplicate_identity']; continue; }
             $seen[$id] = true;
             foreach (['advisory', 'package', 'version', 'owner', 'action', 'rollback'] as $field) if (!is_string($record[$field] ?? null) || trim($record[$field]) === '') $fail[] = ['id' => $id, 'reason' => 'missing_' . $field];
@@ -72,7 +77,7 @@ final class DependencyPolicyCheck
             elseif ($expires <= time()) $fail[] = ['id' => $id, 'reason' => 'expired_record'];
         }
         foreach ($expected as $id) if (!isset($seen[$id])) $fail[] = ['id' => $id, 'reason' => 'expected_record_missing'];
-        return $this->result($fail, $unknown, ['records_checked' => count($seen), 'scope' => 'Declared record structure, expiry and supplied expected identity coverage only; no mitigation implementation or truth verification']);
+        return $this->result($fail, $unknown, ['records_checked' => count($seen), 'declared_technical_references'=>$references, 'scope' => 'Declared record structure, expiry and supplied expected identity coverage only; no mitigation implementation or truth verification']);
     }
 
     private function json(string $path): ?array

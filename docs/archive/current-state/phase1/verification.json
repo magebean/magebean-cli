@@ -1,0 +1,161 @@
+{
+  "phase": 1,
+  "scope": "Synthetic fixtures and local loopback API only; no live-store claim. Other QA observations in probe files remain assigned to later phases.",
+  "acceptance_checks": [
+    {
+      "acceptance_id": "CS-008",
+      "rules": [
+        "MB-0062"
+      ],
+      "case": "release-date:2026-02-30T00:00:00Z",
+      "evidence_file": "part1-probes.json",
+      "source_index": 7,
+      "actual": "UNKNOWN",
+      "passed": true
+    },
+    {
+      "acceptance_id": "CS-009",
+      "rules": [
+        "MB-0062"
+      ],
+      "case": "release-date:yesterday",
+      "evidence_file": "part1-probes.json",
+      "source_index": 8,
+      "actual": "UNKNOWN",
+      "passed": true
+    },
+    {
+      "acceptance_id": "CS-021",
+      "rules": [
+        "MB-0059"
+      ],
+      "case": "same-transitive-advisory-published:2099-01-01T00:00:00Z",
+      "evidence_file": "part1-probes.json",
+      "source_index": 20,
+      "actual": "UNKNOWN",
+      "passed": true
+    },
+    {
+      "acceptance_id": "CS-037",
+      "rules": [
+        "MB-0072"
+      ],
+      "case": "protected_deployment_env_not_vcs_history",
+      "evidence_file": "part2-probes.json",
+      "source_index": 13,
+      "actual": "UNKNOWN",
+      "passed": true
+    },
+    {
+      "acceptance_id": "CS-038",
+      "rules": [
+        "MB-0730"
+      ],
+      "case": "same_env_excluded_from_deployed_secret_scope",
+      "evidence_file": "part2-probes.json",
+      "source_index": 14,
+      "actual": "PASS",
+      "passed": true
+    },
+    {
+      "acceptance_id": "CS-039",
+      "rules": [
+        "MB-0815",
+        "MB-0816",
+        "MB-0818"
+      ],
+      "case": "Preference resolves to child inheriting private constructor",
+      "evidence_file": "part3-probes.json",
+      "source_index": 0,
+      "actual": [
+        "finding",
+        "di_target_not_instantiable"
+      ],
+      "passed": true
+    },
+    {
+      "acceptance_id": "CS-040",
+      "rules": [
+        "MB-0815",
+        "MB-0816"
+      ],
+      "case": "PHP runtime cross-check of same synthetic inheritance pattern",
+      "evidence_file": "part3-probes.json",
+      "source_index": 1,
+      "actual": "Error: Call to private QaCurrentStatePrivateParent::__construct() from global scope",
+      "passed": true
+    },
+    {
+      "acceptance_id": "CS-041",
+      "rules": [
+        "MB-0817"
+      ],
+      "case": "Unexamined array assigned to callable constructor parameter",
+      "evidence_file": "part3-probes.json",
+      "source_index": 2,
+      "actual": [
+        "gap",
+        "di_callable_array_unresolved"
+      ],
+      "passed": true
+    },
+    {
+      "acceptance_id": "CS-042",
+      "rules": [
+        "MB-0805"
+      ],
+      "case": "Exact source policy with package version \"1.0.0\"",
+      "evidence_file": "part3-probes.json",
+      "source_index": 3,
+      "actual": "PASS",
+      "passed": true
+    },
+    {
+      "acceptance_id": "CS-043",
+      "rules": [
+        "MB-0805"
+      ],
+      "case": "Exact source policy with package version \"\"",
+      "evidence_file": "part3-probes.json",
+      "source_index": 4,
+      "actual": "UNKNOWN",
+      "passed": true
+    }
+  ],
+  "cli_test_files": 138,
+  "cli_test_failures": 0,
+  "phase1_assertions": 58,
+  "additional_regression_ids": [
+    "REG-SECRET-TRACKED",
+    "REG-DI-PUBLIC",
+    "REG-LEGIT-TIMESTAMPS"
+  ],
+  "changed_production_paths": [
+    "src/Engine/Checks/DependencyPolicyCheck.php",
+    "src/Engine/Checks/Families/ComposerAdvisoryChecks.php",
+    "src/Engine/Checks/Families/ComposerRepositoryChecks.php",
+    "src/Engine/Checks/GitHistoryCheck.php",
+    "src/Engine/Checks/MagentoDiCheck.php",
+    "src/Rules/requirements/internal-catalog.json",
+    "src/Rules/requirements/magebean-catalog.json"
+  ],
+  "added_production_paths": [
+    "src/Engine/Checks/AbsoluteTimestamp.php"
+  ],
+  "profiles_changed": false,
+  "protected_standard_and_archive_definitions_changed": false,
+  "packaged_validation": [
+    {
+      "artifact": "magebean.phar",
+      "sha256": "29323a0f533dffb209f847eec7e1830d212cb0e2b220fb24b65994978b358e6f",
+      "phase1_archived_code_assertions": 58,
+      "qualification_passed": true
+    },
+    {
+      "artifact": "artifacts/magebean-one-time.phar",
+      "sha256": "cda843aeabde67873fc8695daf647f93f80db8f5183495ed3a5694b27a21a878",
+      "phase1_archived_code_assertions": 58,
+      "qualification_passed": true
+    }
+  ]
+}

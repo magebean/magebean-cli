@@ -85,12 +85,12 @@ try {
     file_put_contents($root . '/nginx.conf', "ssl_protocols TLSv1.2 TLSv1.3;\nssl_ciphers ALL:ECDHE;\n");
     qaExpect($web->tlsCiphers(['files' => ['nginx.conf']])[0] === null, 'QA-08 public UNKNOWN');
     foreach ([
-        "/var/log/nginx/access.log {\nrotate 7\ncompress\n}\n" => true,
-        "rotate 7\ncompress\n/var/log/nginx/access.log {\ndelaycompress\n}\n" => true,
-        "/var/log/nginx/access.log {\nrotate 7\ndelaycompress\n}\n" => false,
-        "/var/log/nginx/access.log {\nrotate 7\ncompress\nnocompress\n}\n" => false,
-        "/var/log/nginx/a.log {\nrotate 7\n}\n/var/log/nginx/b.log {\ncompress\n}\n" => false,
-        "/var/log/nginx/access.log {\nrotate -1\ncompress\n}\n" => true,
+        "/var/log/nginx/access.log {\ndaily\nrotate 7\ncompress\n}\n" => true,
+        "daily\nrotate 7\ncompress\n/var/log/nginx/access.log {\ndelaycompress\n}\n" => true,
+        "/var/log/nginx/access.log {\ndaily\nrotate 7\ndelaycompress\n}\n" => false,
+        "/var/log/nginx/access.log {\ndaily\nrotate 7\ncompress\nnocompress\n}\n" => false,
+        "/var/log/nginx/a.log {\ndaily\nrotate 7\n}\n/var/log/nginx/b.log {\ncompress\n}\n" => false,
+        "/var/log/nginx/access.log {\ndaily\nrotate -1\ncompress\n}\n" => false,
         "include /etc/logrotate.d\n" => null,
     ] as $config => $expected) {
         file_put_contents($root . '/rotate.conf', $config);

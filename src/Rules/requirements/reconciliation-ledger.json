@@ -385,15 +385,14 @@
     {
       "id": "MB-0043",
       "allocation_key": "baseline/MB-R043",
-      "revision": 4,
-      "criterion": "Log rotation configured; assess only the collected Magento deployment scope.",
-      "verdict": "security_reviewed",
-      "reviewer": "family-separation",
-      "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
+      "revision": 5,
+      "criterion": "The supplied project logrotate configuration declares a supported rotation cadence, positive retention and compression for its assessed stanzas. This validates configuration text, not installed scheduler activation or actual log deletion.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "retirement-evidence-reassessment",
+      "limitations": "The supplied project logrotate configuration declares a supported rotation cadence, positive retention and compression for its assessed stanzas. This validates configuration text, not installed scheduler activation or actual log deletion.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean",
-      "lifecycle": "retired"
+      "family": "magebean"
     },
     {
       "id": "MB-0046",
@@ -913,15 +912,14 @@
     {
       "id": "MB-0093",
       "allocation_key": "baseline/MB-R093",
-      "revision": 2,
-      "criterion": "PCI manual evidence checklist present; assess only the collected Magento deployment scope.",
-      "verdict": "heuristic_supporting_only",
-      "reviewer": "family-separation",
-      "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
+      "revision": 3,
+      "criterion": "At least one supplied readable checklist contains the configured payment scope, SAQ notes, access review, incident response and vendor responsibility topic declarations. This is document-topic presence, not adequacy of PCI evidence or operational compliance.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "retirement-evidence-reassessment",
+      "limitations": "At least one supplied readable checklist contains the configured payment scope, SAQ notes, access review, incident response and vendor responsibility topic declarations. This is document-topic presence, not adequacy of PCI evidence or operational compliance.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean",
-      "lifecycle": "retired"
+      "family": "magebean"
     },
     {
       "id": "MB-0094",
@@ -12497,15 +12495,14 @@
     {
       "id": "MB-0731",
       "allocation_key": "family-separation/baseline/MB-R008",
-      "revision": 1,
-      "criterion": "Admin passwords require at least 8 characters; assess only the collected Magento deployment scope.",
-      "verdict": "heuristic_supporting_only",
-      "reviewer": "family-separation",
-      "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
+      "revision": 2,
+      "criterion": "The collected Admin minimum-password declaration or supported installed default is at least eight characters. Existing passwords, custom identity providers and uncollected scopes are not assessed.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "retirement-evidence-reassessment",
+      "limitations": "The collected Admin minimum-password declaration or supported installed default is at least eight characters. Existing passwords, custom identity providers and uncollected scopes are not assessed.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean",
-      "lifecycle": "retired"
+      "family": "magebean"
     },
     {
       "id": "MB-0732",
@@ -12523,15 +12520,14 @@
     {
       "id": "MB-0733",
       "allocation_key": "family-separation/baseline/MB-R013",
-      "revision": 1,
-      "criterion": "Template output is escaped; assess only the collected Magento deployment scope.",
-      "verdict": "heuristic_supporting_only",
-      "reviewer": "family-separation",
-      "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
+      "revision": 2,
+      "criterion": "Within bounded collected PHTML files, supported direct dynamic output expressions call recognized context-matched escaping APIs on supported template receivers, use supported encoding forms or static values. This is an output syntax policy; custom implementations, unsupported contexts, dynamic markup and incomplete source coverage remain unavailable, and runtime XSS safety is not established.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "retirement-evidence-reassessment",
+      "limitations": "Within bounded collected PHTML files, supported direct dynamic output expressions call recognized context-matched escaping APIs on supported template receivers, use supported encoding forms or static values. This is an output syntax policy; custom implementations, unsupported contexts, dynamic markup and incomplete source coverage remain unavailable, and runtime XSS safety is not established.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean",
-      "lifecycle": "retired"
+      "family": "magebean"
     },
     {
       "id": "MB-0734",
@@ -12562,15 +12558,14 @@
     {
       "id": "MB-0736",
       "allocation_key": "family-separation/baseline/MB-R022",
-      "revision": 1,
-      "criterion": "Escaping for JS context; assess only the collected Magento deployment scope.",
-      "verdict": "heuristic_supporting_only",
-      "reviewer": "family-separation",
-      "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
+      "revision": 2,
+      "criterion": "Within bounded collected templates, supported direct PHP output into inline JavaScript calls recognized JS-string escaping APIs or supported native JSON encoding in the appropriate supported context. This is a syntax observation; unresolved receiver/function identity, dynamic markup, unsupported JS contexts and incomplete coverage remain unavailable, not proof of browser-wide safety.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "retirement-evidence-reassessment",
+      "limitations": "Within bounded collected templates, supported direct PHP output into inline JavaScript calls recognized JS-string escaping APIs or supported native JSON encoding in the appropriate supported context. This is a syntax observation; unresolved receiver/function identity, dynamic markup, unsupported JS contexts and incomplete coverage remain unavailable, not proof of browser-wide safety.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean",
-      "lifecycle": "retired"
+      "family": "magebean"
     },
     {
       "id": "MB-0737",
@@ -12601,54 +12596,50 @@
     {
       "id": "MB-0739",
       "allocation_key": "family-separation/baseline/MB-R033",
-      "revision": 1,
-      "criterion": "display_errors is Off; assess only the collected Magento deployment scope.",
-      "verdict": "heuristic_supporting_only",
-      "reviewer": "family-separation",
-      "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
+      "revision": 2,
+      "criterion": "Inspected readable supplied PHP ini files explicitly declare display_errors disabled. Missing, malformed or unreadable declaration evidence is unavailable. The effective PHP web-worker configuration and runtime exception behavior are not established.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "retirement-evidence-reassessment",
+      "limitations": "Inspected readable supplied PHP ini files explicitly declare display_errors disabled. Missing, malformed or unreadable declaration evidence is unavailable. The effective PHP web-worker configuration and runtime exception behavior are not established.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean",
-      "lifecycle": "retired"
+      "family": "magebean"
     },
     {
       "id": "MB-0740",
       "allocation_key": "family-separation/baseline/MB-R036",
-      "revision": 1,
-      "criterion": "No dev debug configs on production (template hints off); assess only the collected Magento deployment scope.",
-      "verdict": "heuristic_supporting_only",
-      "reviewer": "family-separation",
-      "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
+      "revision": 2,
+      "criterion": "The configured named template-hint paths in the supplied literal project configuration are explicitly disabled. Missing or malformed declarations remain unavailable; effective merged store and web-worker settings are not established.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "retirement-evidence-reassessment",
+      "limitations": "The configured named template-hint paths in the supplied literal project configuration are explicitly disabled. Missing or malformed declarations remain unavailable; effective merged store and web-worker settings are not established.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean",
-      "lifecycle": "retired"
+      "family": "magebean"
     },
     {
       "id": "MB-0741",
       "allocation_key": "family-separation/baseline/MB-R041",
-      "revision": 1,
-      "criterion": "No dev cache backends (avoid file backend); assess only the collected Magento deployment scope.",
-      "verdict": "heuristic_supporting_only",
-      "reviewer": "family-separation",
-      "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
+      "revision": 2,
+      "criterion": "The supplied literal project configuration contains supported cache backend declarations and no assessed declared backend is file-based. Missing or malformed required evidence remains unavailable. This does not require every backend to be Redis or prove running cache service health.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "retirement-evidence-reassessment",
+      "limitations": "The supplied literal project configuration contains supported cache backend declarations and no assessed declared backend is file-based. Missing or malformed required evidence remains unavailable. This does not require every backend to be Redis or prove running cache service health.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean",
-      "lifecycle": "retired"
+      "family": "magebean"
     },
     {
       "id": "MB-0742",
       "allocation_key": "family-separation/baseline/MB-R044",
-      "revision": 1,
-      "criterion": "Debug template hints disabled in production; assess only the collected Magento deployment scope.",
-      "verdict": "heuristic_supporting_only",
-      "reviewer": "family-separation",
-      "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
+      "revision": 2,
+      "criterion": "The configured named storefront-template-hint and inline-translation paths in the supplied literal project configuration are explicitly disabled. Missing or malformed evidence remains unavailable; effective runtime settings are outside this predicate.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "retirement-evidence-reassessment",
+      "limitations": "The configured named storefront-template-hint and inline-translation paths in the supplied literal project configuration are explicitly disabled. Missing or malformed evidence remains unavailable; effective runtime settings are outside this predicate.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean",
-      "lifecycle": "retired"
+      "family": "magebean"
     },
     {
       "id": "MB-0743",
@@ -12666,15 +12657,14 @@
     {
       "id": "MB-0744",
       "allocation_key": "family-separation/baseline/MB-R071",
-      "revision": 1,
-      "criterion": "No abandoned libraries allowed; assess only the collected Magento deployment scope.",
-      "verdict": "heuristic_supporting_only",
-      "reviewer": "family-separation",
-      "limitations": "Source-family isolation does not establish evidence sufficiency or compliance.",
+      "revision": 2,
+      "criterion": "Every library package in the complete assessed Composer lock inventory has explicit usable maintenance status and is not reported abandoned. Missing inventory, malformed package records or unknown maintenance statuses remain unavailable; vendor support contracts and all extension maintenance are not established.",
+      "verdict": "accepted_scoped_criterion",
+      "reviewer": "retirement-evidence-reassessment",
+      "limitations": "Every library package in the complete assessed Composer lock inventory has explicit usable maintenance status and is not reported abandoned. Missing inventory, malformed package records or unknown maintenance statuses remain unavailable; vendor support contracts and all extension maintenance are not established.",
       "obligation_count": 1,
       "alignments": [],
-      "family": "magebean",
-      "lifecycle": "retired"
+      "family": "magebean"
     },
     {
       "id": "MB-0745",
@@ -13858,17 +13848,17 @@
     }
   ],
   "counts": {
-    "active_internal_requirements": 725,
+    "active_internal_requirements": 735,
     "historical_allocations": 828,
-    "retired_identity_count": 103,
+    "retired_identity_count": 93,
     "families": {
-      "magebean": 100,
+      "magebean": 110,
       "asvs": 345,
       "pci": 280
     },
     "asvs_alignment_references": 345,
     "pci_alignment_references": 280,
-    "accepted_scoped_criteria": 100,
+    "accepted_scoped_criteria": 110,
     "human_evidence_required": 625
   }
 }

@@ -65,10 +65,10 @@ final class PaymentSourceChecks extends CodeSearchSupport
         }
 
         if ($filesRead === 0) {
-            return [false, 'No application schema/code files found to verify cardholder data storage', $evidence];
+            return [null, '[UNKNOWN] No readable schema/code files were collected for cardholder storage candidates', $evidence];
         }
 
-        return [true, 'No raw PAN or sensitive-authentication-data storage patterns detected', $evidence];
+        return [null, '[UNKNOWN] No supported source storage candidate found; deployment database contents were not inspected', $evidence];
     }
 
     public function cardholderDataFiles(array $args): array
@@ -121,7 +121,7 @@ final class PaymentSourceChecks extends CodeSearchSupport
         }
 
         if ($filesRead === 0) {
-            return [true, 'No high-risk export, backup, media, or log files found to scan', $evidence];
+            return [null, '[UNKNOWN] No readable eligible export, backup, media or log file was collected', $evidence];
         }
 
         return [true, 'No cardholder data detected in high-risk files, exports, or backups', $evidence];
@@ -177,7 +177,7 @@ final class PaymentSourceChecks extends CodeSearchSupport
         }
 
         if ($filesRead === 0) {
-            return [true, 'No application log or report files found to scan', $evidence];
+            return [null, '[UNKNOWN] No readable application log/report file was collected', $evidence];
         }
 
         return [true, 'No cardholder data detected in application logs or reports', $evidence];
@@ -233,10 +233,10 @@ final class PaymentSourceChecks extends CodeSearchSupport
         }
 
         if ($filesRead === 0) {
-            return [true, 'No custom payment method files found to scan', $evidence];
+            return [null, '[UNKNOWN] No custom payment method source was collected', $evidence];
         }
 
-        return [true, 'No direct raw-card payment collection patterns detected', $evidence];
+        return [null, '[UNKNOWN] Payment-source candidates were inspected; payment inventory and data-flow documentation were not verified', $evidence];
     }
 
     public function checkoutRawCardCollection(array $args): array
@@ -289,10 +289,10 @@ final class PaymentSourceChecks extends CodeSearchSupport
         }
 
         if ($filesRead === 0) {
-            return [true, 'No custom checkout files found to scan', $evidence];
+            return [null, '[UNKNOWN] No readable checkout source was collected', $evidence];
         }
 
-        return [true, 'No raw card collection patterns detected in custom checkout code', $evidence];
+        return [null, '[UNKNOWN] No supported literal raw-card declaration found; dynamic/rendered checkout collection is unresolved', $evidence];
     }
 
     public function paymentScriptInventory(array $args): array
@@ -332,10 +332,10 @@ final class PaymentSourceChecks extends CodeSearchSupport
             'truncated' => count($scripts) >= $max,
         ];
 
-        if (!empty($inventory['ok'])) {
-            return [true, 'Payment page script inventory is present', $evidence];
-        }
-
+        $listed = $this->inventorySources(array_values(array_map('strval', $inventoryFiles)));
+        $unlisted = array_values(array_filter($scripts, static fn(array $script): bool => !isset($listed[$script['source'] ?? ''])));
+        $evidence['unlisted_sources'] = array_values(array_unique(array_column($unlisted, 'source')));
+        if ($scripts !== [] && $unlisted === []) return [true, 'Every collected literal payment script source is present in the supplied inventory; runtime completeness is not established', $evidence];
         if ($scripts !== []) {
             $lines = ['Payment page script sources detected without an inventory:'];
             foreach ($scripts as $script) {
@@ -355,10 +355,10 @@ final class PaymentSourceChecks extends CodeSearchSupport
         }
 
         if ($filesRead === 0) {
-            return [true, 'No custom payment-page files found to scan for script inventory', $evidence];
+            return [null, '[UNKNOWN] No readable payment-page source was collected for inventory comparison', $evidence];
         }
 
-        return [true, 'No custom payment-page script sources detected', $evidence];
+        return [null, '[UNKNOWN] No supported literal payment-page script source was collected; dynamic runtime inventory is unresolved', $evidence];
     }
 
     public function paymentScriptIntegrity(array $args): array
@@ -399,14 +399,11 @@ final class PaymentSourceChecks extends CodeSearchSupport
             'truncated' => count($scripts) >= $max,
         ];
 
-        if ($scripts === []) {
-            return [true, $filesRead === 0 ? 'No custom payment-page files found to scan for script integrity' : 'No custom payment-page script sources detected', $evidence];
-        }
-
-        if (!empty($controlEvidence['ok'])) {
-            return [true, 'Payment page script allowlist or integrity controls are present', $evidence];
-        }
-
+        if ($scripts === []) return [null, '[UNKNOWN] No supported literal payment script was collected for bound integrity inspection', $evidence];
+        $bound = $this->boundScriptIntegrity($scripts);
+        $evidence['bound_integrity'] = $bound;
+        if ($bound['missing'] === [] && $bound['unsupported'] !== []) return [null, '[UNKNOWN] Script integrity requires unsupported inline/dynamic or external content validation', $evidence];
+        if ($bound['missing'] === [] && $bound['unsupported'] === []) return [true, 'Each collected literal external script tag declares a syntactically valid SRI hash; fetched bytes and runtime DOM were not verified', $evidence];
         $lines = ['Payment page scripts detected without allowlist or integrity controls:'];
         foreach ($scripts as $script) {
             $lines[] = sprintf(
@@ -505,7 +502,7 @@ final class PaymentSourceChecks extends CodeSearchSupport
         ];
 
         if ($hasCspMonitoring || $hasIntegrityMonitoring) {
-            return [true, 'Payment page tamper monitoring has scope, detection/reporting, and alerting evidence', $evidence];
+            return [null, '[UNKNOWN] Monitoring declaration markers were collected; scheduled execution, baseline comparison and delivered alerts were not verified', $evidence];
         }
 
         $lines = ['Payment page tamper monitoring evidence is incomplete:'];
@@ -516,7 +513,7 @@ final class PaymentSourceChecks extends CodeSearchSupport
             $lines[] = '    - no monitoring evidence files or readable app/config files found';
         }
 
-        return [false, implode("\n", $lines), $evidence];
+        return [null, '[UNKNOWN] Monitoring execution evidence is unavailable; declaration markers alone do not establish readiness', $evidence];
     }
 
     public function securityHeadersBaseline(array $args): array
@@ -589,7 +586,7 @@ final class PaymentSourceChecks extends CodeSearchSupport
         ];
 
         if ($filesRead === 0) {
-            return [false, 'No readable security header configuration files found', $evidence];
+            return [null, '[UNKNOWN] No readable security-header source configuration was collected', $evidence];
         }
 
         if ($missing !== [] || $permissive !== []) {
@@ -600,10 +597,10 @@ final class PaymentSourceChecks extends CodeSearchSupport
             foreach ($permissive as $issue) {
                 $lines[] = sprintf('    - %s:%d [%s] %s', $issue['file'], $issue['line'], $issue['kind'], $issue['snippet']);
             }
-            return [false, implode("\n", $lines), $evidence];
+            return [null, '[UNKNOWN] Runtime response policy is unobserved; source declaration diagnostics are supporting only', $evidence];
         }
 
-        return [true, 'Security header baseline is configured with CSP, frame protection, and nosniff', $evidence];
+        return [null, '[UNKNOWN] Header declaration markers were collected; emitted application response headers were not inspected', $evidence];
     }
 
     public function checkoutCspEnforced(array $args): array
@@ -675,7 +672,7 @@ final class PaymentSourceChecks extends CodeSearchSupport
         ];
 
         if ($filesRead === 0) {
-            return [false, 'No checkout CSP configuration files found to verify', $evidence];
+            return [null, '[UNKNOWN] No checkout CSP source configuration was collected', $evidence];
         }
 
         if ($missing !== [] || $permissive !== []) {
@@ -686,10 +683,10 @@ final class PaymentSourceChecks extends CodeSearchSupport
             foreach ($permissive as $issue) {
                 $lines[] = sprintf('    - %s:%d [%s] %s', $issue['file'], $issue['line'], $issue['kind'], $issue['snippet']);
             }
-            return [false, implode("\n", $lines), $evidence];
+            return [null, '[UNKNOWN] Runtime response policy is unobserved; source declaration diagnostics are supporting only', $evidence];
         }
 
-        return [true, 'Checkout CSP includes required directives and reporting controls', $evidence];
+        return [null, '[UNKNOWN] CSP declaration markers were collected; an enforced checkout response policy was not inspected', $evidence];
     }
 
     private function paymentPageTamperEvidenceFile(string $relative): array
@@ -886,6 +883,51 @@ final class PaymentSourceChecks extends CodeSearchSupport
             'locations' => $locations,
             'permissive' => $permissive,
         ];
+    }
+
+    private function inventorySources(array $files): array
+    {
+        $sources = [];
+        foreach ($files as $relative) {
+            $content = $this->collectors->files->read($this->ctx->abs($relative));
+            if (!is_string($content)) continue;
+            $data = json_decode($content, true);
+            if (!is_array($data)) continue;
+            $entries = array_is_list($data) ? $data : ($data['scripts'] ?? $data['entries'] ?? []);
+            foreach (is_array($entries) ? $entries : [] as $entry) {
+                if (!is_array($entry)) continue;
+                $source = $entry['source'] ?? $entry['src'] ?? $entry['url'] ?? $entry['path'] ?? null;
+                if (is_string($source) && trim($source) !== '') $sources[trim($source)] = true;
+            }
+        }
+        return $sources;
+    }
+
+    private function boundScriptIntegrity(array $scripts): array
+    {
+        $missing = []; $unsupported = [];
+        foreach ($scripts as $script) {
+            if (($script['kind'] ?? '') !== 'script_tag' || !preg_match('~^https?://|^/~i', $script['source'] ?? '')) { $unsupported[] = $script['file']; continue; }
+            $text = $this->collectors->files->read($this->ctx->abs($script['file']));
+            if (!is_string($text)) { $unsupported[] = $script['file']; continue; }
+            $matched = false; $valid = true;
+            preg_match_all('~<script\b(?P<attrs>[^>]*)>~is', $text, $tags, PREG_SET_ORDER);
+            foreach ($tags as $tag) {
+                if (!preg_match('~(?:^|\s)src\s*=\s*([\'\"])(.*?)\1~is', $tag['attrs'], $src) || $src[2] !== $script['source']) continue;
+                $matched = true; $tagValid = false;
+                if (preg_match('~(?:^|\s)integrity\s*=\s*([\'\"])(.*?)\1~is', $tag['attrs'], $hash)) {
+                    foreach (preg_split('/\s+/', trim($hash[2])) ?: [] as $value) {
+                        if (!preg_match('/^sha(256|384|512)-([A-Za-z0-9+\/=]+)$/D', $value, $parts)) continue;
+                        $bytes = base64_decode($parts[2], true);
+                        if (is_string($bytes) && strlen($bytes) === (int)$parts[1] / 8) $tagValid = true;
+                    }
+                }
+                $valid = $valid && $tagValid;
+            }
+            if (!$matched) $unsupported[] = $script['file'];
+            elseif (!$valid) $missing[] = ['file'=>$script['file'],'line'=>$script['line'],'source'=>$script['source']];
+        }
+        return ['missing'=>$missing,'unsupported'=>array_values(array_unique($unsupported))];
     }
 
     private function paymentScriptIntegrityEvidence(array $files): array
@@ -1227,9 +1269,6 @@ final class PaymentSourceChecks extends CodeSearchSupport
 
             $offset = (int)$match[0][1];
             $window = $this->codeWindow($content, $offset, 220);
-            if ($this->isMaskedOrTokenizedCardFileContext($window)) {
-                continue;
-            }
 
             $fingerprint = substr($digits, 0, 6) . ':' . substr($digits, -4);
             if (isset($seen[$fingerprint])) {
@@ -1266,9 +1305,6 @@ final class PaymentSourceChecks extends CodeSearchSupport
                 $offset = (int)$match['field'][1];
                 $window = $this->codeWindow($content, $offset, 260);
 
-                if ($this->isMaskedOrTokenizedCardFileContext($window)) {
-                    continue;
-                }
                 if ($kind === 'track_data' && !$this->looksLikeTrackDataValue($value, $window)) {
                     continue;
                 }

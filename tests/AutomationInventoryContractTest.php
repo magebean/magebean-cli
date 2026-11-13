@@ -5,7 +5,7 @@ use Magebean\Engine\{RequirementCatalog,RequirementDefinitionValidator,Requireme
 use Magebean\Engine\Checks\CheckRegistry;
 $pack=RequirementCatalog::loadAll();$index=array_column($pack['rules'],null,'id');$registry=CheckRegistry::fromContext(new Context('/unused',''));$n=0;
 $assert=static function(bool $ok,string $message)use(&$n):void{++$n;if(!$ok)throw new RuntimeException($message);};
-$assert(count($index)===725,'Current inventory includes fresh scoped source and production automation definitions');
+$assert(count($index)===735,'Current inventory includes fresh scoped source and production automation definitions');
 $allocation=RequirementCatalog::read('allocation-manifest');
 $assert(count($allocation['allocations'])===828&&$allocation['next_id']===829,'Automation additions allocate fresh identities without reusing historical IDs');
 foreach($index as$r)$assert(RequirementDefinitionValidator::validate($r,$registry)===[],'Valid structural contract '.$r['id']);

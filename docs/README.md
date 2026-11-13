@@ -1,35 +1,45 @@
-# Magebean CLI documentation
+# Magebean documentation
+
+This index points to current product documentation. The baseline and runtime catalogue own current criteria and membership. Archived plans and QA reports describe their recorded revisions and do not override current behavior.
 
 ## Start here
 
-- [README](../README.md): installation, quick start and profile selection.
-- [CLI reference](cli-reference.md): commands, options, modes and agent operations.
-- [Magebean Security Baseline v1](magebean-baseline-v1.md): 100 Magebean rules grouped by control, mirrored from the Magebean catalog; excludes PCI DSS and OWASP ASVS clauses.
-- [Requirement source families](requirement-source-families.md): catalog authority, family boundaries and current inventory.
-- [Requirement model](requirement-model.md): identities, reusable checks, obligations and outcomes.
+- [Project README](../README.md): installation, examples and current profile counts.
+- [Security Baseline v1](magebean-baseline-v1.md): all 110 current Magebean criteria, revisions, categories, target modes and profile memberships.
+- [Profiles](guides/profiles.md): all 15 profiles, default selection and context gates.
+- [CLI reference](guides/cli-reference.md): commands, filters, exit codes and agent operation.
+- [Findings and output](guides/findings-and-output.md): evidence, uncertainty, canonical issues and diagnostics.
 
-## Magebean profiles and operation
+## Guides
 
-- [Automated-only profile contract](magebean-automated-only-profiles.md): Basic, Hardening and Magebean OWASP membership and evidence limits.
-- [Production machine policy](automation-feasibility/production-policy.md): capabilities and typed machine inputs.
-- [Findings-first reporting](magebean-findings-first.md): findings and collection guidance.
-- [API reference and data disclosure](api-reference.md): API-backed checks and transmitted data.
-- [Release packaging](release-packaging.md): building and validating the PHAR.
-- [Architecture](architecture.md): implementation boundaries and scan pipeline.
+- [Development and prelaunch](guides/development-prelaunch.md)
+- [Agency takeover](guides/takeover.md)
+- [Module audit](guides/module-audit.md)
+- [Production context and optional checks](guides/production-context.md)
+- [Runtime URL discovery](guides/runtime-url-discovery.md)
+- [Hotfix verification](guides/hotfix-verification.md)
+- [Troubleshooting incomplete scans](guides/troubleshooting.md)
+- [Provider webhook diagnostics](guides/provider-webhook-diagnostics.md)
 
-## External standards and CLI integration
+## Reference
 
-ASVS and PCI DSS are separate source families, not chapters of the Magebean baseline. Use their official versioned documents for standard requirements; no separate Magebean baseline documentation of those clauses is maintained. The links below provide source references and CLI-specific implementation and evidence scope. The Magebean `owasp` profile uses Top 10 taxonomy and is not an ASVS assessment.
+- [Source families](reference/requirement-source-families.md) and [requirement model](reference/requirement-model.md)
+- [Architecture](reference/architecture.md), [planning](reference/scan-planning.md) and [contracts](reference/scan-contracts.md)
+- [Collectors](reference/scan-collectors.md) and [reliability](reference/scan-reliability.md)
+- [API reference and data disclosure](reference/api-reference.md)
+- [Release packaging](reference/release-packaging.md)
+- [Compatibility regression](reference/compatibility-baseline.md)
 
-| Source | Local official document | CLI implementation |
-|---|---|---|
-| OWASP ASVS 5.0.0 | [ASVS document](OWASP_Application_Security_Verification_Standard_5.0.0_en.pdf) | [Native evidence scope](asvs-native-evidence.md) |
-| PCI DSS 4.0.1 | [PCI DSS document](PCI-DSS-v4_0_1.pdf) | [Evidence workflow](pci-dss-v4.0.1-workflow.md), [coverage](pci-dss-v4.0.1-coverage.md) |
+## Standards, examples and history
 
-## Migration and engineering records
+[ASVS/PCI workflows](standards/README.md) cover their separate official source families; they are not chapters of the Magebean baseline. The version-pinned official PDFs remain at their existing paths for source-catalogue compatibility.
 
-[Requirement migration](requirement-migration.md), [ASVS migration](asvs-requirement-migration.md), review ledgers, QA reports and automation-feasibility artifacts document implementation work at their recorded revisions. Historical counts, legacy MB-R examples and earlier profile contracts do not override the current source-family catalogs or automated-only profile contract. They remain useful as engineering evidence and compatibility history.
+[Examples](examples/README.md) are templates requiring real project values. [Archive](archive/README.md) contains superseded proposals, implementation phases and QA evidence. No historical evidence was discarded during cleanup.
 
-Documentation changes must preserve the distinction between a Magebean criterion, an official standard clause, a reusable check and a profile selection. Use current `MB-…` identities in user examples; label legacy selectors explicitly when discussing compatibility.
+To maintain the baseline and check local links:
 
-- [Agency takeover profile](magebean-takeover-profile.md)
+```sh
+php tools/update-baseline-doc.php
+php tools/update-baseline-doc.php --check
+python3 tools/check-docs.py
+```

@@ -6,17 +6,28 @@ use Magebean\Engine\Collectors\CollectorSet;
 
 final class ComposerRepositoryChecks extends ComposerSupport
 {
+    private function observedPackageRecords(array $selection): array
+    {
+        return array_map(static function (array $record): array {
+            foreach (['source','dist'] as $field) if (is_array($record[$field]??null)) $record[$field]=$record[$field]['url']??null;
+            return $record;
+        },$selection['packages']);
+    }
+
     public function vendorSupportApi(array $args): array
     {
+        $selection=$this->dependencySelection($args);
+        return $this->withDependencyProvenance($this->vendorSupportApiObserved($args,$selection),$selection);
+    }
+
+    private function vendorSupportApiObserved(array $args, array $selection): array
+    {
         $lockFile = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
-        if (!is_file($lockFile)) {
+        if ($selection['packages']===[]) {
             return [null, '[UNKNOWN] composer.lock not found'];
         }
 
-        $lock = json_decode((string)$this->collectors->files->read($lockFile), true);
-        if (!is_array($lock)) {
-            return [null, '[UNKNOWN] Unable to parse composer.lock'];
-        }
+        $lock=['packages'=>array_values($selection['packages'])];
 
         $packages = [];
         foreach (array_merge($lock['packages'] ?? [], $lock['packages-dev'] ?? []) as $package) {
@@ -146,13 +157,18 @@ final class ComposerRepositoryChecks extends ComposerSupport
 
     public function abandonedApi(array $args): array
     {
-        if (($problem = $this->strictInventoryProblem($args, false)) !== null) return $problem;
+        $selection=$this->dependencySelection($args);
+        return $this->withDependencyProvenance($this->abandonedApiObserved($args,$selection),$selection);
+    }
+
+    private function abandonedApiObserved(array $args, array $selection): array
+    {
         $lockFile = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
-        if (!is_file($lockFile)) {
+        if ($selection['packages']===[]) {
             return [null, '[UNKNOWN] composer.lock not found'];
         }
 
-        $installed = $this->readLockPackages($lockFile);
+        $installed = $this->observedPackageRecords($selection);
         if (!is_array($installed) || $installed === []) {
             return [null, '[UNKNOWN] Unable to parse composer.lock'];
         }
@@ -212,6 +228,7 @@ final class ComposerRepositoryChecks extends ComposerSupport
             }
 
             $abandoned[] = [
+                'status_observation'=>$status['_status_observation']??null,
                 'name' => $package['name'],
                 'installed' => $package['version'],
                 'replacement' => is_string($status['replacement'] ?? null)
@@ -269,13 +286,18 @@ final class ComposerRepositoryChecks extends ComposerSupport
 
     public function releaseRecencyApi(array $args): array
     {
-        if (($problem = $this->strictInventoryProblem($args, false)) !== null) return $problem;
+        $selection=$this->dependencySelection($args);
+        return $this->withDependencyProvenance($this->releaseRecencyApiObserved($args,$selection),$selection);
+    }
+
+    private function releaseRecencyApiObserved(array $args, array $selection): array
+    {
         $lockFile = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
-        if (!is_file($lockFile)) {
+        if ($selection['packages']===[]) {
             return [null, '[UNKNOWN] composer.lock not found'];
         }
 
-        $installed = $this->readLockPackages($lockFile);
+        $installed = $this->observedPackageRecords($selection);
         if (!is_array($installed) || $installed === []) {
             return [null, '[UNKNOWN] Unable to parse composer.lock'];
         }
@@ -330,11 +352,7 @@ final class ComposerRepositoryChecks extends ComposerSupport
             $latestDate = is_string($status['latest_date'] ?? null)
                 ? trim($status['latest_date'])
                 : '';
-            try {
-                $latestAt = $latestDate !== '' ? new \DateTimeImmutable($latestDate) : null;
-            } catch (\Exception) {
-                $latestAt = null;
-            }
+            $latestAt = \Magebean\Engine\Checks\AbsoluteTimestamp::parse($latestDate);
             if ($latestAt === null || $latestAt->getTimestamp() > $now) {
                 $unknown[] = $package + ['reason' => 'latest_date_invalid'];
                 continue;
@@ -375,25 +393,12 @@ final class ComposerRepositoryChecks extends ComposerSupport
             }, $visible);
             $resultMessage = 'Packagist-tracked packages without a release in the last '
                 . $months . " months:\n    - " . implode("\n    - ", $details);
-            if ($unknown !== []) {
-                $unknownDetails = array_map(
-                    static fn(array $package): string => $package['name'] . '@' . $package['version'],
-                    $unknown
-                );
-                $resultMessage .= "\n    Release recency unavailable for:\n    - "
-                    . implode("\n    - ", $unknownDetails);
-            }
+            // Unavailable release data is diagnostic evidence, not an actionable package issue.
             return [false, $resultMessage, $evidence];
         }
 
         if ($unknown !== []) {
-            $visible = $unknown;
-            $details = array_map(
-                static fn(array $package): string => $package['name'] . '@' . $package['version'],
-                $visible
-            );
-            $resultMessage = "[UNKNOWN] Release recency unavailable for:\n    - "
-                . implode("\n    - ", $details);
+            $resultMessage = '[UNKNOWN] Release recency could not be assessed for '.count($unknown).' package(s).';
             return [null, $resultMessage, $evidence];
         }
 
@@ -414,13 +419,18 @@ final class ComposerRepositoryChecks extends ComposerSupport
 
     public function repoArchivedApi(array $args): array
     {
-        if (($problem = $this->strictInventoryProblem($args, false)) !== null) return $problem;
+        $selection=$this->dependencySelection($args);
+        return $this->withDependencyProvenance($this->repoArchivedApiObserved($args,$selection),$selection);
+    }
+
+    private function repoArchivedApiObserved(array $args, array $selection): array
+    {
         $lockFile = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
-        if (!is_file($lockFile)) {
+        if ($selection['packages']===[]) {
             return [null, '[UNKNOWN] composer.lock not found'];
         }
 
-        $installed = $this->readLockPackages($lockFile);
+        $installed = $this->observedPackageRecords($selection);
         if (!is_array($installed) || $installed === []) {
             return [null, '[UNKNOWN] Unable to parse composer.lock'];
         }
@@ -558,24 +568,7 @@ final class ComposerRepositoryChecks extends ComposerSupport
             }, $findings);
             $resultMessage = "Packages from archived, disabled, or missing repositories:\n    - "
                 . implode("\n    - ", $details);
-            if ($unassessed !== []) {
-                $unassessedDetails = array_map(static function (array $item): string {
-                    return $item['name']
-                        . '@' . ($item['installed'] ?? $item['version'] ?? 'unknown-version')
-                        . ' (' . ($item['reason'] ?? 'status unavailable') . ')';
-                }, $unassessed);
-                $resultMessage .= "\n    Repository status awaiting collection or unavailable for:\n    - "
-                    . implode("\n    - ", $unassessedDetails);
-            }
-            if ($excluded !== []) {
-                $excludedDetails = array_map(static function (array $item): string {
-                    return $item['name']
-                        . '@' . ($item['installed'] ?? $item['version'] ?? 'unknown-version')
-                        . ' (' . ($item['reason'] ?? 'not applicable') . ')';
-                }, $excluded);
-                $resultMessage .= "\n    Repository status not applicable or unsupported for:\n    - "
-                    . implode("\n    - ", $excludedDetails);
-            }
+            // Keep coverage gaps and scope exclusions in structured evidence, not issue text.
             return [false, $resultMessage, $evidence];
         }
 
@@ -615,11 +608,17 @@ final class ComposerRepositoryChecks extends ComposerSupport
 
     public function riskyForkApi(array $args): array
     {
+        $selection=$this->dependencySelection($args);
+        return $this->withDependencyProvenance($this->riskyForkApiObserved($args,$selection),$selection);
+    }
+
+    private function riskyForkApiObserved(array $args, array $selection): array
+    {
         $lockFile = $this->ctx->abs($args['lock_file'] ?? 'composer.lock');
-        if (!is_file($lockFile)) {
+        if ($selection['packages']===[]) {
             return [null, '[UNKNOWN] composer.lock not found'];
         }
-        $installed = $this->readLockPackages($lockFile);
+        $installed = $this->observedPackageRecords($selection);
         if (!is_array($installed) || $installed === []) {
             return [null, '[UNKNOWN] Unable to parse composer.lock'];
         }

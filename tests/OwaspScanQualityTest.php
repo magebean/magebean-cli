@@ -16,7 +16,7 @@ try{
  qualityAssert(count($assembled['execution_errors'])===1&&!$assembled['meta']['scan_complete'],'Default automated OWASP collection failure is incomplete execution');
  qualityAssert((new \Magebean\Engine\ScanExitPolicy())->code($assembled)===3,'Incomplete automated OWASP exits3 rather than clean0');
  qualityAssert($assembled['execution_errors'][0]['id']==='MB-0027'&&$assembled['summary']['failed']===0,'TLS collection failure is not HSTS vulnerability');
- $out=new BufferedOutput();(new \Magebean\Console\ScanConsoleRenderer())->renderPrettySummary($out,$assembled,$root);$text=$out->fetch();qualityAssert(str_contains($text,'need attention')&&$assembled['summary']['needs_attention']===1&&!str_contains($text,'Trust the site CA')&&!str_contains($text,'INCONCLUSIVE'),'Automated console names errors and actions');
+ $out=new BufferedOutput();(new \Magebean\Console\ScanConsoleRenderer())->renderPrettySummary($out,$assembled,$root);$text=$out->fetch();qualityAssert(str_contains($text,'need attention')&&$assembled['summary']['needs_attention']===0&&!str_contains($text,'Trust the site CA')&&!str_contains($text,'INCONCLUSIVE'),'Automated console names errors and actions');
  $ids=array_column($plan->pack['rules'],'id');qualityAssert(in_array('MB-0730',$ids,true)&&!in_array('MB-0072',$ids,true),'Deployment scope has no Git-history prerequisite');
  $index=array_column(RequirementCatalog::loadAll()['rules'],null,'id');
  foreach(['0009','0014','0027','0034','0042','0055','0056','0057','0059','0061','0069','0070'] as$suffix){

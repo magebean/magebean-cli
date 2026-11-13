@@ -1,0 +1,351 @@
+{
+    "phase": 3,
+    "scope": "Fresh synthetic QA probes; legacy check evidence is projected through the production risk interpreter. No live-store qualification.",
+    "checks": [
+        {
+            "acceptance_id": "CS-001",
+            "rules": [
+                "MB-0067"
+            ],
+            "archived_case": "stable-resolution-but-prefer-stable-omitted",
+            "executed_case": "stable-resolution-but-prefer-stable-omitted",
+            "evidence_file": "part1-probes.json",
+            "source_index": 0,
+            "status": "FAIL",
+            "category": "policy",
+            "confidence": "confirmed",
+            "needs_attention": true,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-002",
+            "rules": [
+                "MB-0065"
+            ],
+            "archived_case": "locked-development-tool-wildcard",
+            "executed_case": "locked-development-tool-wildcard",
+            "evidence_file": "part1-probes.json",
+            "source_index": 1,
+            "status": "FAIL",
+            "category": "policy",
+            "confidence": "confirmed",
+            "needs_attention": true,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-003",
+            "rules": [
+                "MB-0067"
+            ],
+            "archived_case": "dev-resolution-allowed-with-prefer-stable",
+            "executed_case": "dev-resolution-allowed-with-prefer-stable",
+            "evidence_file": "part1-probes.json",
+            "source_index": 2,
+            "status": "PASS",
+            "category": null,
+            "confidence": null,
+            "needs_attention": false,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-004",
+            "rules": [
+                "MB-0066"
+            ],
+            "archived_case": "explicit-development-branch",
+            "executed_case": "explicit-development-branch",
+            "evidence_file": "part1-probes.json",
+            "source_index": 3,
+            "status": "FAIL",
+            "category": "policy",
+            "confidence": "confirmed",
+            "needs_attention": true,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-005",
+            "rules": [
+                "MB-0040"
+            ],
+            "archived_case": "file-session-backend-no-redis",
+            "executed_case": "file-session-backend-no-redis",
+            "evidence_file": "part1-probes.json",
+            "source_index": 4,
+            "status": "FAIL",
+            "category": "policy",
+            "confidence": "confirmed",
+            "needs_attention": true,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-006",
+            "rules": [
+                "MB-0031"
+            ],
+            "archived_case": "persisted-production-declaration-only",
+            "executed_case": "persisted-production-declaration-only",
+            "evidence_file": "part1-probes.json",
+            "source_index": 5,
+            "status": "PASS",
+            "category": null,
+            "confidence": null,
+            "needs_attention": false,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-007",
+            "rules": [
+                "MB-0062"
+            ],
+            "archived_case": "release-date:2000-01-01T00:00:00Z",
+            "executed_case": "release-date:2000-01-01T00:00:00Z",
+            "evidence_file": "part1-probes.json",
+            "source_index": 6,
+            "status": "FAIL",
+            "category": "policy",
+            "confidence": "confirmed",
+            "needs_attention": true,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-010",
+            "rules": [
+                "MB-0062"
+            ],
+            "archived_case": "release-date:2026-11-11T01:19:01+00:00",
+            "executed_case": "release-date:2026-11-11T13:31:12+00:00",
+            "evidence_file": "part1-probes.json",
+            "source_index": 9,
+            "status": "PASS",
+            "category": null,
+            "confidence": null,
+            "needs_attention": false,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-011",
+            "rules": [
+                "MB-0063"
+            ],
+            "archived_case": "repository-archived:false",
+            "executed_case": "repository-archived:false",
+            "evidence_file": "part1-probes.json",
+            "source_index": 10,
+            "status": "PASS",
+            "category": null,
+            "confidence": null,
+            "needs_attention": false,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-012",
+            "rules": [
+                "MB-0063"
+            ],
+            "archived_case": "repository-archived:true",
+            "executed_case": "repository-archived:true",
+            "evidence_file": "part1-probes.json",
+            "source_index": 11,
+            "status": "FAIL",
+            "category": "policy",
+            "confidence": "confirmed",
+            "needs_attention": true,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-013",
+            "rules": [
+                "MB-0039"
+            ],
+            "archived_case": "indexer-currently-working",
+            "executed_case": "indexer-currently-working",
+            "evidence_file": "part1-probes.json",
+            "source_index": 12,
+            "status": "UNKNOWN",
+            "category": null,
+            "confidence": null,
+            "needs_attention": false,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-014",
+            "rules": [
+                "MB-0047"
+            ],
+            "archived_case": "only-recent-error-cron-execution",
+            "executed_case": "only-recent-error-cron-execution",
+            "evidence_file": "part1-probes.json",
+            "source_index": 13,
+            "status": "PASS",
+            "category": null,
+            "confidence": null,
+            "needs_attention": false,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-015",
+            "rules": [
+                "MB-0048"
+            ],
+            "archived_case": "only-error-no-pending-backlog",
+            "executed_case": "only-error-no-pending-backlog",
+            "evidence_file": "part1-probes.json",
+            "source_index": 14,
+            "status": "PASS",
+            "category": null,
+            "confidence": null,
+            "needs_attention": false,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-018",
+            "rules": [
+                "MB-0059"
+            ],
+            "archived_case": "same-transitive-advisory-published:2000-01-01T00:00:00Z",
+            "executed_case": "same-transitive-advisory-published:2000-01-01T00:00:00Z",
+            "evidence_file": "part1-probes.json",
+            "source_index": 17,
+            "status": "FAIL",
+            "category": "policy",
+            "confidence": "confirmed",
+            "needs_attention": true,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-024",
+            "rules": [
+                "MB-0788"
+            ],
+            "archived_case": "fixed_local_file_read",
+            "executed_case": "fixed_local_file_read",
+            "evidence_file": "part2-probes.json",
+            "source_index": 0,
+            "status": "FAIL",
+            "category": "policy",
+            "confidence": "confirmed",
+            "needs_attention": true,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-025",
+            "rules": [
+                "MB-0792"
+            ],
+            "archived_case": "same_fixed_local_file_read",
+            "executed_case": "same_fixed_local_file_read",
+            "evidence_file": "part2-probes.json",
+            "source_index": 1,
+            "status": "FAIL",
+            "category": "policy",
+            "confidence": "confirmed",
+            "needs_attention": true,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-026",
+            "rules": [
+                "MB-0794"
+            ],
+            "archived_case": "nonsecurity_ui_color_randomness",
+            "executed_case": "nonsecurity_ui_color_randomness",
+            "evidence_file": "part2-probes.json",
+            "source_index": 2,
+            "status": "FAIL",
+            "category": "policy",
+            "confidence": "confirmed",
+            "needs_attention": true,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-027",
+            "rules": [
+                "MB-0789"
+            ],
+            "archived_case": "constant_serialized_value_allowed_classes_false",
+            "executed_case": "constant_serialized_value_allowed_classes_false",
+            "evidence_file": "part2-probes.json",
+            "source_index": 3,
+            "status": "FAIL",
+            "category": "policy",
+            "confidence": "confirmed",
+            "needs_attention": true,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-028",
+            "rules": [
+                "MB-0790"
+            ],
+            "archived_case": "fixed_command_no_request_input",
+            "executed_case": "fixed_command_no_request_input",
+            "evidence_file": "part2-probes.json",
+            "source_index": 4,
+            "status": "FAIL",
+            "category": "policy",
+            "confidence": "confirmed",
+            "needs_attention": true,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-029",
+            "rules": [
+                "MB-0786"
+            ],
+            "archived_case": "query_named_non_sql_receiver",
+            "executed_case": "query_named_non_sql_receiver",
+            "evidence_file": "part2-probes.json",
+            "source_index": 5,
+            "status": "FAIL",
+            "category": "policy",
+            "confidence": "confirmed",
+            "needs_attention": true,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-030",
+            "rules": [
+                "MB-0786"
+            ],
+            "archived_case": "approved_query_builder_passed_as_variable",
+            "executed_case": "approved_query_builder_passed_as_variable",
+            "evidence_file": "part2-probes.json",
+            "source_index": 6,
+            "status": "UNKNOWN",
+            "category": null,
+            "confidence": null,
+            "needs_attention": false,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-031",
+            "rules": [
+                "MB-0786"
+            ],
+            "archived_case": "literal_sql_and_bound_value",
+            "executed_case": "literal_sql_and_bound_value",
+            "evidence_file": "part2-probes.json",
+            "source_index": 7,
+            "status": "PASS",
+            "category": null,
+            "confidence": null,
+            "needs_attention": false,
+            "passed": true
+        },
+        {
+            "acceptance_id": "CS-032",
+            "rules": [
+                "MB-0787"
+            ],
+            "archived_case": "csrf_exemption_with_alternate_auth_unverified",
+            "executed_case": "csrf_exemption_with_alternate_auth_unverified",
+            "evidence_file": "part2-probes.json",
+            "source_index": 8,
+            "status": "FAIL",
+            "category": "security",
+            "confidence": "suspected",
+            "needs_attention": true,
+            "passed": true
+        }
+    ]
+}

@@ -1,0 +1,1103 @@
+{
+  "artifact_sha256": {
+    "magebean.phar": "4de938de2f368dc0d4b9d6f9a29d7f176d346877652e9febd3dd25549e078006",
+    "artifacts/magebean-one-time.phar": "c3fc34eab32e4a9eb72ceffca8ba40894d8f9bf5a5bd5edfbcd557639cfe44a3"
+  },
+  "scope": "Synthetic current-state development profile, 3 fresh processes per fixture/runtime; warm filesystem cache possible, fixture generation excluded; not live-store throughput",
+  "php": "8.4.27",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "results": [
+    {
+      "fixture": "small",
+      "runtime": "source",
+      "input": {
+        "modules": 4,
+        "files": 98,
+        "bytes": 50894
+      },
+      "median_scan_seconds": 0.257571827,
+      "median_process_seconds": 0.36,
+      "max_process_peak_rss_kib": 62112,
+      "runs": [
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module1/Model/C9.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5696
+          },
+          "scan_seconds": 0.258837108,
+          "analysis_seconds": 0.013146933,
+          "php_peak_bytes": 27262976,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 4,
+              "selected": 4,
+              "excluded": 0,
+              "scanned": 4
+            },
+            "files_read": 89,
+            "bytes_read": 50207,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 133154,
+            "active": true
+          },
+          "process_seconds": 0.36,
+          "process_peak_rss_kib": 62024
+        },
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module1/Model/C9.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5696
+          },
+          "scan_seconds": 0.257571827,
+          "analysis_seconds": 0.013382585,
+          "php_peak_bytes": 27262976,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 4,
+              "selected": 4,
+              "excluded": 0,
+              "scanned": 4
+            },
+            "files_read": 89,
+            "bytes_read": 50207,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 133154,
+            "active": true
+          },
+          "process_seconds": 0.36,
+          "process_peak_rss_kib": 62020
+        },
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module1/Model/C9.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5696
+          },
+          "scan_seconds": 0.250902739,
+          "analysis_seconds": 0.012936285,
+          "php_peak_bytes": 27262976,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 4,
+              "selected": 4,
+              "excluded": 0,
+              "scanned": 4
+            },
+            "files_read": 89,
+            "bytes_read": 50207,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 133154,
+            "active": true
+          },
+          "process_seconds": 0.35,
+          "process_peak_rss_kib": 62112
+        }
+      ]
+    },
+    {
+      "fixture": "small",
+      "runtime": "standard",
+      "input": {
+        "modules": 4,
+        "files": 98,
+        "bytes": 50894
+      },
+      "median_scan_seconds": 0.268474233,
+      "median_process_seconds": 0.36,
+      "max_process_peak_rss_kib": 56212,
+      "runs": [
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module1/Model/C9.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5696
+          },
+          "scan_seconds": 0.268474233,
+          "analysis_seconds": 0.012953438,
+          "php_peak_bytes": 23068672,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 4,
+              "selected": 4,
+              "excluded": 0,
+              "scanned": 4
+            },
+            "files_read": 89,
+            "bytes_read": 50207,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 133154,
+            "active": true
+          },
+          "process_seconds": 0.36,
+          "process_peak_rss_kib": 56000
+        },
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module1/Model/C9.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5696
+          },
+          "scan_seconds": 0.273338948,
+          "analysis_seconds": 0.013146006,
+          "php_peak_bytes": 23068672,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 4,
+              "selected": 4,
+              "excluded": 0,
+              "scanned": 4
+            },
+            "files_read": 89,
+            "bytes_read": 50207,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 133154,
+            "active": true
+          },
+          "process_seconds": 0.37,
+          "process_peak_rss_kib": 56104
+        },
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module1/Model/C9.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5696
+          },
+          "scan_seconds": 0.259380827,
+          "analysis_seconds": 0.012657462,
+          "php_peak_bytes": 23068672,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 4,
+              "selected": 4,
+              "excluded": 0,
+              "scanned": 4
+            },
+            "files_read": 89,
+            "bytes_read": 50207,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 133154,
+            "active": true
+          },
+          "process_seconds": 0.35,
+          "process_peak_rss_kib": 56212
+        }
+      ]
+    },
+    {
+      "fixture": "small",
+      "runtime": "one-time",
+      "input": {
+        "modules": 4,
+        "files": 98,
+        "bytes": 50894
+      },
+      "median_scan_seconds": 0.263590543,
+      "median_process_seconds": 0.35,
+      "max_process_peak_rss_kib": 56080,
+      "runs": [
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module1/Model/C9.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5696
+          },
+          "scan_seconds": 0.272954276,
+          "analysis_seconds": 0.013136597,
+          "php_peak_bytes": 23068672,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 4,
+              "selected": 4,
+              "excluded": 0,
+              "scanned": 4
+            },
+            "files_read": 89,
+            "bytes_read": 50207,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 133154,
+            "active": true
+          },
+          "process_seconds": 0.37,
+          "process_peak_rss_kib": 56076
+        },
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module1/Model/C9.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5696
+          },
+          "scan_seconds": 0.263590543,
+          "analysis_seconds": 0.01292595,
+          "php_peak_bytes": 23068672,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 4,
+              "selected": 4,
+              "excluded": 0,
+              "scanned": 4
+            },
+            "files_read": 89,
+            "bytes_read": 50207,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 133154,
+            "active": true
+          },
+          "process_seconds": 0.35,
+          "process_peak_rss_kib": 56080
+        },
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module1/Model/C9.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5696
+          },
+          "scan_seconds": 0.263189937,
+          "analysis_seconds": 0.012646244,
+          "php_peak_bytes": 23068672,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 4,
+              "selected": 4,
+              "excluded": 0,
+              "scanned": 4
+            },
+            "files_read": 89,
+            "bytes_read": 50207,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 133154,
+            "active": true
+          },
+          "process_seconds": 0.35,
+          "process_peak_rss_kib": 56068
+        }
+      ]
+    },
+    {
+      "fixture": "medium",
+      "runtime": "source",
+      "input": {
+        "modules": 20,
+        "files": 1066,
+        "bytes": 623400
+      },
+      "median_scan_seconds": 2.112443526,
+      "median_process_seconds": 2.33,
+      "max_process_peak_rss_kib": 75460,
+      "runs": [
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module8/Model/C34.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5699
+          },
+          "scan_seconds": 2.112443526,
+          "analysis_seconds": 0.133159578,
+          "php_peak_bytes": 41943040,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 20,
+              "selected": 20,
+              "excluded": 0,
+              "scanned": 20
+            },
+            "files_read": 1041,
+            "bytes_read": 621343,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 1525106,
+            "active": true
+          },
+          "process_seconds": 2.33,
+          "process_peak_rss_kib": 75244
+        },
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module8/Model/C34.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5699
+          },
+          "scan_seconds": 2.136683865,
+          "analysis_seconds": 0.136070054,
+          "php_peak_bytes": 41943040,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 20,
+              "selected": 20,
+              "excluded": 0,
+              "scanned": 20
+            },
+            "files_read": 1041,
+            "bytes_read": 621343,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 1525106,
+            "active": true
+          },
+          "process_seconds": 2.36,
+          "process_peak_rss_kib": 75460
+        },
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module8/Model/C34.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5699
+          },
+          "scan_seconds": 2.070334469,
+          "analysis_seconds": 0.138335336,
+          "php_peak_bytes": 41943040,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 20,
+              "selected": 20,
+              "excluded": 0,
+              "scanned": 20
+            },
+            "files_read": 1041,
+            "bytes_read": 621343,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 1525106,
+            "active": true
+          },
+          "process_seconds": 2.3,
+          "process_peak_rss_kib": 75384
+        }
+      ]
+    },
+    {
+      "fixture": "medium",
+      "runtime": "standard",
+      "input": {
+        "modules": 20,
+        "files": 1066,
+        "bytes": 623400
+      },
+      "median_scan_seconds": 2.119979009,
+      "median_process_seconds": 2.34,
+      "max_process_peak_rss_kib": 70132,
+      "runs": [
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module8/Model/C34.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5699
+          },
+          "scan_seconds": 2.114990081,
+          "analysis_seconds": 0.137751662,
+          "php_peak_bytes": 35651584,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 20,
+              "selected": 20,
+              "excluded": 0,
+              "scanned": 20
+            },
+            "files_read": 1041,
+            "bytes_read": 621343,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 1525106,
+            "active": true
+          },
+          "process_seconds": 2.34,
+          "process_peak_rss_kib": 70132
+        },
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module8/Model/C34.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5699
+          },
+          "scan_seconds": 2.119979009,
+          "analysis_seconds": 0.137541018,
+          "php_peak_bytes": 35651584,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 20,
+              "selected": 20,
+              "excluded": 0,
+              "scanned": 20
+            },
+            "files_read": 1041,
+            "bytes_read": 621343,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 1525106,
+            "active": true
+          },
+          "process_seconds": 2.34,
+          "process_peak_rss_kib": 70132
+        },
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module8/Model/C34.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5699
+          },
+          "scan_seconds": 2.124695276,
+          "analysis_seconds": 0.135176085,
+          "php_peak_bytes": 35651584,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 20,
+              "selected": 20,
+              "excluded": 0,
+              "scanned": 20
+            },
+            "files_read": 1041,
+            "bytes_read": 621343,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 1525106,
+            "active": true
+          },
+          "process_seconds": 0.81,
+          "process_peak_rss_kib": 69904
+        }
+      ]
+    },
+    {
+      "fixture": "medium",
+      "runtime": "one-time",
+      "input": {
+        "modules": 20,
+        "files": 1066,
+        "bytes": 623400
+      },
+      "median_scan_seconds": 2.140280926,
+      "median_process_seconds": 2.36,
+      "max_process_peak_rss_kib": 70128,
+      "runs": [
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module8/Model/C34.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5699
+          },
+          "scan_seconds": 2.120799011,
+          "analysis_seconds": 0.140341825,
+          "php_peak_bytes": 35651584,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 20,
+              "selected": 20,
+              "excluded": 0,
+              "scanned": 20
+            },
+            "files_read": 1041,
+            "bytes_read": 621343,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 1525106,
+            "active": true
+          },
+          "process_seconds": 2.34,
+          "process_peak_rss_kib": 69880
+        },
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module8/Model/C34.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5699
+          },
+          "scan_seconds": 2.140280926,
+          "analysis_seconds": 0.138433947,
+          "php_peak_bytes": 35651584,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 20,
+              "selected": 20,
+              "excluded": 0,
+              "scanned": 20
+            },
+            "files_read": 1041,
+            "bytes_read": 621343,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 1525106,
+            "active": true
+          },
+          "process_seconds": 2.36,
+          "process_peak_rss_kib": 70128
+        },
+        {
+          "limit_probe": {
+            "complete": false,
+            "gaps": [
+              {
+                "reason": "file_budget_exceeded",
+                "file": "app/code/Fixture/Module8/Model/C34.php"
+              }
+            ],
+            "files_read": 10,
+            "bytes_read": 5699
+          },
+          "scan_seconds": 2.338303365,
+          "analysis_seconds": 0.137506986,
+          "php_peak_bytes": 35651584,
+          "selected_rules": 29,
+          "checks": [
+            "magento_module_integrity",
+            "code_no_mixed_content",
+            "composer_lock_integrity",
+            "working_tree_secret_scan",
+            "automated_source_policy",
+            "code_phtml_escaped_output",
+            "code_js_context_escaping"
+          ],
+          "risk_rule_ids": [
+            "MB-0822",
+            "MB-0070",
+            "MB-0790"
+          ],
+          "incomplete_rule_ids": [
+            "MB-0809"
+          ],
+          "analysis": {
+            "complete": true,
+            "coverage": {
+              "discovered": 20,
+              "selected": 20,
+              "excluded": 0,
+              "scanned": 20
+            },
+            "files_read": 1041,
+            "bytes_read": 621343,
+            "gaps": [],
+            "gaps_truncated": false
+          },
+          "collection_cache": {
+            "hits": 0,
+            "misses": 8,
+            "entries": 8,
+            "bytes": 1525106,
+            "active": true
+          },
+          "process_seconds": 2.56,
+          "process_peak_rss_kib": 69740
+        }
+      ]
+    }
+  ]
+}

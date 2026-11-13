@@ -137,15 +137,30 @@ final class ScanReportAssembler
                     $result['collection_issues'][] = ['id'=>$finding['id']] + $gap;
                 }
             }
-            $categories = [];
+            $categories = []; $detectorCategories=[];
             foreach ($result['risk_findings'] as $finding) {
                 foreach ($finding['risk_observation']['findings'] as $row) {
                     if (!isset($row['category'])) continue;
                     $categories[$row['category']] = ($categories[$row['category']] ?? 0) + 1;
+                    if (isset($row['detector'])) $detectorCategories[$row['category']]=($detectorCategories[$row['category']]??0)+1;
                 }
             }
-            if ($categories !== []) $result['summary']['detector_findings_by_category'] = $categories;
-            $result['summary']['needs_attention'] = count($result['risk_findings']);
+            if ($categories !== []) $result['summary']['findings_by_category'] = $categories;
+            if ($detectorCategories!==[]) $result['summary']['detector_findings_by_category']=$detectorCategories;
+            $recordLinks=EvidenceRecordLinks::fromFindings($result['findings']);
+            if ($recordLinks!==[]) $result['evidence_record_links']=$recordLinks;
+            $result['canonical_issues']=MagebeanIssueCorrelation::group($result['findings']);
+            $result['meta']['canonical_projection_version']=1;
+            $result['summary']['assessment_observations_by_category']=$categories;
+            $canonicalCategories=[];foreach($result['canonical_issues'] as $issue) {
+                $category=$issue['risk_observation']['findings'][0]['category']??'informational';
+                $canonicalCategories[$category]=($canonicalCategories[$category]??0)+1;
+            }
+            $result['summary']['findings_by_category']=$canonicalCategories;
+            $result['summary']['assessments_needing_attention']=count($result['risk_findings']);
+            $result['summary']['canonical_issue_count']=count($result['canonical_issues']);
+            $result['summary']['uncorrelated_observations']=count(array_filter($result['canonical_issues'],static fn(array $issue):bool=>$issue['correlation_status']==='unresolved'));
+            $result['summary']['needs_attention'] = count($result['canonical_issues']);
             $result['summary']['collection_issues'] = count($result['collection_issues']);
         }
         if (!empty($activeProfile['evidence_tasks'])) {

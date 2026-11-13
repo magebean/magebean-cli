@@ -1,0 +1,39 @@
+{
+  "phase": 4,
+  "qualification_scope": "Synthetic/inert target source and uploads, loopback advisory feed, archived CLI code and isolated Console SQLite. No live-store claim.",
+  "cli_test_files_passed": 141,
+  "cli_test_failures": 0,
+  "phase4_assertions": 46,
+  "qa_observations_checked": 10,
+  "verified_overlap_groups": 5,
+  "console_ingestion_test_passed": true,
+  "console_ingestion_assertions": 36,
+  "console_db": "sqlite :memory:",
+  "console_input_observations": 2,
+  "console_assessment_projections": 2,
+  "console_shared_canonical_issues": 1,
+  "console_raw_statuses": [
+    "fail",
+    "error"
+  ],
+  "wire_schema_version_changed": false,
+  "raw_assessment_cardinality_changed": false,
+  "profile_membership_changed": false,
+  "profile_related_hashes_verified": 11,
+  "protected_standard_and_archive_definitions_changed": false,
+  "production_console_files_changed": false,
+  "packaged_validation": [
+    {
+      "artifact": "magebean.phar",
+      "sha256": "cfdcf19bd5396732f536ce212b7f8b2240ebc10db7a4d63e4314a3f53e723299",
+      "phase4_archived_assertions": 46,
+      "qualification_passed": true
+    },
+    {
+      "artifact": "artifacts/magebean-one-time.phar",
+      "sha256": "650c3f63656b6526945ddf3dfd4083c5e7d8f957cd3f1a002d613c58b044b7dd",
+      "phase4_archived_assertions": 46,
+      "qualification_passed": true
+    }
+  ]
+}

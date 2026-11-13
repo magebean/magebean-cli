@@ -4,7 +4,7 @@ Standards registries provide canonical requirement identifiers and applicability
 
 ## Requirement identity and assessment definitions
 
-The target contract is one assessment definition per standard/version/requirement, with reusable checks beneath it. See [Requirement model](../../../docs/requirement-model.md) and [ASVS L1/L2 migration inventory](../../../docs/asvs-requirement-migration.md). Existing coverage files remain evidence mappings; RequirementCatalog compiles ASVS profiles into executable one-to-one requirement definitions. A mapped technical result does not establish the complete standard criterion. PCI and ASVS IDs must remain in separate versioned namespaces.
+The target contract is one assessment definition per standard/version/requirement, with reusable checks beneath it. See [Requirement model](../../../docs/reference/requirement-model.md) and [ASVS L1/L2 migration inventory](../../../docs/archive/migrations/asvs-requirement-migration.md). Existing coverage files remain evidence mappings; RequirementCatalog compiles ASVS profiles into executable one-to-one requirement definitions. A mapped technical result does not establish the complete standard criterion. PCI and ASVS IDs must remain in separate versioned namespaces.
 
 
 ## PCI DSS v4.0.1

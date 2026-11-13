@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "status": "phase0_target_contract_not_runtime_migration",
+  "mission": "Read collected current technical state; report reproducible observed weaknesses and scoped review candidates with actionable remediation. Do not certify all business flows or overall security.",
+  "review_questions": [
+    "versions_dependencies",
+    "configuration",
+    "source_modules",
+    "files_permissions",
+    "deployment_state",
+    "component_consistency"
+  ],
+  "finding_quality": [
+    "subject_and_location",
+    "observed_evidence",
+    "contextual_impact",
+    "confidence_and_category",
+    "actionable_remediation",
+    "recheck_procedure"
+  ],
+  "categories": [
+    "security",
+    "correctness",
+    "policy",
+    "informational"
+  ],
+  "confidence": [
+    "confirmed",
+    "suspected",
+    "informational"
+  ],
+  "evidence_scopes": [
+    "locked_dependency",
+    "installed_dependency",
+    "development_dependency",
+    "source_declaration",
+    "resolved_configuration",
+    "process_observation",
+    "http_response",
+    "repository_history",
+    "supplied_policy",
+    "supplied_record"
+  ],
+  "principles": [
+    "An observed syntax or policy violation is not automatically an exploitable vulnerability.",
+    "No confirmed technical defect without a supported violated relationship or explicit applicable baseline.",
+    "Uncollected, malformed, unsupported or budget-truncated evidence cannot establish clean coverage.",
+    "A snapshot does not establish every checkout, authorization or business flow.",
+    "Preserve redaction, current quiet overview and separate structured scan diagnostics.",
+    "Keep existing wire and assessment cardinality compatible until a separately versioned additive migration is verified."
+  ],
+  "correlation": {
+    "candidate_key_fields": [
+      "issue_family",
+      "subject",
+      "location_or_advisory_identity",
+      "evidence_scope"
+    ],
+    "excluded_identity_fields": [
+      "rule_id",
+      "severity",
+      "collection_timestamp"
+    ],
+    "preserve": [
+      "per_rule_assessments",
+      "source_provenance",
+      "distinct_locations",
+      "distinct_root_causes"
+    ],
+    "warning": "Same file alone is never a sufficient deduplication key; different datasets/scopes are not automatically equivalent."
+  },
+  "phase0_runtime_changes": false
+}

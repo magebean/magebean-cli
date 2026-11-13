@@ -28,5 +28,13 @@ try {
     $assert($repo->invoke($check, $packages, ['acme/a' => $unsupported, 'acme/b' => $active], $args)[0] === null, 'Unsupported provider is a coverage limitation');
     $archived = $active; $archived['repository_archived'] = true;
     $assert($repo->invoke($check, $packages, ['acme/a' => $archived], $args)[0] === false, 'Known archived repository survives partial coverage');
+    $mixed = $repo->invoke($check, $packages, ['acme/a'=>$archived, 'acme/b'=>['repository_status_known'=>false,'repository_status_reason'=>'repository_not_applicable']], $args);
+    $assert($mixed[0]===false && str_contains($mixed[1],'acme/a@1.0.0') && !str_contains($mixed[1],'acme/b') && !str_contains($mixed[1],'repository_not_applicable'), 'Only actual repository findings appear in the issue message');
+    $assert(count($mixed[2]['packages_excluded'])===1 && $mixed[2]['packages_excluded'][0]['name']==='acme/b', 'Excluded scope remains in structured evidence');
+    $partialRelease = $release->invoke($check, $packages, ['acme/a'=>$stale], $args);
+    $assert($partialRelease[0]===false && str_contains($partialRelease[1],'acme/a@1.0.0') && !str_contains($partialRelease[1],'acme/b') && !str_contains($partialRelease[1],'unavailable'), 'Stale-release message contains only evidence-backed maintenance issues');
+    $assert(count($partialRelease[2]['packages_unknown'])===1, 'Missing release evidence remains structured');
+    $missingRelease = $release->invoke($check, $packages, [], $args);
+    $assert($missingRelease[0]===null && !str_contains($missingRelease[1],'acme/') && count($missingRelease[2]['packages_unknown'])===2, 'Gap-only release result remains unknown without dumping package lists');
     echo "Composer maintenance coverage: $count assertions passed\n";
 } finally { restore_error_handler(); }

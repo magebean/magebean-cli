@@ -1,0 +1,1209 @@
+{
+  "catalog_count": 110,
+  "scope": "Read-only current-state QA; temporary fixtures and loopback feed only; no customer project, external API or production mutation",
+  "observations": [
+    {
+      "case": "stable-resolution-but-prefer-stable-omitted",
+      "id": "MB-0067",
+      "status": "FAIL",
+      "message": "Key missing for comparison: prefer-stable",
+      "evidence": {
+        "json_file": "/tmp/mb-current-state-part1-74b91d5023/composer.json",
+        "key": "prefer-stable",
+        "exists": false,
+        "actual": null,
+        "expected": true,
+        "strict": true
+      }
+    },
+    {
+      "case": "locked-development-tool-wildcard",
+      "id": "MB-0065",
+      "status": "FAIL",
+      "message": "Wildcard Composer constraints detected:\n    - require-dev: acme/test-tool => *",
+      "evidence": {
+        "json_file": "/tmp/mb-current-state-part1-74b91d5023/composer.json",
+        "sections": [
+          "require",
+          "require-dev"
+        ],
+        "constraints_checked": 2,
+        "findings": [
+          {
+            "section": "require-dev",
+            "package": "acme/test-tool",
+            "constraint": "*",
+            "reasons": [
+              "wildcard_constraint"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "case": "dev-resolution-allowed-with-prefer-stable",
+      "id": "MB-0067",
+      "status": "PASS",
+      "message": "OK: prefer-stable == true",
+      "evidence": {
+        "json_file": "/tmp/mb-current-state-part1-74b91d5023/composer.json",
+        "key": "prefer-stable",
+        "exists": true,
+        "actual": true,
+        "expected": true,
+        "strict": true
+      }
+    },
+    {
+      "case": "explicit-development-branch",
+      "id": "MB-0066",
+      "status": "FAIL",
+      "message": "Development Composer constraints detected:\n    - require: acme/direct => dev-main",
+      "evidence": {
+        "json_file": "/tmp/mb-current-state-part1-74b91d5023/composer.json",
+        "sections": [
+          "require",
+          "require-dev"
+        ],
+        "constraints_checked": 1,
+        "findings": [
+          {
+            "section": "require",
+            "package": "acme/direct",
+            "constraint": "dev-main",
+            "reasons": [
+              "development_constraint"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "case": "file-session-backend-no-redis",
+      "id": "MB-0040",
+      "status": "FAIL",
+      "message": "Session storage is not hardened",
+      "evidence": {
+        "file": "app/etc/env.php",
+        "session_save": {
+          "path": "session.save",
+          "normalized_path": "session.save",
+          "present": true,
+          "value": "files",
+          "ok": false
+        },
+        "redis_password": {
+          "path": "session.redis.password",
+          "normalized_path": "session.redis.password",
+          "present": false,
+          "ok": false
+        },
+        "failures": [
+          "session.save is 'files'",
+          "session.redis.password is missing"
+        ]
+      }
+    },
+    {
+      "case": "persisted-production-declaration-only",
+      "id": "MB-0031",
+      "status": "PASS",
+      "message": "Magento deploy mode is production",
+      "evidence": {
+        "file": "app/etc/env.php",
+        "path": "MAGE_MODE",
+        "observed": "production",
+        "expected": "production"
+      }
+    },
+    {
+      "case": "release-date:2000-01-01T00:00:00Z",
+      "id": "MB-0062",
+      "status": "FAIL",
+      "message": "Packagist-tracked packages without a release in the last 24 months:\n    - acme/stable@1.0.0 latest 1.0.0, last release 9812 days ago",
+      "evidence": {
+        "months": 24,
+        "cutoff": "2024-11-12T13:31:12+00:00",
+        "packages_checked": 1,
+        "packages_tracked": [
+          {
+            "name": "acme/stable",
+            "installed": "1.0.0",
+            "latest": "1.0.0",
+            "latest_date": "2000-01-01T00:00:00+00:00",
+            "age_days": 9812
+          }
+        ],
+        "packages_stale": [
+          {
+            "name": "acme/stable",
+            "installed": "1.0.0",
+            "latest": "1.0.0",
+            "latest_date": "2000-01-01T00:00:00+00:00",
+            "age_days": 9812
+          }
+        ],
+        "packages_unknown": [],
+        "packages_excluded_no_release_history": []
+      }
+    },
+    {
+      "case": "release-date:2026-02-30T00:00:00Z",
+      "id": "MB-0062",
+      "status": "UNKNOWN",
+      "message": "[UNKNOWN] Release recency unavailable for:\n    - acme/stable@1.0.0",
+      "evidence": {
+        "months": 24,
+        "cutoff": "2024-11-12T13:31:12+00:00",
+        "packages_checked": 1,
+        "packages_tracked": [],
+        "packages_stale": [],
+        "packages_unknown": [
+          {
+            "name": "acme/stable",
+            "version": "1.0.0",
+            "repository_url": "https://example.test/acme/stable",
+            "reason": "latest_date_invalid"
+          }
+        ],
+        "packages_excluded_no_release_history": []
+      }
+    },
+    {
+      "case": "release-date:yesterday",
+      "id": "MB-0062",
+      "status": "UNKNOWN",
+      "message": "[UNKNOWN] Release recency unavailable for:\n    - acme/stable@1.0.0",
+      "evidence": {
+        "months": 24,
+        "cutoff": "2024-11-12T13:31:12+00:00",
+        "packages_checked": 1,
+        "packages_tracked": [],
+        "packages_stale": [],
+        "packages_unknown": [
+          {
+            "name": "acme/stable",
+            "version": "1.0.0",
+            "repository_url": "https://example.test/acme/stable",
+            "reason": "latest_date_invalid"
+          }
+        ],
+        "packages_excluded_no_release_history": []
+      }
+    },
+    {
+      "case": "release-date:2026-11-11T13:31:12+00:00",
+      "id": "MB-0062",
+      "status": "PASS",
+      "message": "Packagist-tracked packages have a release within the last 24 months",
+      "evidence": {
+        "months": 24,
+        "cutoff": "2024-11-12T13:31:12+00:00",
+        "packages_checked": 1,
+        "packages_tracked": [
+          {
+            "name": "acme/stable",
+            "installed": "1.0.0",
+            "latest": "1.0.0",
+            "latest_date": "2026-11-11T13:31:12+00:00",
+            "age_days": 1
+          }
+        ],
+        "packages_stale": [],
+        "packages_unknown": [],
+        "packages_excluded_no_release_history": []
+      }
+    },
+    {
+      "case": "repository-archived:false",
+      "id": "MB-0063",
+      "status": "PASS",
+      "message": "No assessed packages come from archived, disabled, or missing repositories (1 repositories assessed)",
+      "evidence": {
+        "packages_checked": 1,
+        "repositories_active": [
+          {
+            "name": "acme/stable",
+            "installed": "1.0.0",
+            "repository_url": "",
+            "provider": null,
+            "archived": false,
+            "disabled": false,
+            "missing": false,
+            "checked_at": null
+          }
+        ],
+        "repository_findings": [],
+        "packages_unknown": [],
+        "packages_unassessed": [],
+        "packages_excluded": []
+      }
+    },
+    {
+      "case": "repository-archived:true",
+      "id": "MB-0063",
+      "status": "FAIL",
+      "message": "Packages from archived, disabled, or missing repositories:\n    - acme/stable@1.0.0 (archived)",
+      "evidence": {
+        "packages_checked": 1,
+        "repositories_active": [],
+        "repository_findings": [
+          {
+            "name": "acme/stable",
+            "installed": "1.0.0",
+            "repository_url": "",
+            "provider": null,
+            "archived": true,
+            "disabled": false,
+            "missing": false,
+            "checked_at": null
+          }
+        ],
+        "packages_unknown": [],
+        "packages_unassessed": [],
+        "packages_excluded": []
+      }
+    },
+    {
+      "case": "indexer-currently-working",
+      "id": "MB-0039",
+      "status": "UNKNOWN",
+      "message": "[UNKNOWN] Indexing is recorded as working; one database snapshot cannot establish a stuck or unhealthy process",
+      "evidence": {
+        "source": "indexer_state",
+        "scope": "deployment_database",
+        "observed_at": "2026-11-12T13:31:12+00:00",
+        "runtime_process_verified": false,
+        "indexers_seen": 1,
+        "not_ready": [],
+        "working": [
+          {
+            "indexer_id": "catalog_product_price",
+            "status": "working",
+            "record_age_seconds": null,
+            "stuck_process_established": false
+          }
+        ]
+      }
+    },
+    {
+      "case": "only-recent-error-cron-execution",
+      "id": "MB-0047",
+      "status": "PASS",
+      "message": "Recorded cron execution is recent",
+      "evidence": {
+        "source": "cron_schedule",
+        "scope": "deployment_database",
+        "observed_at": "2026-11-12T13:31:12+00:00",
+        "metric": "execution_freshness",
+        "included_execution_statuses": [
+          "success",
+          "running",
+          "error"
+        ],
+        "successful_completion_established": false,
+        "executed_at": "2026-11-12 13:30:12",
+        "age_seconds": 60,
+        "max_age_seconds": 900
+      }
+    },
+    {
+      "case": "only-error-no-pending-backlog",
+      "id": "MB-0048",
+      "status": "PASS",
+      "message": "Due pending cron backlog is below threshold",
+      "evidence": {
+        "source": "cron_schedule",
+        "scope": "deployment_database",
+        "observed_at": "2026-11-12T13:31:12+00:00",
+        "metric": "due_pending_backlog",
+        "successful_completion_established": false,
+        "due_pending_count": 0,
+        "threshold": 1000,
+        "future_jobs_excluded": true
+      }
+    },
+    {
+      "case": "same-transitive-advisory-published:2000-01-01T00:00:00Z",
+      "id": "MB-0049",
+      "status": "FAIL",
+      "message": "1 vulnerable package found (1 advisory match):\n    - acme/transitive@1.0.0 -> QA-TRANSITIVE (Severity not published) [Scope: locked dependency declarations; installation and runtime exposure unverified.]",
+      "evidence": {
+        "source": "magebean_osv_api",
+        "package_scope": "all",
+        "endpoint": "http://127.0.0.1:41535",
+        "packages": 2,
+        "responses": [
+          {
+            "batch": 1,
+            "request_endpoint": "http://127.0.0.1:41535",
+            "packages": 2,
+            "advisories": 1,
+            "dataset_revision": "controlled-qa-fixture"
+          }
+        ],
+        "feed_gaps": [],
+        "observed_at": "2026-11-12T13:31:13+00:00",
+        "advisories": 1,
+        "usable_advisories": 1,
+        "remediated_findings": [],
+        "unassessed_affected_packages": [],
+        "findings": [
+          {
+            "package": "acme/transitive",
+            "version": "1.0.0",
+            "advisory": "QA-TRANSITIVE",
+            "published": "2000-01-01T00:00:00Z",
+            "severity": "Severity not published",
+            "cvss": "",
+            "cvss_vector": "",
+            "fixed": null,
+            "known_exploited": false,
+            "hotfix_verification": null,
+            "dependency_observation": {
+              "scope": "locked_dependency",
+              "source_path": "composer.lock",
+              "observed_at": "2026-11-12T13:31:13+00:00",
+              "installed": null,
+              "locked_version": "1.0.0",
+              "development_dependency": false,
+              "matches_locked_version": null,
+              "runtime_reachability": "unverified",
+              "module_activation": "separate_declaration_only"
+            }
+          }
+        ],
+        "vulnerable_packages": [
+          "acme/transitive"
+        ],
+        "vulnerable_packages_count": 1,
+        "advisory_matches_count": 1,
+        "dependency_inventory": {
+          "scope": "locked_dependency",
+          "complete": true,
+          "gaps": [],
+          "observed_at": "2026-11-12T13:31:13+00:00",
+          "sources": {
+            "root_manifest": {
+              "path": "composer.json",
+              "state": "read",
+              "sha256": "5b37fb09005ae035ed0dbf47a23ddb975b47d3a2b5c03cce46c15868f6501291"
+            },
+            "lockfile": {
+              "path": "composer.lock",
+              "state": "read",
+              "sha256": "58c5a552b6eea74af185bbb4ec2167834ab9250c2f3524e5e97d2a9619869308"
+            },
+            "installed_metadata": {
+              "path": "vendor/composer/installed.json",
+              "state": "missing"
+            }
+          },
+          "installed_dev_mode": null,
+          "excluded_locked_packages": [],
+          "declared_modules": null,
+          "coverage_note": "Composer metadata identifies recorded installation or locked build intent, not executable bytes, module activation or runtime reachability."
+        },
+        "package_observations": {
+          "acme/direct": {
+            "scope": "locked_dependency",
+            "source_path": "composer.lock",
+            "observed_at": "2026-11-12T13:31:13+00:00",
+            "installed": null,
+            "locked_version": "1.0.0",
+            "development_dependency": false,
+            "matches_locked_version": null,
+            "runtime_reachability": "unverified",
+            "module_activation": "separate_declaration_only"
+          },
+          "acme/transitive": {
+            "scope": "locked_dependency",
+            "source_path": "composer.lock",
+            "observed_at": "2026-11-12T13:31:13+00:00",
+            "installed": null,
+            "locked_version": "1.0.0",
+            "development_dependency": false,
+            "matches_locked_version": null,
+            "runtime_reachability": "unverified",
+            "module_activation": "separate_declaration_only"
+          }
+        }
+      }
+    },
+    {
+      "case": "same-transitive-advisory-published:2000-01-01T00:00:00Z",
+      "id": "MB-0055",
+      "status": "FAIL",
+      "message": "Vulnerable transitive dependencies:\n    - acme/transitive@1.0.0 -> QA-TRANSITIVE, required by acme/direct [Scope: locked dependency declarations; installation and runtime exposure unverified.]",
+      "evidence": {
+        "source": "magebean_osv_api",
+        "package_scope": "transitive",
+        "endpoint": "http://127.0.0.1:41535",
+        "packages": 1,
+        "responses": [
+          {
+            "batch": 1,
+            "request_endpoint": "http://127.0.0.1:41535",
+            "packages": 2,
+            "advisories": 1,
+            "dataset_revision": "controlled-qa-fixture"
+          }
+        ],
+        "feed_gaps": [],
+        "observed_at": "2026-11-12T13:31:13+00:00",
+        "advisories": 1,
+        "usable_advisories": 1,
+        "remediated_findings": [],
+        "unassessed_affected_packages": [],
+        "findings": [
+          {
+            "package": "acme/transitive",
+            "version": "1.0.0",
+            "advisory": "QA-TRANSITIVE",
+            "published": "2000-01-01T00:00:00Z",
+            "severity": "Severity not published",
+            "cvss": "",
+            "cvss_vector": "",
+            "fixed": null,
+            "known_exploited": false,
+            "hotfix_verification": null,
+            "dependency_observation": {
+              "scope": "locked_dependency",
+              "source_path": "composer.lock",
+              "observed_at": "2026-11-12T13:31:13+00:00",
+              "installed": null,
+              "locked_version": "1.0.0",
+              "development_dependency": false,
+              "matches_locked_version": null,
+              "runtime_reachability": "unverified",
+              "module_activation": "separate_declaration_only"
+            },
+            "required_by": [
+              "acme/direct"
+            ]
+          }
+        ],
+        "vulnerable_packages": [
+          "acme/transitive"
+        ],
+        "vulnerable_packages_count": 1,
+        "advisory_matches_count": 1,
+        "dependency_inventory": {
+          "scope": "locked_dependency",
+          "complete": true,
+          "gaps": [],
+          "observed_at": "2026-11-12T13:31:13+00:00",
+          "sources": {
+            "root_manifest": {
+              "path": "composer.json",
+              "state": "read",
+              "sha256": "5b37fb09005ae035ed0dbf47a23ddb975b47d3a2b5c03cce46c15868f6501291"
+            },
+            "lockfile": {
+              "path": "composer.lock",
+              "state": "read",
+              "sha256": "58c5a552b6eea74af185bbb4ec2167834ab9250c2f3524e5e97d2a9619869308"
+            },
+            "installed_metadata": {
+              "path": "vendor/composer/installed.json",
+              "state": "missing"
+            }
+          },
+          "installed_dev_mode": null,
+          "excluded_locked_packages": [],
+          "declared_modules": null,
+          "coverage_note": "Composer metadata identifies recorded installation or locked build intent, not executable bytes, module activation or runtime reachability."
+        },
+        "package_observations": {
+          "acme/direct": {
+            "scope": "locked_dependency",
+            "source_path": "composer.lock",
+            "observed_at": "2026-11-12T13:31:13+00:00",
+            "installed": null,
+            "locked_version": "1.0.0",
+            "development_dependency": false,
+            "matches_locked_version": null,
+            "runtime_reachability": "unverified",
+            "module_activation": "separate_declaration_only"
+          },
+          "acme/transitive": {
+            "scope": "locked_dependency",
+            "source_path": "composer.lock",
+            "observed_at": "2026-11-12T13:31:13+00:00",
+            "installed": null,
+            "locked_version": "1.0.0",
+            "development_dependency": false,
+            "matches_locked_version": null,
+            "runtime_reachability": "unverified",
+            "module_activation": "separate_declaration_only"
+          }
+        },
+        "direct_packages": [
+          "acme/direct"
+        ],
+        "transitive_packages": [
+          "acme/transitive"
+        ]
+      }
+    },
+    {
+      "case": "same-transitive-advisory-published:2000-01-01T00:00:00Z",
+      "id": "MB-0059",
+      "status": "FAIL",
+      "message": "Affected advisories exceed the 30-day publication-age threshold:\n    - acme/transitive@1.0.0 -> QA-TRANSITIVE published 9812 days ago [Scope: locked dependency declarations; installation and runtime exposure unverified.]",
+      "evidence": {
+        "source": "magebean_osv_api",
+        "package_scope": "all",
+        "endpoint": "http://127.0.0.1:41535",
+        "packages": 2,
+        "responses": [
+          {
+            "batch": 1,
+            "request_endpoint": "http://127.0.0.1:41535",
+            "packages": 2,
+            "advisories": 1,
+            "dataset_revision": "controlled-qa-fixture"
+          }
+        ],
+        "feed_gaps": [],
+        "observed_at": "2026-11-12T13:31:13+00:00",
+        "advisories": 1,
+        "usable_advisories": 1,
+        "remediated_findings": [],
+        "unassessed_affected_packages": [],
+        "findings": [
+          {
+            "package": "acme/transitive",
+            "version": "1.0.0",
+            "advisory": "QA-TRANSITIVE",
+            "published": "2000-01-01T00:00:00Z",
+            "severity": "Severity not published",
+            "cvss": "",
+            "cvss_vector": "",
+            "fixed": null,
+            "known_exploited": false,
+            "hotfix_verification": null,
+            "dependency_observation": {
+              "scope": "locked_dependency",
+              "source_path": "composer.lock",
+              "observed_at": "2026-11-12T13:31:13+00:00",
+              "installed": null,
+              "locked_version": "1.0.0",
+              "development_dependency": false,
+              "matches_locked_version": null,
+              "runtime_reachability": "unverified",
+              "module_activation": "separate_declaration_only"
+            }
+          }
+        ],
+        "vulnerable_packages": [
+          "acme/transitive"
+        ],
+        "vulnerable_packages_count": 1,
+        "advisory_matches_count": 1,
+        "dependency_inventory": {
+          "scope": "locked_dependency",
+          "complete": true,
+          "gaps": [],
+          "observed_at": "2026-11-12T13:31:13+00:00",
+          "sources": {
+            "root_manifest": {
+              "path": "composer.json",
+              "state": "read",
+              "sha256": "5b37fb09005ae035ed0dbf47a23ddb975b47d3a2b5c03cce46c15868f6501291"
+            },
+            "lockfile": {
+              "path": "composer.lock",
+              "state": "read",
+              "sha256": "58c5a552b6eea74af185bbb4ec2167834ab9250c2f3524e5e97d2a9619869308"
+            },
+            "installed_metadata": {
+              "path": "vendor/composer/installed.json",
+              "state": "missing"
+            }
+          },
+          "installed_dev_mode": null,
+          "excluded_locked_packages": [],
+          "declared_modules": null,
+          "coverage_note": "Composer metadata identifies recorded installation or locked build intent, not executable bytes, module activation or runtime reachability."
+        },
+        "package_observations": {
+          "acme/direct": {
+            "scope": "locked_dependency",
+            "source_path": "composer.lock",
+            "observed_at": "2026-11-12T13:31:13+00:00",
+            "installed": null,
+            "locked_version": "1.0.0",
+            "development_dependency": false,
+            "matches_locked_version": null,
+            "runtime_reachability": "unverified",
+            "module_activation": "separate_declaration_only"
+          },
+          "acme/transitive": {
+            "scope": "locked_dependency",
+            "source_path": "composer.lock",
+            "observed_at": "2026-11-12T13:31:13+00:00",
+            "installed": null,
+            "locked_version": "1.0.0",
+            "development_dependency": false,
+            "matches_locked_version": null,
+            "runtime_reachability": "unverified",
+            "module_activation": "separate_declaration_only"
+          }
+        },
+        "publication_age_threshold_days": 30,
+        "sla_days": 30,
+        "age_basis": "advisory_publication_not_discovery_or_deployment",
+        "open_advisories": [
+          {
+            "package": "acme/transitive",
+            "version": "1.0.0",
+            "advisory": "QA-TRANSITIVE",
+            "published": "2000-01-01T00:00:00Z",
+            "severity": "Severity not published",
+            "cvss": "",
+            "cvss_vector": "",
+            "fixed": null,
+            "known_exploited": false,
+            "hotfix_verification": null,
+            "dependency_observation": {
+              "scope": "locked_dependency",
+              "source_path": "composer.lock",
+              "observed_at": "2026-11-12T13:31:13+00:00",
+              "installed": null,
+              "locked_version": "1.0.0",
+              "development_dependency": false,
+              "matches_locked_version": null,
+              "runtime_reachability": "unverified",
+              "module_activation": "separate_declaration_only"
+            },
+            "open_days": 9812,
+            "sla_days": 30,
+            "publication_age_threshold_days": 30,
+            "overdue": true
+          }
+        ],
+        "overdue_advisories": [
+          {
+            "package": "acme/transitive",
+            "version": "1.0.0",
+            "advisory": "QA-TRANSITIVE",
+            "published": "2000-01-01T00:00:00Z",
+            "severity": "Severity not published",
+            "cvss": "",
+            "cvss_vector": "",
+            "fixed": null,
+            "known_exploited": false,
+            "hotfix_verification": null,
+            "dependency_observation": {
+              "scope": "locked_dependency",
+              "source_path": "composer.lock",
+              "observed_at": "2026-11-12T13:31:13+00:00",
+              "installed": null,
+              "locked_version": "1.0.0",
+              "development_dependency": false,
+              "matches_locked_version": null,
+              "runtime_reachability": "unverified",
+              "module_activation": "separate_declaration_only"
+            },
+            "open_days": 9812,
+            "sla_days": 30,
+            "publication_age_threshold_days": 30,
+            "overdue": true
+          }
+        ],
+        "missing_published_date": []
+      }
+    },
+    {
+      "case": "same-transitive-advisory-published:2099-01-01T00:00:00Z",
+      "id": "MB-0049",
+      "status": "FAIL",
+      "message": "1 vulnerable package found (1 advisory match):\n    - acme/transitive@1.0.0 -> QA-TRANSITIVE (Severity not published) [Scope: locked dependency declarations; installation and runtime exposure unverified.]",
+      "evidence": {
+        "source": "magebean_osv_api",
+        "package_scope": "all",
+        "endpoint": "http://127.0.0.1:41535",
+        "packages": 2,
+        "responses": [
+          {
+            "batch": 1,
+            "request_endpoint": "http://127.0.0.1:41535",
+            "packages": 2,
+            "advisories": 1,
+            "dataset_revision": "controlled-qa-fixture"
+          }
+        ],
+        "feed_gaps": [],
+        "observed_at": "2026-11-12T13:31:13+00:00",
+        "advisories": 1,
+        "usable_advisories": 1,
+        "remediated_findings": [],
+        "unassessed_affected_packages": [],
+        "findings": [
+          {
+            "package": "acme/transitive",
+            "version": "1.0.0",
+            "advisory": "QA-TRANSITIVE",
+            "published": "2099-01-01T00:00:00Z",
+            "severity": "Severity not published",
+            "cvss": "",
+            "cvss_vector": "",
+            "fixed": null,
+            "known_exploited": false,
+            "hotfix_verification": null,
+            "dependency_observation": {
+              "scope": "locked_dependency",
+              "source_path": "composer.lock",
+              "observed_at": "2026-11-12T13:31:13+00:00",
+              "installed": null,
+              "locked_version": "1.0.0",
+              "development_dependency": false,
+              "matches_locked_version": null,
+              "runtime_reachability": "unverified",
+              "module_activation": "separate_declaration_only"
+            }
+          }
+        ],
+        "vulnerable_packages": [
+          "acme/transitive"
+        ],
+        "vulnerable_packages_count": 1,
+        "advisory_matches_count": 1,
+        "dependency_inventory": {
+          "scope": "locked_dependency",
+          "complete": true,
+          "gaps": [],
+          "observed_at": "2026-11-12T13:31:13+00:00",
+          "sources": {
+            "root_manifest": {
+              "path": "composer.json",
+              "state": "read",
+              "sha256": "5b37fb09005ae035ed0dbf47a23ddb975b47d3a2b5c03cce46c15868f6501291"
+            },
+            "lockfile": {
+              "path": "composer.lock",
+              "state": "read",
+              "sha256": "58c5a552b6eea74af185bbb4ec2167834ab9250c2f3524e5e97d2a9619869308"
+            },
+            "installed_metadata": {
+              "path": "vendor/composer/installed.json",
+              "state": "missing"
+            }
+          },
+          "installed_dev_mode": null,
+          "excluded_locked_packages": [],
+          "declared_modules": null,
+          "coverage_note": "Composer metadata identifies recorded installation or locked build intent, not executable bytes, module activation or runtime reachability."
+        },
+        "package_observations": {
+          "acme/direct": {
+            "scope": "locked_dependency",
+            "source_path": "composer.lock",
+            "observed_at": "2026-11-12T13:31:13+00:00",
+            "installed": null,
+            "locked_version": "1.0.0",
+            "development_dependency": false,
+            "matches_locked_version": null,
+            "runtime_reachability": "unverified",
+            "module_activation": "separate_declaration_only"
+          },
+          "acme/transitive": {
+            "scope": "locked_dependency",
+            "source_path": "composer.lock",
+            "observed_at": "2026-11-12T13:31:13+00:00",
+            "installed": null,
+            "locked_version": "1.0.0",
+            "development_dependency": false,
+            "matches_locked_version": null,
+            "runtime_reachability": "unverified",
+            "module_activation": "separate_declaration_only"
+          }
+        }
+      }
+    },
+    {
+      "case": "same-transitive-advisory-published:2099-01-01T00:00:00Z",
+      "id": "MB-0055",
+      "status": "FAIL",
+      "message": "Vulnerable transitive dependencies:\n    - acme/transitive@1.0.0 -> QA-TRANSITIVE, required by acme/direct [Scope: locked dependency declarations; installation and runtime exposure unverified.]",
+      "evidence": {
+        "source": "magebean_osv_api",
+        "package_scope": "transitive",
+        "endpoint": "http://127.0.0.1:41535",
+        "packages": 1,
+        "responses": [
+          {
+            "batch": 1,
+            "request_endpoint": "http://127.0.0.1:41535",
+            "packages": 2,
+            "advisories": 1,
+            "dataset_revision": "controlled-qa-fixture"
+          }
+        ],
+        "feed_gaps": [],
+        "observed_at": "2026-11-12T13:31:13+00:00",
+        "advisories": 1,
+        "usable_advisories": 1,
+        "remediated_findings": [],
+        "unassessed_affected_packages": [],
+        "findings": [
+          {
+            "package": "acme/transitive",
+            "version": "1.0.0",
+            "advisory": "QA-TRANSITIVE",
+            "published": "2099-01-01T00:00:00Z",
+            "severity": "Severity not published",
+            "cvss": "",
+            "cvss_vector": "",
+            "fixed": null,
+            "known_exploited": false,
+            "hotfix_verification": null,
+            "dependency_observation": {
+              "scope": "locked_dependency",
+              "source_path": "composer.lock",
+              "observed_at": "2026-11-12T13:31:13+00:00",
+              "installed": null,
+              "locked_version": "1.0.0",
+              "development_dependency": false,
+              "matches_locked_version": null,
+              "runtime_reachability": "unverified",
+              "module_activation": "separate_declaration_only"
+            },
+            "required_by": [
+              "acme/direct"
+            ]
+          }
+        ],
+        "vulnerable_packages": [
+          "acme/transitive"
+        ],
+        "vulnerable_packages_count": 1,
+        "advisory_matches_count": 1,
+        "dependency_inventory": {
+          "scope": "locked_dependency",
+          "complete": true,
+          "gaps": [],
+          "observed_at": "2026-11-12T13:31:13+00:00",
+          "sources": {
+            "root_manifest": {
+              "path": "composer.json",
+              "state": "read",
+              "sha256": "5b37fb09005ae035ed0dbf47a23ddb975b47d3a2b5c03cce46c15868f6501291"
+            },
+            "lockfile": {
+              "path": "composer.lock",
+              "state": "read",
+              "sha256": "58c5a552b6eea74af185bbb4ec2167834ab9250c2f3524e5e97d2a9619869308"
+            },
+            "installed_metadata": {
+              "path": "vendor/composer/installed.json",
+              "state": "missing"
+            }
+          },
+          "installed_dev_mode": null,
+          "excluded_locked_packages": [],
+          "declared_modules": null,
+          "coverage_note": "Composer metadata identifies recorded installation or locked build intent, not executable bytes, module activation or runtime reachability."
+        },
+        "package_observations": {
+          "acme/direct": {
+            "scope": "locked_dependency",
+            "source_path": "composer.lock",
+            "observed_at": "2026-11-12T13:31:13+00:00",
+            "installed": null,
+            "locked_version": "1.0.0",
+            "development_dependency": false,
+            "matches_locked_version": null,
+            "runtime_reachability": "unverified",
+            "module_activation": "separate_declaration_only"
+          },
+          "acme/transitive": {
+            "scope": "locked_dependency",
+            "source_path": "composer.lock",
+            "observed_at": "2026-11-12T13:31:13+00:00",
+            "installed": null,
+            "locked_version": "1.0.0",
+            "development_dependency": false,
+            "matches_locked_version": null,
+            "runtime_reachability": "unverified",
+            "module_activation": "separate_declaration_only"
+          }
+        },
+        "direct_packages": [
+          "acme/direct"
+        ],
+        "transitive_packages": [
+          "acme/transitive"
+        ]
+      }
+    },
+    {
+      "case": "same-transitive-advisory-published:2099-01-01T00:00:00Z",
+      "id": "MB-0059",
+      "status": "UNKNOWN",
+      "message": "[UNKNOWN] Published date missing, invalid or future for unresolved advisories:\n    - acme/transitive@1.0.0 -> QA-TRANSITIVE [Scope: locked dependency declarations; installation and runtime exposure unverified.]",
+      "evidence": {
+        "source": "magebean_osv_api",
+        "package_scope": "all",
+        "endpoint": "http://127.0.0.1:41535",
+        "packages": 2,
+        "responses": [
+          {
+            "batch": 1,
+            "request_endpoint": "http://127.0.0.1:41535",
+            "packages": 2,
+            "advisories": 1,
+            "dataset_revision": "controlled-qa-fixture"
+          }
+        ],
+        "feed_gaps": [],
+        "observed_at": "2026-11-12T13:31:13+00:00",
+        "advisories": 1,
+        "usable_advisories": 1,
+        "remediated_findings": [],
+        "unassessed_affected_packages": [],
+        "findings": [
+          {
+            "package": "acme/transitive",
+            "version": "1.0.0",
+            "advisory": "QA-TRANSITIVE",
+            "published": "2099-01-01T00:00:00Z",
+            "severity": "Severity not published",
+            "cvss": "",
+            "cvss_vector": "",
+            "fixed": null,
+            "known_exploited": false,
+            "hotfix_verification": null,
+            "dependency_observation": {
+              "scope": "locked_dependency",
+              "source_path": "composer.lock",
+              "observed_at": "2026-11-12T13:31:13+00:00",
+              "installed": null,
+              "locked_version": "1.0.0",
+              "development_dependency": false,
+              "matches_locked_version": null,
+              "runtime_reachability": "unverified",
+              "module_activation": "separate_declaration_only"
+            }
+          }
+        ],
+        "vulnerable_packages": [
+          "acme/transitive"
+        ],
+        "vulnerable_packages_count": 1,
+        "advisory_matches_count": 1,
+        "dependency_inventory": {
+          "scope": "locked_dependency",
+          "complete": true,
+          "gaps": [],
+          "observed_at": "2026-11-12T13:31:13+00:00",
+          "sources": {
+            "root_manifest": {
+              "path": "composer.json",
+              "state": "read",
+              "sha256": "5b37fb09005ae035ed0dbf47a23ddb975b47d3a2b5c03cce46c15868f6501291"
+            },
+            "lockfile": {
+              "path": "composer.lock",
+              "state": "read",
+              "sha256": "58c5a552b6eea74af185bbb4ec2167834ab9250c2f3524e5e97d2a9619869308"
+            },
+            "installed_metadata": {
+              "path": "vendor/composer/installed.json",
+              "state": "missing"
+            }
+          },
+          "installed_dev_mode": null,
+          "excluded_locked_packages": [],
+          "declared_modules": null,
+          "coverage_note": "Composer metadata identifies recorded installation or locked build intent, not executable bytes, module activation or runtime reachability."
+        },
+        "package_observations": {
+          "acme/direct": {
+            "scope": "locked_dependency",
+            "source_path": "composer.lock",
+            "observed_at": "2026-11-12T13:31:13+00:00",
+            "installed": null,
+            "locked_version": "1.0.0",
+            "development_dependency": false,
+            "matches_locked_version": null,
+            "runtime_reachability": "unverified",
+            "module_activation": "separate_declaration_only"
+          },
+          "acme/transitive": {
+            "scope": "locked_dependency",
+            "source_path": "composer.lock",
+            "observed_at": "2026-11-12T13:31:13+00:00",
+            "installed": null,
+            "locked_version": "1.0.0",
+            "development_dependency": false,
+            "matches_locked_version": null,
+            "runtime_reachability": "unverified",
+            "module_activation": "separate_declaration_only"
+          }
+        },
+        "publication_age_threshold_days": 30,
+        "sla_days": 30,
+        "age_basis": "advisory_publication_not_discovery_or_deployment",
+        "open_advisories": [],
+        "overdue_advisories": [],
+        "missing_published_date": [
+          {
+            "package": "acme/transitive",
+            "version": "1.0.0",
+            "advisory": "QA-TRANSITIVE",
+            "published": "2099-01-01T00:00:00Z",
+            "severity": "Severity not published",
+            "cvss": "",
+            "cvss_vector": "",
+            "fixed": null,
+            "known_exploited": false,
+            "hotfix_verification": null,
+            "dependency_observation": {
+              "scope": "locked_dependency",
+              "source_path": "composer.lock",
+              "observed_at": "2026-11-12T13:31:13+00:00",
+              "installed": null,
+              "locked_version": "1.0.0",
+              "development_dependency": false,
+              "matches_locked_version": null,
+              "runtime_reachability": "unverified",
+              "module_activation": "separate_declaration_only"
+            },
+            "publication_date_issue": "future",
+            "open_days": null,
+            "sla_days": 30,
+            "publication_age_threshold_days": 30
+          }
+        ]
+      }
+    },
+    {
+      "case": "no-dev-install-lock-still-has-development-only-advisory",
+      "id": "MB-0049",
+      "status": "PASS",
+      "message": "No unresolved vulnerable packages according to OSV advisories (1 pkgs, 1 advisories; 0 package/advisory matches verified fixed by hotfix)",
+      "evidence": {
+        "source": "magebean_osv_api",
+        "package_scope": "all",
+        "endpoint": "http://127.0.0.1:41535",
+        "packages": 1,
+        "responses": [
+          {
+            "batch": 1,
+            "request_endpoint": "http://127.0.0.1:41535",
+            "packages": 1,
+            "advisories": 1,
+            "dataset_revision": null
+          }
+        ],
+        "feed_gaps": [],
+        "observed_at": "2026-11-12T13:31:13+00:00",
+        "advisories": 1,
+        "usable_advisories": 1,
+        "remediated_findings": [],
+        "unassessed_affected_packages": [],
+        "dependency_inventory": {
+          "scope": "installed_dependency",
+          "complete": true,
+          "gaps": [],
+          "observed_at": "2026-11-12T13:31:13+00:00",
+          "sources": {
+            "root_manifest": {
+              "path": "composer.json",
+              "state": "read",
+              "sha256": "92c292752dc8970d45c7e79d6cb3b6d57f885768ee39f2c7c4b7dc8967440f20"
+            },
+            "lockfile": {
+              "path": "composer.lock",
+              "state": "read",
+              "sha256": "a74a8bb8b57245dde9f97473161f389ba4eee19632f4e3def21b051d48861a52"
+            },
+            "installed_metadata": {
+              "path": "vendor/composer/installed.json",
+              "state": "read",
+              "sha256": "09143b77c0e17487b103fd6d6ea06847b68c64ef06190b7ddffe7f0fbb4105e0"
+            }
+          },
+          "installed_dev_mode": false,
+          "excluded_locked_packages": [
+            "acme/test-tool",
+            "acme/dev-only"
+          ],
+          "declared_modules": null,
+          "coverage_note": "Composer metadata identifies recorded installation or locked build intent, not executable bytes, module activation or runtime reachability."
+        },
+        "package_observations": {
+          "acme/direct": {
+            "scope": "installed_dependency",
+            "source_path": "vendor/composer/installed.json",
+            "observed_at": "2026-11-12T13:31:13+00:00",
+            "installed": true,
+            "locked_version": "1.0.0",
+            "development_dependency": false,
+            "matches_locked_version": true,
+            "runtime_reachability": "unverified",
+            "module_activation": "separate_declaration_only"
+          }
+        }
+      }
+    },
+    {
+      "case": "no-dev-install-lock-still-has-development-only-advisory",
+      "id": "MB-0055",
+      "status": "PASS",
+      "message": "No transitive Composer dependencies found",
+      "evidence": {
+        "direct_packages": [
+          "acme/direct",
+          "acme/test-tool"
+        ],
+        "transitive_packages": [],
+        "dependency_inventory": {
+          "scope": "installed_dependency",
+          "complete": true,
+          "gaps": [],
+          "observed_at": "2026-11-12T13:31:13+00:00",
+          "sources": {
+            "root_manifest": {
+              "path": "composer.json",
+              "state": "read",
+              "sha256": "92c292752dc8970d45c7e79d6cb3b6d57f885768ee39f2c7c4b7dc8967440f20"
+            },
+            "lockfile": {
+              "path": "composer.lock",
+              "state": "read",
+              "sha256": "a74a8bb8b57245dde9f97473161f389ba4eee19632f4e3def21b051d48861a52"
+            },
+            "installed_metadata": {
+              "path": "vendor/composer/installed.json",
+              "state": "read",
+              "sha256": "09143b77c0e17487b103fd6d6ea06847b68c64ef06190b7ddffe7f0fbb4105e0"
+            }
+          },
+          "installed_dev_mode": false,
+          "excluded_locked_packages": [
+            "acme/test-tool",
+            "acme/dev-only"
+          ],
+          "declared_modules": null,
+          "coverage_note": "Composer metadata identifies recorded installation or locked build intent, not executable bytes, module activation or runtime reachability."
+        },
+        "package_observations": {
+          "acme/direct": {
+            "scope": "installed_dependency",
+            "source_path": "vendor/composer/installed.json",
+            "observed_at": "2026-11-12T13:31:13+00:00",
+            "installed": true,
+            "locked_version": "1.0.0",
+            "development_dependency": false,
+            "matches_locked_version": true,
+            "runtime_reachability": "unverified",
+            "module_activation": "separate_declaration_only"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -87,16 +87,12 @@ final class WebServerConfigCheck
 
             $analysis = $this->tlsCipherConfigEvidence($relative, $content, $requireProtocols, $requireCiphers);
             $checked[] = $analysis;
-            if (!empty($analysis['configured']) && !empty($analysis['ok'])) {
-                return [true, 'Strong TLS protocol and cipher configuration found in ' . $relative, ['checked' => $checked]];
-            }
-            if (!empty($analysis['configured']) && empty($analysis['ok'])) {
+            if (!empty($analysis['configured']) && $analysis['ok'] === false) {
                 $failures[] = $analysis;
             }
         }
 
         $evidence = ['checked' => $checked, 'failures' => $failures];
-        foreach ($checked as $analysis) if (array_key_exists('ok', $analysis) && $analysis['ok'] === null) return [null, '[UNKNOWN] Cipher expression needs effective OpenSSL validation', $evidence];
         if ($failures !== []) {
             $lines = ['Weak TLS protocol/cipher configuration detected:'];
             foreach ($failures as $failure) {
@@ -109,13 +105,19 @@ final class WebServerConfigCheck
             return [false, implode("\n", $lines), $evidence];
         }
 
-        return [false, 'TLS protocol/cipher configuration not found. Add nginx or Apache TLS config with TLSv1.2/TLSv1.3 and strong ciphers.', $evidence];
+        foreach ($checked as $analysis) {
+            if ((!empty($analysis['present']) && empty($analysis['readable'])) || (array_key_exists('ok', $analysis) && $analysis['ok'] === null)) return [null, '[UNKNOWN] TLS configuration collection or cipher interpretation is incomplete', $evidence];
+        }
+        $configured = array_filter($checked, static fn(array $entry): bool => !empty($entry['configured']));
+        if ($configured === []) return [null, '[UNKNOWN] No explicit TLS protocol/cipher declarations were collected; effective gateway policy is unresolved', $evidence];
+        return [true, 'Collected explicit TLS declarations satisfy the source configuration policy; effective gateway binding was not verified', $evidence + ['scope' => 'readable repository TLS declarations only']];
     }
     private function tlsCipherConfigEvidence(string $file, string $content, bool $requireProtocols, bool $requireCiphers): array
     {
         $protocols = $this->firstDirectiveValue($content, '~^\s*(?:ssl_protocols|SSLProtocol)\s+(?P<value>[^;\r\n]+)~im');
         $ciphers = $this->firstDirectiveValue($content, '~^\s*(?:ssl_ciphers|SSLCipherSuite)\s+(?P<value>[^;\r\n]+)~im');
 
+        if (preg_match_all('~^\s*(?:ssl_protocols|SSLProtocol)\s+~im', $content) > 1 || preg_match_all('~^\s*(?:ssl_ciphers|SSLCipherSuite)\s+~im', $content) > 1) return ['file'=>$file,'present'=>true,'readable'=>true,'configured'=>true,'ok'=>null,'reason'=>'multiple TLS scopes require effective configuration binding'];
         $protocolEvidence = $this->tlsProtocolEvidence($protocols);
         $cipherEvidence = $this->cipherSuiteEvidence($ciphers);
 

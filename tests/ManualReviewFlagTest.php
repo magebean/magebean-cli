@@ -39,7 +39,7 @@ assertManualFlag(str_contains($baseline->getDisplay(), 'Total Rules Listed: ' . 
 
 $baselineManual = new CommandTester($command);
 $baselineManual->execute(['--profile' => 'hardening', '--include-manual-review' => true, '--no-ansi' => true]);
-assertManualFlag(str_contains($baselineManual->getDisplay(), 'Total Rules Listed: 67'), 'Manual flag cannot enable machine-context-gated requirements or restore human backlog');
+assertManualFlag(str_contains($baselineManual->getDisplay(), 'Total Rules Listed: 80'), 'Manual flag cannot enable machine-context-gated requirements or restore human backlog');
 
 $pci = new CommandTester($command);
 $pci->execute(['--profile' => 'pci', '--no-ansi' => true]);

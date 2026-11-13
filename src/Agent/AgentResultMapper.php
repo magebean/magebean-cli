@@ -6,9 +6,12 @@ final class AgentResultMapper
 {
     public function map(array $result, array $manifest, array $manifestIndex, array $unsupported, string $magentoPath, array $manifestBindings = []): array
     {
+        $canonicalIssues=\Magebean\Engine\MagebeanIssueCorrelation::group($result['findings']??[]);
+        $canonicalRefs=[];foreach($canonicalIssues as $issue)foreach($issue['rule_ids'] as $id)$canonicalRefs[$id][]=[
+            'issue_id'=>$issue['issue_id'],'issue_family'=>$issue['issue_family'],'correlation_status'=>$issue['correlation_status'],'related_rule_ids'=>$issue['rule_ids']];
         if($manifestBindings!==[]){
             $executed=array_column($result['findings'],null,'id');$mapped=[];
-            foreach($manifestBindings as $binding){$canonical=$binding['canonical_id'];if(!isset($executed[$canonical]))throw new \LogicException('Manifest binding has no canonical assessment result: '.$canonical);$finding=$executed[$canonical];$finding['id']=$binding['requested_key'];$manifestIndex[$binding['requested_key']]=['assessment_item_id'=>$binding['assessment_item_id']];$mapped[]=$finding;}
+            foreach($manifestBindings as $binding){$canonical=$binding['canonical_id'];if(!isset($executed[$canonical]))throw new \LogicException('Manifest binding has no canonical assessment result: '.$canonical);$finding=$executed[$canonical];$finding['correlation_owner_id']=$canonical;$finding['id']=$binding['requested_key'];$manifestIndex[$binding['requested_key']]=['assessment_item_id'=>$binding['assessment_item_id']];$mapped[]=$finding;}
             $result['findings']=$mapped;
         }
         $findings=[];foreach($result['findings'] as $finding){
@@ -29,6 +32,8 @@ final class AgentResultMapper
                     'resources' => [],
                 ];
             }
+            $owner=$finding['correlation_owner_id']??$finding['id'];
+            if (isset($canonicalRefs[$owner])) $finding['evidence']['canonical_issue_refs']=$canonicalRefs[$owner];
             $evidence = $this->sanitize($finding['evidence'] ?? [], $magentoPath);
             if (isset($finding['risk_observation'])) {
                 $evidence['risk_observation'] = $this->sanitizeRiskEnvelope($finding['risk_observation'], $magentoPath);
@@ -41,6 +46,7 @@ final class AgentResultMapper
             $result['summary']['needs_attention'] = count(array_filter($findings, static fn(array $row):bool => !empty($row['evidence']['risk_observation']['needs_attention'])));
             $result['summary']['collection_issues'] = array_sum(array_map(static fn(array $row):int => count($row['evidence']['risk_observation']['collection_gaps'] ?? []), $findings));
         }
+        if ($canonicalIssues!==[] || isset($result['summary']['needs_attention'])) $result['summary']['canonical_issue_count']=count($canonicalIssues);
         return ['schema_version'=>'1.0','manifest_hash'=>(string)($manifest['manifest_hash']??''),'summary'=>$result['summary'],'results'=>array_merge($findings,$unsupported)];
     }
     public function resultTitle(array $result): string

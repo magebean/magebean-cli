@@ -1,0 +1,53 @@
+{
+  "scope": "Synthetic direct-helper probes, not a full Magento runtime or live-store audit.",
+  "observations": [
+    {
+      "rules": [
+        "MB-0815",
+        "MB-0816",
+        "MB-0818"
+      ],
+      "case": "Preference resolves to child inheriting private constructor",
+      "actual": [
+        "finding",
+        "di_target_not_instantiable"
+      ],
+      "expected_scope": "Do not certify instantiability without checking inherited construction"
+    },
+    {
+      "rules": [
+        "MB-0815",
+        "MB-0816"
+      ],
+      "case": "PHP runtime cross-check of same synthetic inheritance pattern",
+      "actual": "Error: Call to private QaCurrentStatePrivateParent::__construct() from global scope"
+    },
+    {
+      "rules": [
+        "MB-0817"
+      ],
+      "case": "Unexamined array assigned to callable constructor parameter",
+      "actual": [
+        "gap",
+        "di_callable_array_unresolved"
+      ],
+      "qualification": "This checks array type compatibility, not that an arbitrary array is callable."
+    },
+    {
+      "rules": [
+        "MB-0805"
+      ],
+      "case": "Exact source policy with package version \"1.0.0\"",
+      "actual": "PASS",
+      "message": "Collected declarations satisfy the explicit dependency policy"
+    },
+    {
+      "rules": [
+        "MB-0805"
+      ],
+      "case": "Exact source policy with package version \"\"",
+      "actual": "UNKNOWN",
+      "message": "[UNKNOWN] Dependency policy collection is incomplete"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+<?php
+declare(strict_types=1);
+require __DIR__.'/../vendor/autoload.php';
+use Magebean\Engine\{Context,CheckOutcome};
+use Magebean\Engine\Checks\CheckRegistry;
+$n=0;$assert=static function(bool $ok,string $message)use(&$n):void{++$n;if(!$ok)throw new RuntimeException($message);};
+$archive=array_column(json_decode(file_get_contents(__DIR__.'/../src/Rules/requirements/magebean-retirements.json'),true)['requirements'],null,'id');
+$root=sys_get_temp_dir().'/mb-retirement-detectors-'.bin2hex(random_bytes(6));mkdir($root);
+$put=static function(string $file,string $text)use($root):void{if(!is_dir(dirname($root.'/'.$file)))mkdir(dirname($root.'/'.$file),0700,true);file_put_contents($root.'/'.$file,$text);};
+$clear=static function()use($root):void{$it=new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root,FilesystemIterator::SKIP_DOTS),RecursiveIteratorIterator::CHILD_FIRST);foreach($it as$f){if($f->isDir()&&!$f->isLink())rmdir($f->getPathname());else unlink($f->getPathname());}};
+$run=static function(string $id)use($root,$archive){$check=$archive[$id]['checks'][0];return CheckRegistry::fromContext(new Context($root,''))->runResult($check['name'],$check['args']);};
+try{
+ foreach(['MB-0077','MB-0078','MB-0079','MB-0081','MB-0082','MB-0083','MB-0085','MB-0086','MB-0087','MB-0088','MB-0089','MB-0090','MB-0094','MB-0095','MB-0096','MB-0097','MB-0098','MB-0099']as$id)$assert($run($id)->outcome===CheckOutcome::Unknown,'Missing source/config scope stays UNKNOWN '.$id);
+ $put('app/design/Acme/theme/checkout.phtml','<script src="https://cdn.invalid/checkout.js"></script>');
+ $put('.magebean/payment-scripts.json','[{"source":"https://other.invalid/unrelated.js"}]');
+ $assert($run('MB-0087')->outcome===CheckOutcome::Fail,'An unrelated inventory entry cannot cover the observed script');
+ $put('.magebean/payment-scripts.json','[{"source":"https://cdn.invalid/checkout.js"}]');
+ $assert($run('MB-0087')->outcome===CheckOutcome::Pass,'Exact collected source-to-inventory correlation is supported');
+ $put('app/design/Acme/theme/checkout.phtml','<script src="https://cdn.invalid/checkout.js"></script><?php $unused="getNonce"; ?>');
+ $assert($run('MB-0088')->outcome===CheckOutcome::Fail,'An unused nonce marker cannot protect a script tag');
+ $sri='sha256-'.base64_encode(str_repeat(chr(0),32));
+ $tag='<script src="https://cdn.invalid/checkout.js" integrity="'.$sri.'"></script>';
+ $put('app/design/Acme/theme/checkout.phtml',$tag);
+ $r=$run('MB-0088');$assert($r->outcome===CheckOutcome::Pass&&str_contains($r->message,'syntactically valid'),'Bound syntactic SRI evidence is supported without claiming fetched-byte validation');
+ $put('app/design/Acme/theme/checkout.phtml',$tag.'<script src="https://cdn.invalid/checkout.js"></script>');
+ $assert($run('MB-0088')->outcome===CheckOutcome::Fail,'One SRI tag cannot mask an unprotected duplicate source');
+ $clear();$put('app/code/Acme/Probe/Controller/Export/Index.php','<?php class Export {function execute(){if (!$this->authorization->isAllowed("Acme::export")) { throw new \\RuntimeException(); } $this->service->export();}}');
+ $r=$run('MB-0099');$assert($r->outcome===CheckOutcome::Unknown&&$r->evidence['findings']===[],'A bound leading deny guard is recognized but does not certify object authorization');
+ $put('app/code/Acme/Probe/Controller/Export/Index.php','<?php class Export {function execute(){ $unused="isAllowed"; $this->service->export();}}');
+ $assert($run('MB-0099')->outcome===CheckOutcome::Fail,'Unused authorization strings cannot suppress a known missing-gate candidate');
+ $put('app/code/Acme/Probe/Controller/Export/Index.php','<?php class Good {function execute(){if (!$this->auth->isAllowed("Acme::export")){return null;} $this->service->export();}} class Bad {function execute(){ $this->service->export();}}');
+ $assert($run('MB-0099')->outcome===CheckOutcome::Fail,'A guard in another method/class cannot mask an unguarded endpoint');
+ $clear();$put('app/code/Acme/Probe/Source.php','<?php $logger->info($password); /* mask */');
+ $registry=CheckRegistry::fromContext(new Context($root,''));$r=$registry->runResult('code_sensitive_logging', ['paths'=>['app/code'],'include_ext'=>['php']]);
+ $assert($r->outcome===CheckOutcome::Fail,'Unrelated masking comment cannot sanitize a log argument');
+ $put('app/code/Acme/Probe/Source.php','<?php $logger->info($email);');
+ $registry=CheckRegistry::fromContext(new Context($root,''));$r=$registry->runResult('code_sensitive_logging', ['paths'=>['app/code'],'include_ext'=>['php']]);
+ $assert($r->outcome===CheckOutcome::Fail,'Named email value is a supported PII log candidate');
+ $put('app/code/Acme/Probe/Source.php','<?php $logger->info("Password reset complete"); $password=$input;');
+ $registry=CheckRegistry::fromContext(new Context($root,''));$r=$registry->runResult('code_sensitive_logging', ['paths'=>['app/code'],'include_ext'=>['php']]);
+ $assert($r->outcome===CheckOutcome::Unknown,'A later sensitive variable does not turn a static status message into a dynamic credential log');
+ $clear();$put('var/export/data.csv',"token,cvv\n123\n");$put('var/export/other.txt','token cvv=123');
+ $r=$run('MB-0083');$assert($r->outcome===CheckOutcome::Fail,'Unrelated token label cannot suppress explicit CVV digits');
+ $clear();$put('app/code/Acme/Probe/Source.php','<?php $config=["password"=>"fixture_"."VALUE_1234567890"];');
+ $r=$run('MB-0097');$assert($r->outcome===CheckOutcome::Fail&&!str_contains(json_encode($r->evidence),'VALUE_1234567890'),'Static concatenated secret is detected without retaining credential bytes');
+ echo "Retirement middle detector regressions: $n assertions passed\n";
+}finally{$clear();rmdir($root);}

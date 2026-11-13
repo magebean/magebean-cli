@@ -1,0 +1,104 @@
+{
+  "profiles": [
+    {
+      "profile": "basic",
+      "inventory": 37,
+      "default_local": 37,
+      "default_capabilities": []
+    },
+    {
+      "profile": "development",
+      "inventory": 31,
+      "default_local": 29,
+      "default_capabilities": []
+    },
+    {
+      "profile": "prelaunch",
+      "inventory": 60,
+      "default_local": 58,
+      "default_capabilities": [
+        "dependency_maintenance"
+      ]
+    },
+    {
+      "profile": "takeover",
+      "inventory": 86,
+      "default_local": 82,
+      "default_capabilities": [
+        "dependency_maintenance"
+      ]
+    },
+    {
+      "profile": "hardening",
+      "inventory": 86,
+      "default_local": 74,
+      "default_capabilities": [
+        "cache_backend_policy",
+        "dependency_maintenance"
+      ]
+    },
+    {
+      "profile": "owasp-top-10-2025",
+      "inventory": 50,
+      "default_local": 41,
+      "default_capabilities": []
+    },
+    {
+      "profile": "evidence",
+      "inventory": 2,
+      "default_local": 2,
+      "default_capabilities": [
+        "evidence_document_lint",
+        "dependency_mitigation_policy"
+      ]
+    }
+  ],
+  "restored_rule_membership": {
+    "MB-0043": [
+      "hardening",
+      "takeover"
+    ],
+    "MB-0093": [
+      "evidence"
+    ],
+    "MB-0731": [],
+    "MB-0733": [
+      "hardening",
+      "development",
+      "prelaunch",
+      "takeover"
+    ],
+    "MB-0736": [
+      "hardening",
+      "development",
+      "prelaunch",
+      "takeover"
+    ],
+    "MB-0739": [
+      "hardening",
+      "prelaunch",
+      "takeover"
+    ],
+    "MB-0740": [
+      "hardening",
+      "prelaunch",
+      "takeover"
+    ],
+    "MB-0741": [
+      "hardening",
+      "prelaunch",
+      "takeover"
+    ],
+    "MB-0742": [
+      "hardening",
+      "prelaunch",
+      "takeover"
+    ],
+    "MB-0744": [
+      "hardening",
+      "development",
+      "prelaunch",
+      "takeover"
+    ]
+  }
+}

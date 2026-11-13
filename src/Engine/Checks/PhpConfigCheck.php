@@ -40,6 +40,17 @@ final class PhpConfigCheck
         });
     }
 
+    /** Restored deployment predicates read literal arrays without executing application code. */
+    private function loadStaticArray(string $relativeFile): array
+    {
+        $inventory=(new \Magebean\Engine\Collectors\BoundedSourceInventory($this->collectors->session))->collect($this->ctx,[
+            'paths'=>[$relativeFile], 'include_ext'=>['php'], 'max_files'=>1, 'verify_stable'=>true,
+        ]);
+        if (!$inventory['complete'] || count($inventory['files'])!==1) return ['__ERROR__'=>'Static configuration scope unavailable: '.$relativeFile];
+        return $this->collectors->php->literal($this->ctx->abs($relativeFile))
+            ?? ['__ERROR__'=>'Static configuration scope unavailable or unsupported: '.$relativeFile];
+    }
+
     private function getByDotPath(array $arr, string $path, mixed $default = null): mixed
     {
         if ($path === '' || $path === '.') return $arr;
@@ -175,7 +186,7 @@ final class PhpConfigCheck
                 continue;
             }
 
-            $content = @file_get_contents($path);
+            $content = $this->collectors->files->read($path);
             if ($content === false) {
                 $checked[] = ['file' => $relative, 'present' => true, 'readable' => false];
                 continue;
@@ -216,162 +227,64 @@ final class PhpConfigCheck
 
     public function displayErrorsDisabled(array $args): array
     {
-        $files = $args['files'] ?? null;
-        if ($files === null && isset($args['file'])) {
-            $files = [$args['file']];
-        }
-        if (!is_array($files)) {
-            $files = ['php.ini', '.user.ini'];
-        }
-
-        $checked = [];
-        $observed = [];
+        $files = $args['files'] ?? (isset($args['file']) ? [$args['file']] : ['php.ini', '.user.ini']);
+        if (!is_array($files) || $files === []) return [null, '[UNKNOWN] PHP ini paths are required'];
+        $observed = []; $gaps = []; $enabled = [];
         foreach ($files as $file) {
-            if (!is_scalar($file)) {
-                continue;
-            }
-            $relative = (string)$file;
-            $path = $this->ctx->abs($relative);
-            if (!is_file($path)) {
-                $checked[] = ['file' => $relative, 'present' => false];
-                continue;
-            }
-
-            $content = @file_get_contents($path);
-            if ($content === false) {
-                $checked[] = ['file' => $relative, 'present' => true, 'readable' => false];
-                continue;
-            }
-
-            $checked[] = ['file' => $relative, 'present' => true, 'readable' => true];
-            foreach (preg_split("~\r?\n~", $content) as $idx => $line) {
-                $trimmed = trim((string)$line);
-                if ($trimmed === '' || str_starts_with($trimmed, ';') || str_starts_with($trimmed, '#')) {
-                    continue;
-                }
-                if (preg_match('~^\s*display_errors\s*=\s*(?P<value>[^;\s#]+)~i', $line, $m) !== 1) {
-                    continue;
-                }
-
-                $value = strtolower(trim((string)$m['value'], "\"'"));
-                $off = in_array($value, ['off', '0', 'false', 'no'], true);
-                $observed[] = [
-                    'file' => $relative,
-                    'line' => $idx + 1,
-                    'value' => $value,
-                    'ok' => $off,
-                    'text' => trim((string)$line),
-                ];
-            }
+            if (!is_string($file) || $file === '') { $gaps[] = 'invalid_ini_path'; continue; }
+            if (!file_exists($this->ctx->abs($file)) && !is_link($this->ctx->abs($file))) continue;
+            $inventory = (new \Magebean\Engine\Collectors\BoundedSourceInventory($this->collectors->session))->collect($this->ctx, [
+                'paths'=>[$file], 'include_ext'=>['ini'], 'max_files'=>1, 'verify_stable'=>true,
+            ]);
+            if (!$inventory['complete'] || count($inventory['files']) !== 1) { $gaps[] = $file; continue; }
+            $ini = @parse_ini_string($inventory['files'][0]['content'], false, INI_SCANNER_RAW);
+            if (!is_array($ini) || !array_key_exists('display_errors', $ini) || !is_string($ini['display_errors'])) { $gaps[] = $file; continue; }
+            $value = strtolower(trim($ini['display_errors']));
+            $off = in_array($value, ['off','0','false','no','none',''], true);
+            $on = in_array($value, ['on','1','true','yes','stdout','stderr'], true);
+            $observed[] = ['file'=>$file, 'value'=>$value, 'scope'=>'last display_errors declaration in this supplied ini file'];
+            if ($on) $enabled[] = $file;
+            elseif (!$off) $gaps[] = $file;
         }
-
-        $evidence = ['checked' => $checked, 'observed' => $observed];
-        if ($observed === []) {
-            return [null, '[UNKNOWN] display_errors directive not found in readable PHP ini files', $evidence];
-        }
-
-        $failures = array_values(array_filter($observed, static fn(array $entry): bool => empty($entry['ok'])));
-        if ($failures !== []) {
-            return [false, 'display_errors is enabled in PHP ini configuration', $evidence + ['failures' => $failures]];
-        }
-
-        return [true, 'display_errors is disabled in PHP ini configuration', $evidence];
+        $evidence = ['observed'=>$observed, 'collection_gaps'=>$gaps, 'scope'=>'declared ini values; web worker effective runtime is not assessed'];
+        if ($enabled !== []) return [false, 'display_errors is enabled in supplied PHP ini configuration', $evidence];
+        if ($gaps !== [] || $observed === []) return [null, '[UNKNOWN] display_errors declaration is missing, malformed or unreadable', $evidence];
+        return [true, 'display_errors is explicitly disabled in inspected PHP ini files', $evidence];
     }
 
     public function templateHintsDisabled(array $args): array
     {
-        $file = (string)($args['file'] ?? 'app/etc/env.php');
-        $paths = $args['paths'] ?? null;
-        if ($paths === null && isset($args['path'])) {
-            $paths = [$args['path']];
-        }
-        if (!is_array($paths)) {
-            $paths = ['system.default.dev/debug/template_hints'];
-        }
-
-        $arr = $this->loadArray($file);
-        if (isset($arr['__ERROR__'])) {
-            return [null, '[UNKNOWN] ' . $arr['__ERROR__'], ['file' => $file, 'paths' => $paths]];
-        }
-
-        $observed = [];
-        foreach ($paths as $path) {
-            if (!is_scalar($path)) {
-                continue;
-            }
-            $rawPath = (string)$path;
-            $normPath = str_replace('/', '.', $rawPath);
-            $value = $this->configurationValue($arr, $rawPath);
-            if ($value === '__NOT_FOUND__') {
-                $observed[] = ['path' => $rawPath, 'normalized_path' => $normPath, 'present' => false, 'ok' => true];
-                continue;
-            }
-
-            $disabled = $this->configFalsey($value);
-            $observed[] = [
-                'path' => $rawPath,
-                'normalized_path' => $normPath,
-                'present' => true,
-                'value' => $value,
-                'ok' => $disabled,
-            ];
-        }
-
-        $failures = array_values(array_filter($observed, static fn(array $entry): bool => !empty($entry['present']) && empty($entry['ok'])));
-        $evidence = ['file' => $file, 'observed' => $observed];
-        if ($failures !== []) {
-            return [false, 'Developer template hints are enabled', $evidence + ['failures' => $failures]];
-        }
-
-        return [true, 'Developer template hints are disabled or absent', $evidence];
+        $paths = $args['paths'] ?? (isset($args['path']) ? [$args['path']] : ['system.default.dev/debug/template_hints']);
+        return $this->declaredFlagsDisabled((string)($args['file'] ?? 'app/etc/env.php'), $paths);
     }
 
     public function devDebugConfigDisabled(array $args): array
     {
-        $file = (string)($args['file'] ?? 'app/etc/env.php');
-        $paths = $args['paths'] ?? [
-            'system.default.dev/translate_inline/active',
-            'system.default.dev/debug/template_hints_storefront',
-        ];
-        if (!is_array($paths)) {
-            $paths = ['system.default.dev/translate_inline/active'];
-        }
+        return $this->declaredFlagsDisabled((string)($args['file'] ?? 'app/etc/env.php'), $args['paths'] ?? [
+            'system.default.dev/translate_inline/active', 'system.default.dev/debug/template_hints_storefront',
+        ]);
+    }
 
-        $arr = $this->loadArray($file);
-        if (isset($arr['__ERROR__'])) {
-            return [null, '[UNKNOWN] ' . $arr['__ERROR__'], ['file' => $file, 'paths' => $paths]];
-        }
-
-        $observed = [];
+    private function declaredFlagsDisabled(string $file, mixed $paths): array
+    {
+        if (!is_array($paths) || $paths === []) return [null, '[UNKNOWN] Explicit nonempty debug setting paths are required'];
+        $arr = $this->loadStaticArray($file);
+        if (isset($arr['__ERROR__'])) return [null, '[UNKNOWN] '.$arr['__ERROR__'], ['file'=>$file]];
+        $observed = []; $failures = []; $gaps = [];
         foreach ($paths as $path) {
-            if (!is_scalar($path)) {
-                continue;
-            }
-            $rawPath = (string)$path;
-            $normPath = str_replace('/', '.', $rawPath);
-            $value = $this->configurationValue($arr, $rawPath);
-            if ($value === '__NOT_FOUND__') {
-                $observed[] = ['path' => $rawPath, 'normalized_path' => $normPath, 'present' => false, 'ok' => true];
-                continue;
-            }
-
-            $disabled = $this->configFalsey($value);
-            $observed[] = [
-                'path' => $rawPath,
-                'normalized_path' => $normPath,
-                'present' => true,
-                'value' => $value,
-                'ok' => $disabled,
-            ];
+            if (!is_string($path) || $path === '') { $gaps[] = 'invalid_setting_path'; continue; }
+            $value = $this->configurationValue($arr, $path);
+            if (is_string($value) && $value !== '__NOT_FOUND__') $value = strtolower(trim($value));
+            $enabled = in_array($value, [true, 1, '1', 'on', 'yes', 'true'], true);
+            $disabled = in_array($value, [false, 0, '0', 'off', 'no', 'false'], true);
+            $observed[] = ['path'=>$path, 'present'=>$value!=='__NOT_FOUND__', 'recognized'=>$enabled||$disabled, 'enabled'=>$enabled];
+            if ($enabled) $failures[] = $path;
+            elseif (!$disabled) $gaps[] = $path;
         }
-
-        $failures = array_values(array_filter($observed, static fn(array $entry): bool => !empty($entry['present']) && empty($entry['ok'])));
-        $evidence = ['file' => $file, 'observed' => $observed];
-        if ($failures !== []) {
-            return [false, 'Developer debug configuration is enabled', $evidence + ['failures' => $failures]];
-        }
-
-        return [true, 'Developer debug configuration is disabled or absent', $evidence];
+        $evidence = ['file'=>$file, 'scope'=>'named literal project declaration paths only', 'observed'=>$observed, 'collection_gaps'=>$gaps];
+        if ($failures !== []) return [false, 'Declared project debug flag is enabled: '.implode(', ', $failures), $evidence];
+        if ($gaps !== []) return [null, '[UNKNOWN] Named debug declarations are missing or malformed', $evidence];
+        return [true, 'All named project debug declarations are explicitly disabled', $evidence];
     }
 
     public function thirdPartyDebugDisabled(array $args): array
@@ -401,7 +314,7 @@ final class PhpConfigCheck
                 continue;
             }
 
-            $arr = $this->loadArray($relative);
+            $arr = $this->loadStaticArray($relative);
             if (isset($arr['__ERROR__'])) {
                 $checked[] = ['file' => $relative, 'present' => true, 'readable' => false, 'error' => $arr['__ERROR__']];
                 continue;
@@ -607,7 +520,7 @@ final class PhpConfigCheck
             $paths = ['cache.frontend.default.backend', 'cache.backend'];
         }
 
-        $arr = $this->loadArray($file);
+        $arr = $this->loadStaticArray($file);
         if (isset($arr['__ERROR__'])) {
             return [null, '[UNKNOWN] ' . $arr['__ERROR__'], ['file' => $file, 'paths' => $paths]];
         }
@@ -773,7 +686,7 @@ final class PhpConfigCheck
         // lẫn dot-path thuần: getByDotPath dùng dấu chấm.
         $normPath = str_replace('/', '.', $path);
 
-        $arr = $this->loadArray($file);
+        $arr = $this->loadStaticArray($file);
         if (isset($arr['__ERROR__'])) {
             return [false, $arr['__ERROR__']];
         }

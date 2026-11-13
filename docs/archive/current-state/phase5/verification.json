@@ -1,0 +1,22 @@
+{
+  "phase": 5,
+  "validation_scope": "local source and qualified PHAR fixtures; not live store",
+  "profile_assertions": 62,
+  "full_regression": {
+    "test_files": 142,
+    "passed": 142,
+    "failed": 0
+  },
+  "protected_standard_archive_baseline": "passed",
+  "artifacts": {
+    "magebean.phar": {
+      "sha256": "cb17dff36157419a9c650def43173082c054fb927626c97ce2ca6b26e0f627c8",
+      "phase5_gate": "62 assertions passed"
+    },
+    "artifacts/magebean-one-time.phar": {
+      "sha256": "672165067430644a7d1bee7970d59f237c8271e385a7bf6a346d9b43ada02e37",
+      "phase5_gate": "62 assertions passed"
+    }
+  },
+  "remaining_phase": 6
+}

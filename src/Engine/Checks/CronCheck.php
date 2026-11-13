@@ -266,7 +266,7 @@ final class CronCheck
     /** Read only the deployment's actual Magento scheduler table. */
     private function databaseMetric(string $metric, array $args): array
     {
-        $evidence = ['source' => 'cron_schedule', 'scope' => 'deployment_database'];
+        $evidence = ['source' => 'cron_schedule', 'scope' => 'deployment_database', 'observed_at'=>gmdate(DATE_ATOM)];
         if ($this->ctx === null) return [null, '[UNKNOWN] Deployment path is unavailable for cron database collection', $evidence];
         $pdo = $this->ctx->get('pdo');
         $prefix = (string)$this->ctx->get('db_table_prefix', '');
@@ -302,7 +302,7 @@ final class CronCheck
                 $age = time() - $date->getTimestamp();
                 if ($age < -60) return [null, '[UNKNOWN] Cron execution timestamp is in the future; synchronize the scanner and database clocks', $evidence + ['reason' => 'clock_skew']];
                 $ok = $age <= $maxAge;
-                return [$ok, $ok ? 'Recorded cron execution is recent' : 'Recorded cron execution is stale', $evidence + ['executed_at' => $raw, 'age_seconds' => max(0, $age), 'max_age_seconds' => $maxAge]];
+                return [$ok, $ok ? 'Recorded cron execution is recent' : 'Recorded cron execution is stale', $evidence + ['metric'=>'execution_freshness', 'included_execution_statuses'=>['success','running','error'], 'successful_completion_established'=>false, 'executed_at' => $raw, 'age_seconds' => max(0, $age), 'max_age_seconds' => $maxAge]];
             }
             $threshold = (int)($args['max'] ?? $args['threshold'] ?? 1000);
             if ($threshold < 0) return [null, '[UNKNOWN] Cron backlog threshold must be nonnegative', $evidence];
@@ -310,7 +310,7 @@ final class CronCheck
             $statement->execute([gmdate('Y-m-d H:i:s')]);
             $count = (int)$statement->fetchColumn();
             $ok = $count < $threshold;
-            return [$ok, $ok ? 'Due pending cron backlog is below threshold' : 'Due pending cron backlog meets or exceeds threshold', $evidence + ['due_pending_count' => $count, 'threshold' => $threshold, 'future_jobs_excluded' => true]];
+            return [$ok, $ok ? 'Due pending cron backlog is below threshold' : 'Due pending cron backlog meets or exceeds threshold', $evidence + ['metric'=>'due_pending_backlog', 'successful_completion_established'=>false, 'due_pending_count' => $count, 'threshold' => $threshold, 'future_jobs_excluded' => true]];
         } catch (\Throwable $error) {
             return [null, '[UNKNOWN] Unable to read Magento cron_schedule; verify the deployed DB connection and SELECT permission for the scheduler table', $evidence + ['reason' => 'cron_database_collection_failed']];
         }

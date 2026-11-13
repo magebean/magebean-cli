@@ -31,6 +31,7 @@ final class SystemCheck
                 $deny1 = preg_match('~default:[^\r\n]*\b(?:deny|reject)\s*\(outgoing\)~', $t) === 1;
                 // một số distro in khác: "Outgoing: DENY"
                 $deny2  = (strpos($t, 'outgoing: deny') !== false);
+                if ($active && ($deny1 || $deny2) && preg_match('/\bALLOW\s+OUT\b|\bOUT\s+ALLOW\b/i', $out['stdout'])) return [null, '[UNKNOWN] UFW outgoing exceptions require effective-rule evaluation', ['tool' => 'ufw', 'output' => $out['stdout']]];
                 if ($active && ($deny1 || $deny2)) {
                     return [true, 'UFW is active and denies outgoing traffic by default', [
                         'tool' => 'ufw',
@@ -57,13 +58,18 @@ final class SystemCheck
             $out = $this->safeShell('iptables -S OUTPUT');
             if ($out['ok'] && trim($out['stdout']) !== '') {
                 $policy = $this->parseIptablesPolicy($out['stdout']);
-                if (($policy === 'DROP' || $policy === 'REJECT') && preg_match('~^-A\s+OUTPUT\s+-j\s+ACCEPT\s*$~m', $out['stdout']) === 1) return [false, 'Unconditional OUTPUT ACCEPT bypasses the default deny policy', ['output' => $out['stdout']]];
                 if ($policy === 'DROP' || $policy === 'REJECT') {
-                    return [true, 'iptables OUTPUT policy denies by default', [
-                        'tool' => 'iptables -S',
-                        'policy' => $policy,
-                        'output' => $out['stdout'],
-                    ]];
+                    $rules = preg_split('/\R/', $out['stdout']) ?: [];
+                    $hasRules = false;
+                    foreach ($rules as $rule) {
+                        if (!preg_match('/^-A\s+OUTPUT\b/', trim($rule))) continue;
+                        $hasRules = true;
+                        // A comment match cannot restrict packets. Strip only this known inert extension.
+                        $plain = preg_replace('/\s+-m\s+comment\b|\s+--comment\s+(?:"[^"]*"|\'[^\']*\'|\S+)/', '', trim($rule));
+                        if (preg_match('/^-A\s+OUTPUT\s+-j\s+ACCEPT\s*$/', $plain ?? '')) return [false, 'Unconditional OUTPUT ACCEPT bypasses the default deny policy', ['tool' => 'iptables -S', 'output' => $out['stdout']]];
+                    }
+                    if ($hasRules) return [null, '[UNKNOWN] OUTPUT exceptions or chain jumps require effective firewall evaluation; default deny alone is insufficient', ['tool' => 'iptables -S', 'output' => $out['stdout']]];
+                    return [true, 'Observed iptables OUTPUT chain has deny policy and no listed exceptions', ['tool' => 'iptables -S', 'policy' => $policy, 'output' => $out['stdout'], 'scope' => 'Observed IPv4 OUTPUT chain only; other network namespaces, address families and external controls are not assessed']];
                 }
                 if ($policy === 'ACCEPT' && preg_match('~^-A\s+OUTPUT\b~m', $out['stdout']) === 1) return [null, '[UNKNOWN] OUTPUT rules require effective firewall evaluation', ['output' => $out['stdout']]];
                 if ($policy === 'ACCEPT') {
@@ -81,10 +87,7 @@ final class SystemCheck
             if ($out2['ok'] && trim($out2['stdout']) !== '') {
                 $line1 = strtolower(strtok($out2['stdout'], "\n")); // "Chain OUTPUT (policy ACCEPT)"
                 if (strpos($line1, '(policy drop)') !== false || strpos($line1, '(policy reject)') !== false) {
-                    return [true, 'iptables OUTPUT policy denies by default', [
-                        'tool' => 'iptables -L',
-                        'output' => $out2['stdout'],
-                    ]];
+                    return [null, '[UNKNOWN] Human-readable OUTPUT default policy cannot establish effective exception handling; collect the complete machine-readable rules', ['tool' => 'iptables -L', 'output' => $out2['stdout']]];
                 }
                 if (strpos($line1, '(policy accept)') !== false) {
                     return [false, 'iptables OUTPUT policy is ACCEPT (unrestricted)', [
@@ -112,18 +115,22 @@ final class SystemCheck
 
     private function safeShell(string $cmd): array
     {
-        try {
-            $out = [];
-            $ret = 0;
-            $stdout = @shell_exec($cmd . ' 2>/dev/null');
-            if ($stdout === null) {
-                // shell_exec bị disable hoặc lỗi
-                return ['ok' => false, 'stdout' => '', 'code' => null];
-            }
-            return ['ok' => true, 'stdout' => (string)$stdout, 'code' => $ret];
-        } catch (\Throwable $e) {
-            return ['ok' => false, 'stdout' => '', 'code' => null];
-        }
+        if (!function_exists('proc_open')) return ['ok'=>false,'stdout'=>'','code'=>null];
+        $process=@proc_open(['/bin/sh','-c',$cmd],[0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']],$pipes);
+        if (!is_resource($process)) return ['ok'=>false,'stdout'=>'','code'=>null];
+        fclose($pipes[0]);stream_set_blocking($pipes[1],false);stream_set_blocking($pipes[2],false);
+        $end=microtime(true)+2;$stdout='';$bytes=0;$exit=null;$complete=true;
+        do {
+            $chunk=(string)stream_get_contents($pipes[1],65537);$discard=(string)stream_get_contents($pipes[2],65537);
+            $stdout.=$chunk;$bytes+=strlen($chunk)+strlen($discard);
+            $state=proc_get_status($process);
+            if ($bytes>131072) {$complete=false;proc_terminate($process);break;}
+            if (!$state['running']) {$exit=$state['exitcode'];break;}
+            if (microtime(true)>$end) {$complete=false;proc_terminate($process);break;}
+            usleep(10000);
+        } while(true);
+        fclose($pipes[1]);fclose($pipes[2]);$closed=proc_close($process);$exit??=$closed;
+        return ['ok'=>$complete&&$exit===0,'stdout'=>$complete?substr($stdout,0,131072):'','code'=>$exit];
     }
 
     private function parseIptablesPolicy(string $s): string

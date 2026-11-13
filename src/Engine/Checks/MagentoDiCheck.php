@@ -96,7 +96,8 @@ final class MagentoDiCheck
         if ($target === null && $kind !== 'di-plugins') return ['gap', 'di_target_symbol_unresolved'];
 
         if ($kind === 'di-preference' || $kind === 'di-virtual-type') {
-            if (!self::concrete($target)) return ['finding', 'di_target_not_instantiable'];
+            if (($concrete = self::concrete($target, $symbols)) === null) return ['gap', 'di_constructor_inheritance_unresolved'];
+            if (!$concrete) return ['finding', 'di_target_not_instantiable'];
             if ($kind === 'di-virtual-type') return $ok;
             if (self::symbol($name, $symbols) === null) return ['gap', 'di_preference_contract_unresolved'];
             $compatible = self::assignable($target, $name, $symbols);
@@ -114,6 +115,8 @@ final class MagentoDiCheck
             $type = ltrim($parameter['type'] ?? '', '?');
             if ($parameter['variadic'] || strpbrk($type, '|&') !== false) return ['gap', 'di_argument_signature_unsupported'];
             if (in_array($row['type'], ['', 'const', 'init_parameter'], true)) return ['gap', 'di_argument_value_unresolved'];
+            // An arbitrary XML array is not proof of a callable pair or callable visibility.
+            if ($row['type'] === 'array' && $type === 'callable') return ['gap', 'di_callable_array_unresolved'];
             // PHP scalar coercion and object resolution are outside this narrow mismatch predicate.
             if ($row['type'] === 'array' && !in_array($type, ['', 'array', 'iterable', 'mixed', 'callable'], true)) {
                 return ['finding', 'di_array_argument_type_incompatible'];
@@ -129,7 +132,8 @@ final class MagentoDiCheck
         [$pluginName, $pluginCycle] = self::resolve($row['type'] ?? '', $table, true);
         $plugin = self::symbol($pluginName, $symbols);
         if ($pluginCycle || $plugin === null) return ['gap', 'di_plugin_class_unresolved'];
-        if (!self::concrete($plugin)) return ['finding', 'di_plugin_class_not_instantiable'];
+        if (($concrete = self::concrete($plugin, $symbols)) === null) return ['gap', 'di_plugin_constructor_inheritance_unresolved'];
+        if (!$concrete) return ['finding', 'di_plugin_class_not_instantiable'];
         foreach ($plugin['methods'] as $hook) {
             if ($hook['visibility'] !== 'public' || !preg_match('/^(?:before|after|around)([A-Z_].*)$/D', $hook['name'], $parts)) continue;
             $methodName = strtolower($parts[1]);
@@ -167,10 +171,12 @@ final class MagentoDiCheck
         return count($rows) === 1 ? $rows[0] : null;
     }
 
-    private static function concrete(array $symbol): bool
+    private static function concrete(array $symbol, array $symbols): ?bool
     {
-        return $symbol['kind'] === 'class' && !$symbol['abstract']
-            && ($symbol['methods']['__construct']['visibility'] ?? 'public') === 'public';
+        if ($symbol['kind'] !== 'class' || $symbol['abstract']) return false;
+        [$constructor, $known] = self::method($symbol, '__construct', $symbols);
+        if (!$known) return null;
+        return $constructor === null || $constructor['visibility'] === 'public';
     }
 
     private static function assignable(array $target, string $contract, array $symbols): ?bool

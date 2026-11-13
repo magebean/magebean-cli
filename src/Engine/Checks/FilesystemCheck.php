@@ -350,9 +350,11 @@ final class FilesystemCheck
     public function logRotationConfigured(array $args): array
     {
         $fileRel = (string)($args['file'] ?? 'devops/logrotate.conf');
-        $content = @file_get_contents($this->ctx->abs($fileRel));
+        $this->collectors->session->checkpoint();
+        $content = @file_get_contents($this->ctx->abs($fileRel), false, null, 0, 1048577);
         if ($content === false) return [null, '[UNKNOWN] Log rotation configuration unavailable', ['file' => $fileRel]];
-        $defaults = ['rotate' => null, 'compress' => false]; $blocks = []; $state = $defaults;
+        if (strlen($content) > 1048576) return [null, '[UNKNOWN] Log rotation configuration exceeds the bounded input size', ['file' => $fileRel]];
+        $defaults = ['rotate' => null, 'compress' => false, 'cadence' => null]; $blocks = []; $state = $defaults;
         $target = ''; $inside = false; $script = false; $pending = ''; $unsupported = false;
         foreach (preg_split('~\r?\n~', $content) ?: [] as $raw) {
             $line = trim(preg_replace('~\s+#.*$~', '', $raw) ?? '');
@@ -370,6 +372,9 @@ final class FilesystemCheck
             }
             if (preg_match('~^rotate\s+(-?\d+)\s*$~', $line, $match)) {
                 if ($inside) $state['rotate'] = (int)$match[1]; else $defaults['rotate'] = (int)$match[1];
+            } elseif (preg_match('~^(?:hourly|daily|weekly|monthly|yearly)$~D', $line)
+                || preg_match('~^(?:size|minsize|maxsize)\s+[1-9][0-9]*[kKmMgGtT]?\s*$~D', $line)) {
+                if ($inside) $state['cadence'] = $line; else $defaults['cadence'] = $line;
             } elseif ($line === 'compress' || $line === 'nocompress') {
                 if ($inside) $state['compress'] = $line === 'compress'; else $defaults['compress'] = $line === 'compress';
             } elseif (preg_match('~^include\b~', $line)) {
@@ -381,9 +386,11 @@ final class FilesystemCheck
         $evidence = ['file' => $fileRel, 'blocks' => $blocks];
         if ($inside || $script || $unsupported) return [null, '[UNKNOWN] Logrotate syntax or includes require effective configuration review', $evidence];
         $relevant = array_filter($blocks, static fn(array $block): bool => preg_match('~(?:var/log/|\.log(?:["\s*]|$))~', $block['target']) === 1);
-        if ($relevant === []) return [false, 'No log target block found', $evidence];
-        foreach ($relevant as $block) if ($block['rotate'] === null || ($block['rotate'] === 0 || $block['rotate'] < -1) || !$block['compress']) return [false, 'Log target lacks positive retention or enabled compression: ' . $block['target'], $evidence];
-        return [true, 'Log rotation has positive retention and compression for each detected log target', $evidence];
+        if ($relevant === []) return [null, '[UNKNOWN] No supported log target block was observed in the supplied candidate configuration', $evidence];
+        foreach ($relevant as $block) if ($block['rotate'] !== null && $block['rotate'] <= 0) return [false, 'Log target declares nonpositive retention: ' . $block['target'], $evidence];
+        foreach ($relevant as $block) if (!$block['compress']) return [false, 'Log target lacks enabled compression in the supplied candidate declaration: ' . $block['target'], $evidence];
+        foreach ($relevant as $block) if ($block['cadence'] === null || $block['rotate'] === null) return [null, '[UNKNOWN] Log cadence or retention may be inherited from external configuration; no complete candidate declaration was observed', $evidence];
+        return [true, 'Each collected candidate log stanza declares supported cadence, positive retention and compression', $evidence + ['scope' => 'Supplied candidate configuration only; installation and host execution are not established']];
     }
 
     public function codeDirsReadonly(array $args): array
@@ -512,9 +519,9 @@ final class FilesystemCheck
         }
 
         return [
-            true,
-            'Temporary mitigations and their rollback/remediation lifecycle are documented in ' . $rel,
-            $evidence,
+            null,
+            '[UNKNOWN] Mitigation and lifecycle keywords were observed, but free text does not establish an implemented mitigation or accepted remediation plan; supply structured scoped records for machine validation',
+            $evidence + ['scope' => 'Keyword presence only; semantic acceptance is unresolved'],
         ];
     }
 

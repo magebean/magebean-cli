@@ -8,6 +8,7 @@ final class CollectorSet
     public readonly FileCollector $files;
     public readonly CodeInventoryCollector $code;
     public readonly ComposerCollector $composer;
+    public readonly DependencyInventory $dependencies;
     public readonly PhpArrayCollector $php;
     public readonly HttpCollector $http;
     public readonly MagentoModuleInventory $magentoModules;
@@ -18,9 +19,10 @@ final class CollectorSet
         $this->files = new FileCollector($session);
         $this->code = new CodeInventoryCollector($session);
         $this->composer = new ComposerCollector($this->files);
-        $this->php = new PhpArrayCollector();
+        $this->dependencies = new DependencyInventory($this->files, $session);
+        $this->php = new PhpArrayCollector($session);
         $this->http = new HttpCollector($session);
-        $this->magentoModules = new MagentoModuleInventory($session);
+        $this->magentoModules = new MagentoModuleInventory($session, $this->dependencies);
         $this->magentoAnalysis = new MagentoModuleAnalysis($this->magentoModules, $session);
     }
 }

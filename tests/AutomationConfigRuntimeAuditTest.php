@@ -33,7 +33,7 @@ try {
  $pdo->exec('CREATE TABLE indexer_state (indexer_id TEXT, status TEXT)');$deployment=new DeploymentStateCheck(new Context($root,'','',['pdo'=>$pdo]));
  $assert($deployment->indexersDatabaseReady([])[0]===null,'empty indexer table cannot pass');
  $pdo->exec("INSERT INTO indexer_state VALUES ('catalog_product_price','valid')");$assert($deployment->indexersDatabaseReady([])[0]===true,'valid DB indexer row proves recorded readiness');
- $pdo->exec("UPDATE indexer_state SET status='working'");$assert($deployment->indexersDatabaseReady([])[0]===false,'working indexer not ready');
+ $pdo->exec("UPDATE indexer_state SET status='working'");$assert($deployment->indexersDatabaseReady([])[0]===null,'working snapshot alone does not establish an unhealthy or stuck indexer');
  $pdo->exec("UPDATE indexer_state SET status='unrecognized'");$assert($deployment->indexersDatabaseReady([])[0]===null,'unknown status is collection error rather than security finding');
  $cycle=new Context($root,'','',['admin_acl_rows'=>['admin_user'=>[],'authorization_role'=>[['role_id'=>1,'parent_id'=>1,'role_type'=>'G','user_id'=>0,'role_name'=>'cyclic']],'authorization_rule'=>[]]]);$assert((new AdminAclCheck($cycle))->roleAssignmentsValid([])[0]===false,'cyclic role ancestry cannot pass valid-role predicate');
  echo "Automation config/runtime audit: $n assertions passed\n";

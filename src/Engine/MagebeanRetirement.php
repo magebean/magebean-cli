@@ -9,7 +9,11 @@ final class MagebeanRetirement
     {
         static $retired = null;
         static $aliases = null;
-        $retired ??= array_fill_keys(array_column(RequirementCatalog::read('magebean-retirements')['requirements'], 'id'), true);
+        if ($retired === null) {
+            $historical = array_fill_keys(array_column(RequirementCatalog::read('magebean-retirements')['requirements'], 'id'), true);
+            $active = array_fill_keys(array_column(RequirementCatalog::read('magebean-catalog')['requirements'], 'id'), true);
+            $retired = array_diff_key($historical, $active);
+        }
         $aliases ??= RequirementCatalog::read('legacy-aliases')['aliases'];
 
         $key = strtoupper(trim($selector));
@@ -18,8 +22,14 @@ final class MagebeanRetirement
             return null;
         }
 
-        return 'Magebean selector '.$key.' was retired because its criterion requires human evidence. '
-            .'Use a current automated Magebean profile or refresh the assessment from the current catalog.';
+        $review = array_column(RequirementCatalog::read('magebean-retirement-review')['requirements'], null, 'id');
+        $id = isset($retired[$key]) ? $key : ($targets[0] ?? $key);
+        $record = $review[$id] ?? [];
+        $related = $record['related_active_rules'] ?? [];
+        return 'Magebean selector '.$key.' was retired from active selection; evidence review: '
+            .str_replace('_', ' ', $record['classification'] ?? 'not yet qualified').'. '
+            .($related !== [] ? 'Related scoped rules: '.implode(', ', $related).'; these do not establish full equivalence. ' : '')
+            .'See docs/archive/retirement/retirement-evidence-review.md. This is not a claim that the criterion cannot be automated.';
     }
 
     public static function reject(string $selector): void

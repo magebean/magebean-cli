@@ -15,6 +15,6 @@ foreach($ids as$id){$r=$index['MB-'.$id];completionAssert($r['review_state']==='
 }
 $r=$index['MB-0379'];$pass=RequirementAssessmentEvaluator::evaluate($r,static fn(string$name,array$args):CheckResult=>CheckResult::of(CheckOutcome::Pass,'Observed disabled',[],null,$name));completionAssert($pass->outcome===RequirementOutcome::ManualReview,'Debug ASVS all-components scope cannot be certified from a default flag');
 $unknown=RequirementAssessmentEvaluator::evaluate($r,static fn(string$name,array$args):CheckResult=>CheckResult::of(CheckOutcome::Unknown,'Missing scoped evidence',[],null,$name));completionAssert($unknown->outcome!==RequirementOutcome::Pass,'Missing ASVS observations cannot establish a complete all-components conclusion');
-completionAssert(count($index)===725,'Current independent inventory includes scoped automation additions after Basic expansion');
+completionAssert(count($index)===735,'Current independent inventory includes scoped automation additions after Basic expansion');
 $references=[];foreach($index as$row)foreach($row['alignments']as$a)$references[$a['standard'].':'.$a['version'].':'.$a['reference']]=true;completionAssert(count($references)===625,'All standard references survive automation review');
 echo "BasicRequirementConclusionTest: $n assertions passed\n";

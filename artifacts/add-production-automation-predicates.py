@@ -11,9 +11,9 @@ allocation = read(base / 'allocation-manifest.json')
 ledger = read(base / 'reconciliation-ledger.json')
 profiles = read(base / 'internal-profiles.json')
 backlog = {r['id']: r for r in read(base / 'magebean-automation-backlog.json')['requirements']}
-runtime_rows = read(root / 'docs/automation-feasibility/runtime-implementation.json')
+runtime_rows = read(root / 'docs/archive/automation-feasibility/runtime-implementation.json')
 runtime = {r['id']: r for r in runtime_rows}
-dependency_doc = read(root / 'docs/automation-feasibility/dependencies-implementation.json')
+dependency_doc = read(root / 'docs/archive/automation-feasibility/dependencies-implementation.json')
 dependencies = {r['id']: r for r in dependency_doc['rows']}
 known = {r['id']: r for r in catalog['requirements']}
 
@@ -122,7 +122,7 @@ counts['families']['magebean'] = len(catalog['requirements'])
 counts['accepted_scoped_criteria'] = sum(r.get('review_state') == 'accepted_scoped_criterion' for r in aggregate['requirements'])
 counts['human_evidence_required'] = sum(bool(r.get('human_evidence', {}).get('required')) for r in aggregate['requirements'])
 for name, value in [('magebean-catalog.json', catalog), ('internal-catalog.json', aggregate), ('allocation-manifest.json', allocation), ('reconciliation-ledger.json', ledger), ('internal-profiles.json', profiles)]: write(base / name, value)
-write(root / 'docs/automation-feasibility/runtime-implementation.json', runtime_rows)
-write(root / 'docs/automation-feasibility/dependencies-implementation.json', dependency_doc)
-write(root / 'docs/automation-feasibility/runtime-catalog-integration.json', {'added': added, 'catalog_counts': counts, 'profile_counts': {key: len(value['requirement_ids']) for key, value in profiles['profiles'].items()}})
+write(root / 'docs/archive/automation-feasibility/runtime-implementation.json', runtime_rows)
+write(root / 'docs/archive/automation-feasibility/dependencies-implementation.json', dependency_doc)
+write(root / 'docs/archive/automation-feasibility/runtime-catalog-integration.json', {'added': added, 'catalog_counts': counts, 'profile_counts': {key: len(value['requirement_ids']) for key, value in profiles['profiles'].items()}})
 print(json.dumps({'added_ids': [r['id'] for r in added], 'profile_counts': {key: len(value['requirement_ids']) for key, value in profiles['profiles'].items()}, 'next_id': allocation['next_id']}, indent=2))

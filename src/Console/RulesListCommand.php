@@ -24,7 +24,15 @@ PROFILES
   owasp      Application requirements tagged with OWASP Top 10 categories.
   pci        PCI DSS requirement evidence and human verification obligations.
   hardening  Production hardening requirements.
+  development Offline source/config checks; online maintenance is opt-in.
+  prelaunch  Source/deployment checks including online library maintenance.
+  takeover   Current technical risks and maintenance scope for handover.
+  evidence   Opt-in document/record lint, not technical security assurance.
   FILE       Custom profile JSON selecting requirement IDs.
+
+Context: log_rotation_config enables supplied logrotate checks.
+cache_backend_policy selects a strict backend baseline (default in hardening).
+Explicit false project capabilities override profile defaults.
 
 Counts are calculated from the selected catalog and capability context.
 
@@ -66,7 +74,7 @@ HELP;
             ->addOption('include-manual-review', null, InputOption::VALUE_NONE, 'Include human manual-review rules (excluded by default)')
             ->addOption('capabilities', null, InputOption::VALUE_OPTIONAL, 'Comma list of application capabilities for contextual rules')
             ->addOption('control', null, InputOption::VALUE_OPTIONAL, 'Comma list of controls (e.g. MB-C01,MB-C02)')
-            ->addOption('profile', null, InputOption::VALUE_OPTIONAL, 'Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | development | prelaunch | takeover | custom JSON')
+            ->addOption('profile', null, InputOption::VALUE_OPTIONAL, 'Profile: basic (default) | asvs-l1 | asvs-l2 | asvs-l3 | owasp | pci | hardening | development | prelaunch | takeover | evidence | custom JSON')
             ->addOption('severity', null, InputOption::VALUE_OPTIONAL, 'low|medium|high|critical');
     }
     protected function execute(InputInterface $in, OutputInterface $out): int

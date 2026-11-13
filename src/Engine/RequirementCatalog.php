@@ -25,7 +25,7 @@ final class RequirementCatalog
     }
     public static function forProfile(string $name,array $capabilities=[],string $mode='LOCAL'):array
     {
-        $profile=RequirementProfileCatalog::load($name);$index=array_column(self::loadAll()['rules'],null,'id');$rules=[];$omitted=[];
+        $profile=RequirementProfileCatalog::load($name);$capabilities=RequirementProfileCatalog::capabilities($profile,$capabilities);$index=array_column(self::loadAll()['rules'],null,'id');$rules=[];$omitted=[];
         foreach($profile['requirement_ids'] as $id){if(!isset($index[$id]))throw new \RuntimeException('Unknown internal requirement in profile: '.$id);$r=$index[$id];
             if(!in_array(strtoupper($mode),$r['target_modes'],true)){$omitted[]=['id'=>$id,'reason_code'=>'TARGET_MODE_UNSUPPORTED'];continue;}
             $cap=$r['applicability']['capability']??null;

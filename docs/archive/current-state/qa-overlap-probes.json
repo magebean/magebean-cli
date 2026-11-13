@@ -1,0 +1,95 @@
+{
+    "scope": "read-only synthetic filenames/source; samplePHPneverexecuted",
+    "results": [
+        {
+            "id": "MB-0780",
+            "case": "same_media_filename",
+            "assessment": "FAIL",
+            "observed_findings": 1,
+            "messages": [
+                "Executable PHP-like filenames found in media"
+            ],
+            "locations": [
+                [
+                    "unexpected.php"
+                ]
+            ],
+            "collection_complete": true
+        },
+        {
+            "id": "MB-0800",
+            "case": "same_media_filename",
+            "assessment": "FAIL",
+            "observed_findings": 1,
+            "messages": [
+                "Configured executable-content signatures found in upload inventory"
+            ],
+            "locations": [
+                []
+            ],
+            "collection_complete": true
+        },
+        {
+            "id": "MB-0790",
+            "case": "same_request_command_location",
+            "assessment": "FAIL",
+            "observed_findings": 1,
+            "messages": [
+                "Source violates the declared shell_execution policy; see file and line evidence."
+            ],
+            "locations": [
+                []
+            ],
+            "collection_complete": true
+        },
+        {
+            "id": "MB-0822",
+            "case": "same_request_command_location",
+            "assessment": "UNKNOWN",
+            "observed_findings": 1,
+            "messages": [
+                "Request input reaches a command call."
+            ],
+            "locations": [
+                [
+                    {
+                        "file": "app/code/Acme/Probe/Runner.php",
+                        "line": 1
+                    }
+                ]
+            ],
+            "collection_complete": true
+        },
+        {
+            "id": "MB-0795",
+            "case": "same_request_logging_location",
+            "assessment": "FAIL",
+            "observed_findings": 1,
+            "messages": [
+                "Source violates the declared direct_request_logging policy; see file and line evidence."
+            ],
+            "locations": [
+                []
+            ],
+            "collection_complete": true
+        },
+        {
+            "id": "MB-0814",
+            "case": "same_request_logging_location",
+            "assessment": "UNKNOWN",
+            "observed_findings": 1,
+            "messages": [
+                "Named log method receives a direct request superglobal reference."
+            ],
+            "locations": [
+                [
+                    {
+                        "file": "app/code/Acme/Probe/Runner.php",
+                        "line": 1
+                    }
+                ]
+            ],
+            "collection_complete": true
+        }
+    ]
+}

@@ -18,7 +18,7 @@ function compatibilityNormalize(mixed $value, string $root, string $url): mixed
 {
     if (is_array($value)) {
         foreach ($value as $key => $item) {
-            if (in_array($key, ['checked_at', 'generated_at'], true)) {
+            if (in_array($key, ['checked_at', 'generated_at', 'observed_at'], true)) {
                 compatibilityAssert(is_string($item) && strtotime($item) !== false, 'Invalid timestamp: ' . $key);
                 $value[$key] = '<TIMESTAMP>';
             } else $value[$key] = compatibilityNormalize($item, $root, $url);

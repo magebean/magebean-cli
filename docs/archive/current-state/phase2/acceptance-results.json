@@ -1,0 +1,77 @@
+{
+  "phase": 2,
+  "checks": [
+    {
+      "acceptance_id": "CS-016",
+      "rules": [
+        "MB-0049"
+      ],
+      "case": "same-transitive-advisory-published:2000-01-01T00:00:00Z",
+      "actual": "FAIL",
+      "dependency_scope": "locked_dependency",
+      "passed": true,
+      "evidence_file": "part1-probes.json",
+      "source_index": 15
+    },
+    {
+      "acceptance_id": "CS-017",
+      "rules": [
+        "MB-0055"
+      ],
+      "case": "same-transitive-advisory-published:2000-01-01T00:00:00Z",
+      "actual": "FAIL",
+      "dependency_scope": "locked_dependency",
+      "passed": true,
+      "evidence_file": "part1-probes.json",
+      "source_index": 16
+    },
+    {
+      "acceptance_id": "CS-019",
+      "rules": [
+        "MB-0049"
+      ],
+      "case": "same-transitive-advisory-published:2099-01-01T00:00:00Z",
+      "actual": "FAIL",
+      "dependency_scope": "locked_dependency",
+      "passed": true,
+      "evidence_file": "part1-probes.json",
+      "source_index": 18
+    },
+    {
+      "acceptance_id": "CS-020",
+      "rules": [
+        "MB-0055"
+      ],
+      "case": "same-transitive-advisory-published:2099-01-01T00:00:00Z",
+      "actual": "FAIL",
+      "dependency_scope": "locked_dependency",
+      "passed": true,
+      "evidence_file": "part1-probes.json",
+      "source_index": 19
+    },
+    {
+      "acceptance_id": "CS-022",
+      "rules": [
+        "MB-0049"
+      ],
+      "case": "no-dev-install-lock-still-has-development-only-advisory",
+      "actual": "PASS",
+      "dependency_scope": "installed_dependency",
+      "passed": true,
+      "evidence_file": "part1-probes.json",
+      "source_index": 21
+    },
+    {
+      "acceptance_id": "CS-023",
+      "rules": [
+        "MB-0055"
+      ],
+      "case": "no-dev-install-lock-still-has-development-only-advisory",
+      "actual": "PASS",
+      "dependency_scope": "installed_dependency",
+      "passed": true,
+      "evidence_file": "part1-probes.json",
+      "source_index": 22
+    }
+  ]
+}

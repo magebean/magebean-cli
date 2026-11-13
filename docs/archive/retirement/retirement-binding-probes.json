@@ -1,0 +1,805 @@
+{
+    "scope": "Empty temporary project, no runtime URL, no dependency lock, no host firewall probing. Direct handler outcomes only; not criterion qualification or evidence of impossibility.",
+    "rules": [
+        {
+            "id": "MB-0004",
+            "title": "Code directories are read-only",
+            "checks": [
+                {
+                    "name": "code_dirs_readonly",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] Cannot inspect all configured code path permissions"
+                }
+            ]
+        },
+        {
+            "id": "MB-0010",
+            "title": "Admin URL exposure restricted",
+            "checks": [
+                {
+                    "name": "magento_admin_exposure_restricted",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "FAIL",
+                    "message": "Could not verify admin exposure restriction: no URL or web server ACL hints found"
+                }
+            ]
+        },
+        {
+            "id": "MB-0015",
+            "title": "Forms include CSRF tokens (form_key)",
+            "checks": [
+                {
+                    "name": "code_csrf_form_key",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "POST forms and handlers include form_key protection signals"
+                }
+            ]
+        },
+        {
+            "id": "MB-0016",
+            "title": "SSRF protections present",
+            "checks": [
+                {
+                    "name": "code_ssrf_safeguards",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "Outbound HTTP sinks include SSRF safeguard signals"
+                }
+            ]
+        },
+        {
+            "id": "MB-0019",
+            "title": "No eval/assert/dynamic execution",
+            "checks": [
+                {
+                    "name": "code_dynamic_execution_safety",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No unsafe dynamic execution patterns detected"
+                }
+            ]
+        },
+        {
+            "id": "MB-0020",
+            "title": "Path traversal protections",
+            "checks": [
+                {
+                    "name": "code_path_traversal_safety",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "File path sinks are absent or guarded against traversal"
+                }
+            ]
+        },
+        {
+            "id": "MB-0021",
+            "title": "Secure file upload handling",
+            "checks": [
+                {
+                    "name": "code_upload_safety",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "Upload flows are absent or include validation and storage safeguards"
+                }
+            ]
+        },
+        {
+            "id": "MB-0023",
+            "title": "Use CSPRNG; avoid weak PRNG",
+            "checks": [
+                {
+                    "name": "code_csprng_safety",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No weak PRNG detected in security-sensitive randomness"
+                }
+            ]
+        },
+        {
+            "id": "MB-0025",
+            "title": "No unsafe raw crypto or session APIs in custom code",
+            "checks": [
+                {
+                    "name": "code_magento_api_crypto_session",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "Magento crypto and session APIs are used"
+                }
+            ]
+        },
+        {
+            "id": "MB-0043",
+            "title": "Log rotation configured",
+            "checks": [
+                {
+                    "name": "fs_log_rotation_configured",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] Log rotation configuration unavailable"
+                }
+            ]
+        },
+        {
+            "id": "MB-0051",
+            "title": "Dependency vulnerability remediation plan identifies an actionable resolution",
+            "checks": [
+                {
+                    "name": "composer_fix_version_api",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] composer.lock not found"
+                }
+            ]
+        },
+        {
+            "id": "MB-0052",
+            "title": "Enabled high-risk modules are maintained",
+            "checks": [
+                {
+                    "name": "composer_risk_surface_tag",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] composer.lock not found"
+                }
+            ]
+        },
+        {
+            "id": "MB-0053",
+            "title": "Temporary mitigations documented",
+            "checks": [
+                {
+                    "name": "security_mitigations_documented",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "FAIL",
+                    "message": "Mitigation document not found: SECURITY.md"
+                }
+            ]
+        },
+        {
+            "id": "MB-0054",
+            "title": "Known-exploited packages prioritized (CISA KEV)",
+            "checks": [
+                {
+                    "name": "composer_kev_advisories_api",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] composer.lock not found"
+                }
+            ]
+        },
+        {
+            "id": "MB-0058",
+            "title": "Marketplace extensions are current and maintained",
+            "checks": [
+                {
+                    "name": "composer_marketplace_outdated_api",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] composer.lock not found"
+                }
+            ]
+        },
+        {
+            "id": "MB-0060",
+            "title": "Marketplace extensions have vendor support evidence",
+            "checks": [
+                {
+                    "name": "composer_vendor_support_api",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] composer.lock not found"
+                }
+            ]
+        },
+        {
+            "id": "MB-0064",
+            "title": "No risky forks replacing upstream libs",
+            "checks": [
+                {
+                    "name": "composer_risky_fork_api",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] composer.lock not found"
+                }
+            ]
+        },
+        {
+            "id": "MB-0073",
+            "title": "HTTPS-only endpoints configured",
+            "checks": [
+                {
+                    "name": "code_https_endpoints",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "HTTPS endpoint scan could not read any target files"
+                }
+            ]
+        },
+        {
+            "id": "MB-0075",
+            "title": "Webhook signature validation present",
+            "checks": [
+                {
+                    "name": "code_webhook_signature_validation",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] Webhook signature scan could not read any target files"
+                }
+            ]
+        },
+        {
+            "id": "MB-0076",
+            "title": "Outbound connections restricted by allow-list",
+            "checks": [
+                {
+                    "name": "system_egress_restricted",
+                    "registered": true,
+                    "executed": false,
+                    "reason": "Host firewall probe deliberately excluded from empty-project fixture."
+                },
+                {
+                    "name": "code_outbound_egress_controls",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] Outbound egress scan could not read any target files"
+                }
+            ]
+        },
+        {
+            "id": "MB-0077",
+            "title": "PII minimization for third-party flows",
+            "checks": [
+                {
+                    "name": "code_pii_minimization",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] PII minimization scan could not read any target files"
+                }
+            ]
+        },
+        {
+            "id": "MB-0078",
+            "title": "Strong TLS ciphers on upstream gateways",
+            "checks": [
+                {
+                    "name": "webserver_tls_ciphers",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "FAIL",
+                    "message": "TLS protocol/cipher configuration not found. Add nginx or Apache TLS config with TLSv1.2/TLSv1.3 and strong ciphers."
+                }
+            ]
+        },
+        {
+            "id": "MB-0079",
+            "title": "API keys stored in env.php (not in DB/plain code)",
+            "checks": [
+                {
+                    "name": "code_api_key_storage",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "FAIL",
+                    "message": "No application code/config files found to verify API credential storage"
+                }
+            ]
+        },
+        {
+            "id": "MB-0081",
+            "title": "SaaS integrations scoped by ACL (least privilege/IP allowlist)",
+            "checks": [
+                {
+                    "name": "code_saas_integration_scoped",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "FAIL",
+                    "message": "No application code/config files found to verify SaaS integration scoping"
+                }
+            ]
+        },
+        {
+            "id": "MB-0082",
+            "title": "No PAN or sensitive authentication data stored in database",
+            "checks": [
+                {
+                    "name": "code_cardholder_data_storage",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "FAIL",
+                    "message": "No application schema/code files found to verify cardholder data storage"
+                }
+            ]
+        },
+        {
+            "id": "MB-0083",
+            "title": "No cardholder data in files, exports, or backups",
+            "checks": [
+                {
+                    "name": "code_cardholder_data_files",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No high-risk export, backup, media, or log files found to scan"
+                }
+            ]
+        },
+        {
+            "id": "MB-0085",
+            "title": "Payment method inventory and data-flow scope are documented",
+            "checks": [
+                {
+                    "name": "code_payment_method_scope",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No custom payment method files found to scan"
+                }
+            ]
+        },
+        {
+            "id": "MB-0086",
+            "title": "No raw card collection in Magento checkout",
+            "checks": [
+                {
+                    "name": "code_checkout_raw_card_collection",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No custom checkout files found to scan"
+                }
+            ]
+        },
+        {
+            "id": "MB-0087",
+            "title": "Payment page script inventory maintained",
+            "checks": [
+                {
+                    "name": "code_payment_script_inventory",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No custom payment-page files found to scan for script inventory"
+                }
+            ]
+        },
+        {
+            "id": "MB-0088",
+            "title": "Payment page script allowlist and integrity controls",
+            "checks": [
+                {
+                    "name": "code_payment_script_integrity",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No custom payment-page files found to scan for script integrity"
+                }
+            ]
+        },
+        {
+            "id": "MB-0089",
+            "title": "Checkout Content Security Policy enforced",
+            "checks": [
+                {
+                    "name": "code_checkout_csp_enforced",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "FAIL",
+                    "message": "No checkout CSP configuration files found to verify"
+                }
+            ]
+        },
+        {
+            "id": "MB-0090",
+            "title": "Payment page tamper monitoring readiness",
+            "checks": [
+                {
+                    "name": "code_payment_page_tamper_monitoring",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "FAIL",
+                    "message": "Payment page tamper monitoring evidence is incomplete:\n    - missing payment/checkout page scope\n    - missing alerting destination or notification workflow\n    - missing CSP reporting or scheduled file/script integrity detection\n    - no monitoring evidence files or readable app/config files found"
+                }
+            ]
+        },
+        {
+            "id": "MB-0092",
+            "title": "Payment webhook endpoint authentication hardening",
+            "checks": [
+                {
+                    "name": "code_webhook_signature_validation",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] Webhook signature scan could not read any target files"
+                }
+            ]
+        },
+        {
+            "id": "MB-0093",
+            "title": "PCI manual evidence checklist present",
+            "checks": [
+                {
+                    "name": "pci_manual_evidence_documented",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "FAIL",
+                    "message": "No readable PCI evidence checklist found"
+                }
+            ]
+        },
+        {
+            "id": "MB-0094",
+            "title": "Custom controllers and APIs include function-level authorization",
+            "checks": [
+                {
+                    "name": "code_custom_authorization_checks",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No custom controller/API files found to scan"
+                }
+            ]
+        },
+        {
+            "id": "MB-0095",
+            "title": "GraphQL and API exposure minimized",
+            "checks": [
+                {
+                    "name": "code_api_exposure_minimized",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No API or GraphQL files found to scan"
+                }
+            ]
+        },
+        {
+            "id": "MB-0096",
+            "title": "Security headers baseline enforced",
+            "checks": [
+                {
+                    "name": "code_security_headers_baseline",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "FAIL",
+                    "message": "No readable security header configuration files found"
+                }
+            ]
+        },
+        {
+            "id": "MB-0097",
+            "title": "Secrets are not hardcoded in custom code",
+            "checks": [
+                {
+                    "name": "code_hardcoded_secrets",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No custom code/config files found to scan for hardcoded secrets"
+                }
+            ]
+        },
+        {
+            "id": "MB-0098",
+            "title": "Unsafe XML parsing disabled",
+            "checks": [
+                {
+                    "name": "code_unsafe_xml_parsing",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No PHP files found to scan for unsafe XML parsing"
+                }
+            ]
+        },
+        {
+            "id": "MB-0099",
+            "title": "File download and export endpoints require authorization",
+            "checks": [
+                {
+                    "name": "code_download_export_authorization",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No custom download/export files found to scan"
+                }
+            ]
+        },
+        {
+            "id": "MB-0101",
+            "title": "Global Admin ACL limited to approved roles",
+            "checks": [
+                {
+                    "name": "magento_admin_global_acl_restricted",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] Magento database configuration is unavailable: app/etc/env.php"
+                }
+            ]
+        },
+        {
+            "id": "MB-0102",
+            "title": "PCI vendor default account evidence assessment",
+            "checks": [
+                {
+                    "name": "pci_vendor_default_accounts_evidence",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] PCI DSS 2.2.2 vendor default account evidence file not found"
+                }
+            ]
+        },
+        {
+            "id": "MB-0731",
+            "title": "Admin passwords require at least 8 characters",
+            "checks": [
+                {
+                    "name": "magento_admin_password_policy_strong",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "FAIL",
+                    "message": "app/etc/config.php not found"
+                }
+            ]
+        },
+        {
+            "id": "MB-0732",
+            "title": "No raw SQL without abstraction",
+            "checks": [
+                {
+                    "name": "code_raw_sql",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No unsafe raw SQL patterns detected"
+                }
+            ]
+        },
+        {
+            "id": "MB-0733",
+            "title": "Template output is escaped",
+            "checks": [
+                {
+                    "name": "code_phtml_escaped_output",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "PHTML output uses approved escaping helpers"
+                }
+            ]
+        },
+        {
+            "id": "MB-0734",
+            "title": "No unsafe deserialization",
+            "checks": [
+                {
+                    "name": "code_unserialize_safety",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No unsafe native unserialize() usage detected"
+                }
+            ]
+        },
+        {
+            "id": "MB-0735",
+            "title": "Command execution is guarded",
+            "checks": [
+                {
+                    "name": "code_command_execution_safety",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "Command execution sinks are absent or guarded"
+                }
+            ]
+        },
+        {
+            "id": "MB-0736",
+            "title": "Escaping for JS context",
+            "checks": [
+                {
+                    "name": "code_js_context_escaping",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "JavaScript-context PHP output is escaped or encoded"
+                }
+            ]
+        },
+        {
+            "id": "MB-0737",
+            "title": "Sensitive data not logged",
+            "checks": [
+                {
+                    "name": "code_sensitive_logging",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No raw sensitive data logging detected"
+                }
+            ]
+        },
+        {
+            "id": "MB-0738",
+            "title": "Xdebug disabled in production",
+            "checks": [
+                {
+                    "name": "php_xdebug_disabled",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] No readable PHP ini files found for Xdebug check"
+                },
+                {
+                    "name": "http_no_xdebug_headers",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] Runtime URL unavailable; no valid Magento store base URL could be read. Check store configuration and scanner read access"
+                }
+            ]
+        },
+        {
+            "id": "MB-0739",
+            "title": "display_errors is Off",
+            "checks": [
+                {
+                    "name": "php_display_errors_disabled",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] display_errors directive not found in readable PHP ini files"
+                },
+                {
+                    "name": "http_no_stacktrace",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] Runtime URL unavailable; no valid Magento store base URL could be read. Check store configuration and scanner read access"
+                }
+            ]
+        },
+        {
+            "id": "MB-0740",
+            "title": "No dev debug configs on production (template hints off)",
+            "checks": [
+                {
+                    "name": "php_template_hints_disabled",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] app/etc/env.php not found"
+                }
+            ]
+        },
+        {
+            "id": "MB-0741",
+            "title": "No dev cache backends (avoid file backend)",
+            "checks": [
+                {
+                    "name": "php_no_file_cache_backend",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] app/etc/env.php not found"
+                }
+            ]
+        },
+        {
+            "id": "MB-0742",
+            "title": "Debug template hints disabled in production",
+            "checks": [
+                {
+                    "name": "php_dev_debug_config_disabled",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] app/etc/env.php not found"
+                }
+            ]
+        },
+        {
+            "id": "MB-0743",
+            "title": "PII not logged in application logs",
+            "checks": [
+                {
+                    "name": "code_sensitive_logging",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No raw sensitive data logging detected"
+                }
+            ]
+        },
+        {
+            "id": "MB-0744",
+            "title": "No abandoned libraries allowed",
+            "checks": [
+                {
+                    "name": "composer_abandoned_api",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] composer.lock not found"
+                }
+            ]
+        },
+        {
+            "id": "MB-0745",
+            "title": "Debug/verbose off for third-party integrations",
+            "checks": [
+                {
+                    "name": "php_third_party_debug_disabled",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "UNKNOWN",
+                    "message": "[UNKNOWN] No readable Magento PHP config files found for third-party debug check"
+                }
+            ]
+        },
+        {
+            "id": "MB-0746",
+            "title": "Third-party logging sanitized (mask/redact)",
+            "checks": [
+                {
+                    "name": "code_third_party_logging_sanitized",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "FAIL",
+                    "message": "No application code files found to verify third-party log sanitization"
+                }
+            ]
+        },
+        {
+            "id": "MB-0747",
+            "title": "No cardholder data in application logs",
+            "checks": [
+                {
+                    "name": "code_cardholder_data_logs",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No application log or report files found to scan"
+                }
+            ]
+        },
+        {
+            "id": "MB-0748",
+            "title": "No executable code in media or upload paths",
+            "checks": [
+                {
+                    "name": "code_media_executable_code",
+                    "registered": true,
+                    "executed": true,
+                    "outcome": "PASS",
+                    "message": "No executable code or script-enabling handlers detected in media/upload paths"
+                }
+            ]
+        }
+    ]
+}

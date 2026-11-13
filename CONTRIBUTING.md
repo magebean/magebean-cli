@@ -1,32 +1,25 @@
-# Contributing to MageBean CLI
+# Contributing to Magebean CLI
 
-Thank you for considering contributing to MageBean CLI! 🎉
+Use a focused branch and explain the observed problem, final behavior, validation and limitations.
 
-## How to Contribute
+## Source of truth
 
-1. **Fork the repo** and create your feature branch:
-   ```bash
-   git checkout -b feature/my-new-check
-   ```
-2. **Make your changes**
-   - Add or update rules under the `rules/` directory (JSON format).  
-   - Add or update CLI features under `src/`.  
-   - Write or update tests under `tests/`.  
-3. **Run tests locally** to ensure nothing breaks.  
-4. **Submit a Pull Request** with a clear description of what you changed and why.  
+- Primary definitions: src/Rules/requirements/magebean-catalog.json, asvs-catalog.json and pci-catalog.json. Keep the compatibility aggregate internal-catalog.json consistent.
+- Native profile membership/default context: src/Rules/requirements/internal-profiles.json.
+- Engine and adapters: src/Engine, src/Console and src/Agent.
+- Regression tests: tests/*Test.php, with isolated fixtures and explicit evidence expectations.
 
-## Guidelines
+A rule should report an inspectable current condition, its scope and uncertainty, and a concrete fix/recheck. Missing evidence is not PASS or a vulnerability. Keep explicit policy observations distinct from exploitability claims. Preserve stable identities, criterion history and normative source-family boundaries.
 
-- Follow [PSR-12](https://www.php-fig.org/psr/psr-12/) coding standards.  
-- Keep PRs small and focused. One feature or fix per PR is ideal.  
-- Update documentation if you add new commands, rules, or outputs.  
-- Be respectful in discussions—constructive feedback helps everyone.  
+## Validation and documentation
 
-## License Notice
+```sh
+php tests/run.php
+php tools/update-baseline-doc.php
+php tools/update-baseline-doc.php --check
+python3 tools/check-docs.py
+```
 
-- Core CLI is licensed under **MIT**.  
-- The **CVE Data Bundle** is **proprietary** and not open for external contributions.  
+Update current docs under docs/guides, docs/reference or docs/standards. Baseline v1 is generated from runtime catalogues; do not edit its inventory by hand. Superseded plans/reviews belong in docs/archive, with an index and working references. Do not rewrite historical counts/outcomes as current facts or delete evidence used by regression tools. Review intentional compatibility snapshot changes before recording them.
 
-## Code of Conduct
-
-By contributing, you agree to follow our [Code of Conduct](CODE_OF_CONDUCT.md) (if present).
+For packaged changes, use [release packaging](docs/reference/release-packaging.md). Builds qualify a local candidate; they do not deploy or modify production Console data. Keep vendor, build staging and private project/agent configuration out of commits. The project is licensed under [MIT](LICENSE).

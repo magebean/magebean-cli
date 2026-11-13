@@ -42,7 +42,7 @@ final class DeploymentStateCheck
     /** Bounded readiness predicate on the actual Magento indexer_state table. */
     public function indexersDatabaseReady(array $args): array
     {
-        $evidence = ['source' => 'indexer_state', 'scope' => 'deployment_database'];
+        $evidence = ['source' => 'indexer_state', 'scope' => 'deployment_database', 'observed_at'=>gmdate(DATE_ATOM), 'runtime_process_verified'=>false];
         $pdo = $this->ctx->get('pdo');
         $prefix = (string)$this->ctx->get('db_table_prefix', '');
         try {
@@ -62,15 +62,25 @@ final class DeploymentStateCheck
                 $prefix = (string)($config['db']['table_prefix'] ?? '');
             }
             if (preg_match('/^[A-Za-z0-9_]*$/D', $prefix) !== 1) throw new \RuntimeException('Invalid table prefix');
-            $statement = $pdo->query('SELECT indexer_id, status FROM `' . $prefix . 'indexer_state`');
+            try { $statement = $pdo->query('SELECT indexer_id, status, updated FROM `' . $prefix . 'indexer_state`'); }
+            catch (\PDOException) { $statement = $pdo->query('SELECT indexer_id, status FROM `' . $prefix . 'indexer_state`'); }
             $rows = $statement->fetchAll(\PDO::FETCH_ASSOC);
             if ($rows === []) return [null, '[UNKNOWN] indexer_state has no rows; initialize Magento indexers and collect their installed state', $evidence + ['reason' => 'indexer_rows_empty']];
-            $notReady = [];
+            $notReady = []; $working = [];
             foreach ($rows as $row) {
                 if (!is_string($row['indexer_id'] ?? null) || $row['indexer_id'] === '' || !in_array($row['status'] ?? null, ['valid', 'invalid', 'working'], true)) return [null, '[UNKNOWN] indexer_state contains an unrecognized status; verify the deployment schema and indexer data', $evidence + ['reason' => 'indexer_rows_malformed']];
-                if ($row['status'] !== 'valid') $notReady[] = $row;
+                if ($row['status'] === 'invalid') $notReady[] = $row;
+                if ($row['status'] === 'working') {
+                    $updated=AbsoluteTimestamp::parse(isset($row['updated']) ? str_replace(' ', 'T', $row['updated']).'Z' : null);
+                    $row['record_age_seconds']=$updated!==null && $updated->getTimestamp()<=time()?time()-$updated->getTimestamp():null;
+                    $row['stuck_process_established']=false;
+                    $working[]=$row;
+                }
             }
-            return [$notReady === [], $notReady === [] ? 'All recorded Magento indexers have valid state' : 'Recorded Magento indexers are invalid or working', $evidence + ['indexers_seen' => count($rows), 'not_ready' => $notReady]];
+            $evidence += ['indexers_seen'=>count($rows), 'not_ready'=>$notReady, 'working'=>$working];
+            if ($notReady!==[]) return [false, 'Recorded Magento indexers have invalid state', $evidence];
+            if ($working!==[]) return [null, '[UNKNOWN] Indexing is recorded as working; one database snapshot cannot establish a stuck or unhealthy process', $evidence];
+            return [true, 'All recorded Magento indexers have valid state', $evidence];
         } catch (\Throwable $error) {
             return [null, '[UNKNOWN] Unable to read Magento indexer_state; verify the deployed DB connection and SELECT permission on indexer_state', $evidence + ['reason' => 'indexer_database_collection_failed']];
         }

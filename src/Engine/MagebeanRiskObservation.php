@@ -35,53 +35,37 @@ final class MagebeanRiskObservation
                     'reason_code'=>isset($check['reason_code'])?(string)$check['reason_code']:null];
                 $analysis = $check['evidence'][MagebeanDetectorAnalysis::EVIDENCE_KEY] ?? null;
                 if (is_array($analysis)) {
-                    self::appendAnalysis($out, $definition['id'], $row, $analysis);
+                    self::appendAnalysis($out, $definition, $row, $analysis);
                     continue;
                 }
                 if($status===CheckOutcome::Fail->value){
                     $row['kind']='observed_issue';
-                    $row['confidence'] = $proof === 'verified_predicate' ? 'confirmed' : 'suspected';
+
                     $out['needs_attention']=true;
                     if(count($out['findings'])<self::MAX_ROWS){
                         $row['evidence']=is_array($check['evidence']??null)?$check['evidence']:[];
-                        $out['findings'][]=$row;
-                    }else{$out['findings_truncated']=true;$out['collection_complete']=false;}
-                    foreach($check['evidence']['inspection_issues']??[]as$issue){
-                        if(!is_array($issue)||empty($issue['message'])||empty($issue['reason']))continue;
-                        $out['collection_complete']=false;
-                        $gap=['check'=>$row['check'],'message'=>$issue['message'],'reason_code'=>$issue['reason']];
-                        if(count($out['collection_gaps'])<self::MAX_ROWS)$out['collection_gaps'][]=$gap;else$out['collection_gaps_truncated']=true;
-                        if(count($out['findings'])>=self::MAX_ROWS){$out['findings_truncated']=true;continue;}
-                        $gap['kind']='collection_issue';$gap['fingerprint']=$issue['fingerprint']??hash('sha256',json_encode([$issue['reason'],$issue['file']??'',$issue['line']??null]));
-                        $gap['evidence']=['inspection_issue'=>$issue,'locations'=>[['file'=>$issue['file']??'','line'=>$issue['line']??null]],'collection_guidance'=>['action'=>$issue['action']??'Inspect the named source location and rerun.']];
-                        $out['findings'][]=$gap;
-                    }
-                }elseif($status===CheckOutcome::Unknown->value){
-                    $out['collection_complete']=false;
-                    if(count($out['collection_gaps'])<self::MAX_ROWS)$out['collection_gaps'][]=$row;
-                    else $out['collection_gaps_truncated']=true;
-                    // Missing scanner input is execution metadata, never a website risk finding.
-                    if (($check['evidence']['reason_code']??$row['reason_code'])==='SCAN_INPUT_URL_MISSING'
-                        || preg_match('/^(?:\[UNKNOWN\]\s*)?(?:Runtime URL unavailable\b|Supply canonical --url\b)/i',$row['message'])) continue;
-                    $inspectionIssues=$check['evidence']['inspection_issues']??null;
-                    if(is_array($inspectionIssues)&&$inspectionIssues!==[]){
-                        foreach($inspectionIssues as$issue){
-                            if(!is_array($issue)||empty($issue['message'])||empty($issue['reason']))continue;
-                            $out['needs_attention']=true;
-                            if(count($out['findings'])>=self::MAX_ROWS){$out['findings_truncated']=true;break;}
-                            $specific=$row;$specific['kind']='collection_issue';$specific['message']=$issue['message'];
-                            $specific['fingerprint']=$issue['fingerprint']??hash('sha256',json_encode([$issue['reason'],$issue['file']??'',$issue['line']??null]));
-                            $specific['evidence']=['inspection_issue'=>$issue,'locations'=>[['file'=>$issue['file']??'','line'=>$issue['line']??null]],'collection_guidance'=>['action'=>$issue['action']??'Inspect the named source location and rerun.']];
-                            $out['findings'][]=$specific;
+                        $row=MagebeanFindingSemantics::decorate($definition,$row);
+                        if ($row['category']==='informational') {
+                            if (count($out['observations']??[])<self::MAX_ROWS) $out['observations'][]=$row;
+                            else $out['findings_truncated']=true;
                         }
-                    }elseif(preg_match('/Source policy could not be evaluated completely\.?/i',$row['message'])!==1&&count($out['findings'])<self::MAX_ROWS){
-                        $out['needs_attention']=true;
-                        $row['kind']='collection_issue';
-                        $row['message']=preg_replace('/^\[UNKNOWN\]\s*/','',$row['message'])??$row['message'];
-                        $row['evidence']=is_array($check['evidence']??null)?$check['evidence']:[];
-                        $out['findings'][]=$row;
-                    }elseif(count($out['findings'])>=self::MAX_ROWS)$out['findings_truncated']=true;
+                        else $out['findings'][]=$row;
+                    }else{$out['findings_truncated']=true;$out['collection_complete']=false;}
+                    self::appendCoverageGaps($out,$row,$check['evidence']??[]);
+                    foreach($check['evidence']['inspection_issues']??[] as $issue) {
+                        if (!is_array($issue)||empty($issue['message'])||empty($issue['reason'])) continue;
+                        self::appendGap($out,$row,$issue);
+                    }
+                } elseif ($status===CheckOutcome::Unknown->value) {
+                    $row['evidence']=is_array($check['evidence']??null)?$check['evidence']:[];
+                    $row['reason_code']??=$row['evidence']['reason_code']??null;
+                    if (isset($check['collection_guidance'])) $row['collection_guidance']=$check['collection_guidance'];
+                    $issues=$check['evidence']['inspection_issues']??[];
+                    if (is_array($issues) && $issues!==[]) {
+                        foreach ($issues as $issue) if (is_array($issue)&&!empty($issue['message'])&&!empty($issue['reason'])) self::appendGap($out,$row,$issue);
+                    } else self::appendGap($out,$row);
                 }
+
             }
         }
         if($observedChecks===0&&$assessment->outcome===RequirementOutcome::Unknown){
@@ -89,11 +73,41 @@ final class MagebeanRiskObservation
             $out['collection_gaps'][]=['check'=>'','message'=>$assessment->message,'reason_code'=>$assessment->reasonCode];
             // No check ran: applicability/binding state is execution metadata, not an observed issue.
         }
+        $out['needs_attention']=$out['findings']!==[];
         return $out;
     }
 
-    private static function appendAnalysis(array &$out, string $requirementId, array $row, array $analysis): void
+    private static function appendCoverageGaps(array &$out,array $row,array $evidence): void
     {
+        $missing=[];
+        if (($evidence['dependency_inventory']['complete']??true)===false) $missing[]='dependency inventory';
+        foreach (['feed_gaps'=>'advisory feed batches','packages_unknown'=>'package status','unassessed_affected_packages'=>'advisory version/range applicability','missing_published_date'=>'advisory publication dates'] as $field=>$label) {
+            if (!empty($evidence[$field])) $missing[]=$label;
+        }
+        if ($missing===[]) return;
+        self::appendGap($out,[
+            'check'=>$row['check'],'message'=>'Known findings retained; collection coverage is incomplete for '.implode(', ',$missing).'.',
+            'reason_code'=>'OBSERVATION_COVERAGE_INCOMPLETE',
+            'collection_guidance'=>['action'=>'Resolve the named inventory/feed/status input gaps and rerun this scope. Preserve independently established findings; incomplete coverage is not a clean conclusion.'],
+            'evidence'=>array_intersect_key($evidence,array_flip(['dependency_inventory','feed_gaps','packages_unknown','unassessed_affected_packages','missing_published_date'])),
+        ]);
+    }
+
+    private static function appendGap(array &$out, array $row, ?array $issue = null): void
+    {
+        $out['collection_complete']=false;
+        if (count($out['collection_gaps'])>=self::MAX_ROWS) { $out['collection_gaps_truncated']=true; return; }
+        if ($issue!==null) {
+            $row['message']=$issue['message'];$row['reason_code']=$issue['reason'];
+            $row['evidence']=['inspection_issue'=>$issue,'locations'=>[['file'=>$issue['file']??'','line'=>$issue['line']??null]]];
+            $row['collection_guidance']=['action'=>$issue['action']??'Inspect the named source location and rerun.'];
+        }
+        $out['collection_gaps'][]=$row;
+    }
+
+    private static function appendAnalysis(array &$out, array $definition, array $row, array $analysis): void
+    {
+        $requirementId=$definition['id'];
         $detector = ['detector' => $analysis['detector'], 'detector_version' => $analysis['detector_version']];
         $out['detector_runs'][] = $detector + [
             'complete' => $analysis['complete'],
@@ -103,6 +117,7 @@ final class MagebeanRiskObservation
         $out['collection_complete'] = $out['collection_complete'] && $analysis['complete'];
 
         foreach ($analysis['findings'] as $finding) {
+            $finding=MagebeanFindingSemantics::decorate($definition,$finding,true);
             $fingerprint = hash('sha256', json_encode([
                 $requirementId, $analysis['detector'], $row['check'], $finding['issue_key'],
                 $finding['evidence']['subject'], $finding['evidence']['locations'],

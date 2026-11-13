@@ -1,0 +1,5 @@
+{
+  "scope": "Existing Console catalog import, rollback, retirement and current-catalog eligibility tests; explicit isolated SQLite",
+  "exit_code": 0,
+  "output": "PHPUnit 11.5.56 by Sebastian Bergmann and contributors.\n\nRuntime:       PHP 8.4.27\nConfiguration: /var/www/console-magebean/phpunit.xml\n\n..................                                                18 / 18 (100%)\n\nTime: 00:01.126, Memory: 50.50 MB\n\nOK (18 tests, 89 assertions)\n"
+}

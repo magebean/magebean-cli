@@ -151,7 +151,7 @@ final class MagentoCheck
             $absolute = $this->ctx->abs($relative);
             if (!is_file($absolute)) continue;
             $this->collectors->session->checkpoint();
-            $text = @file_get_contents($absolute, false, null, 0, 1048577);
+            $text = (@filesize($absolute)?:0)<=1048576 ? $this->collectors->files->read($absolute) : false;
             if (!is_string($text) || strlen($text) > 1048576) return [null, '[UNKNOWN] Project PHP ini cannot be read within bounds', ['file' => $relative]];
             $ini = @parse_ini_string($text, false, INI_SCANNER_RAW);
             if ($ini === false) return [null, '[UNKNOWN] Project PHP ini cannot be read', ['file' => $relative]];
@@ -634,7 +634,7 @@ final class MagentoCheck
         $base = $this->baseUrl();
         if ($base !== '') {
             foreach ($paths as $path) {
-                [$ok, $msg, $response] = $this->fetch($base . $path, 'GET', [], $timeout, true);
+                [$ok, $msg, $response] = $this->fetch($base . $path, 'GET', [], $timeout, false);
                 if ($ok === null || $ok === false) {
                     $evidence['http_probes'][] = [
                         'path' => $path,
@@ -661,20 +661,15 @@ final class MagentoCheck
             }
         }
 
-        if ($aclEvidence !== []) {
-            return [true, 'Admin exposure appears restricted by web server ACL hints', $evidence];
+        if ($base === '' || $frontName === null) {
+            return [null, '[UNKNOWN] Admin ingress restriction requires a configured runtime endpoint and known Admin route; source ACL hints alone are not active server evidence', $evidence];
         }
-
-        if ($base !== '') {
-            $probes = $evidence['http_probes'];
-            $unobserved = array_filter($probes, static fn(array $probe): bool => ($probe['status'] ?? null) === null || (int)$probe['status'] < 100 || (int)$probe['status'] >= 500);
-            if ($probes === [] || $unobserved !== []) {
-                return [null, '[UNKNOWN] Admin exposure could not be verified for all probed paths', $evidence];
-            }
-            return [true, 'No public admin login exposure detected on probed paths', $evidence];
+        $probes = $evidence['http_probes'];
+        foreach ($probes as $probe) {
+            if (!in_array($probe['status'] ?? null, [401, 403, 404, 410], true)) return [null, '[UNKNOWN] Some Admin paths were not conclusively denied or absent; redirects and marker-free pages do not prove restriction', $evidence];
         }
-
-        return [false, 'Could not verify admin exposure restriction: no URL or web server ACL hints found', $evidence];
+        if ($probes === []) return [null, '[UNKNOWN] No Admin ingress paths were observed', $evidence];
+        return [true, 'Named Admin ingress paths returned denial or absence from this scanner vantage point', $evidence];
     }
 
     public function adminCaptchaOrRateLimit(array $args): array

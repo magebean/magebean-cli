@@ -39,9 +39,10 @@ final class AutomatedSourcePolicyCheck
             if(microtime(true)>$deadline){$gaps[]=['file'=>$file['file'],'reason'=>'analysis_deadline_exceeded'];break;}
             if(!in_array($file['extension'],['php','phtml'],true)){$gaps[]=['file'=>$file['file'],'reason'=>'unsupported_parser'];continue;}
             try{$raw=token_get_all($file['content'],TOKEN_PARSE);}catch(\ParseError $error){$gap=['file'=>$file['file'],'reason'=>'malformed_php'];if($error->getLine()>0)$gap['line']=$error->getLine();$gaps[]=$gap;continue;}
-            $tokens=[];$line=1;
-            foreach($raw as $token){$value=is_array($token)?$token[1]:$token;$start=is_array($token)?$token[2]:$line;$line+=substr_count($value,"\n");if(is_array($token)&&in_array($token[0],[T_WHITESPACE,T_COMMENT,T_DOC_COMMENT,T_OPEN_TAG,T_CLOSE_TAG],true))continue;$tokens[]=['id'=>is_array($token)?$token[0]:null,'text'=>$value,'line'=>$start];}
-            $violate=function(int $line,string $construct)use(&$evidence,$file):void{if(count($evidence['violations'])<100)$evidence['violations'][]=['file'=>$file['file'],'line'=>$line,'construct'=>$construct];else $evidence['violations_truncated']=true;};
+            $tokens=[];$line=1;$byte=0;
+            foreach($raw as $token){$value=is_array($token)?$token[1]:$token;$start=is_array($token)?$token[2]:$line;$line+=substr_count($value,"\n");$offset=$byte;$byte+=strlen($value);if(is_array($token)&&in_array($token[0],[T_WHITESPACE,T_COMMENT,T_DOC_COMMENT,T_OPEN_TAG,T_CLOSE_TAG],true))continue;$tokens[]=['id'=>is_array($token)?$token[0]:null,'text'=>$value,'line'=>$start,'byte_offset'=>$offset];}
+            $sourceHash=hash('sha256',$file['content']);
+            $violate=function(int $line,string $construct,?int $offset=null)use(&$evidence,$file,$sourceHash):void{if(count($evidence['violations'])<100)$evidence['violations'][]=['file'=>$file['file'],'line'=>$line,'construct'=>$construct,'source_sha256'=>$sourceHash]+($offset!==null&&$offset>=0?['byte_offset'=>$offset]:[]);else $evidence['violations_truncated']=true;};
             $uncertain=function(int $line,string $reason)use(&$gaps,$file):void{if(count($gaps)<100)$gaps[]=['file'=>$file['file'],'line'=>$line,'reason'=>$reason];};
             if ($kind === 'csrf_unconditional_bypass' || isset(self::BANS[$kind])) {
                 try {
@@ -61,7 +62,7 @@ final class AutomatedSourcePolicyCheck
                         $depth=1;
                         for($j=$i+2;$j<count($tokens)&&$depth>0;$j++){
                             if($tokens[$j]['text']==='(')$depth++;elseif($tokens[$j]['text']===')')$depth--;
-                            if($depth>0&&$tokens[$j]['id']===T_VARIABLE&&in_array($tokens[$j]['text'],['$_GET','$_POST','$_REQUEST','$_COOKIE','$_SERVER','$_FILES'],true))$violate($tokens[$j]['line'],'request_superglobal_in_log_arguments');
+                            if($depth>0&&$tokens[$j]['id']===T_VARIABLE&&in_array($tokens[$j]['text'],['$_GET','$_POST','$_REQUEST','$_COOKIE','$_SERVER','$_FILES'],true))$violate($tokens[$j]['line'],'request_superglobal_in_log_arguments',$tokens[$j]['byte_offset']);
                         }
                     }
                     continue;
@@ -89,7 +90,7 @@ final class AutomatedSourcePolicyCheck
                     elseif(!in_array($after,[',',')'],true))$uncertain($token['line'],'sql_first_argument_expression_unresolved');
                     continue;
                 }
-                if($kind==='shell_execution'&&$token['text']==='`'){$violate($token['line'],'shell_backtick');continue;}
+                // Backtick commands are emitted once from their AST ShellExec node above.
                 if($kind==='dynamic_execution'&&$token['id']===T_EVAL){$violate($token['line'],'eval');continue;}
                 if($kind==='dynamic_execution'&&in_array($token['id'],[T_INCLUDE,T_INCLUDE_ONCE,T_REQUIRE,T_REQUIRE_ONCE],true)){
                     $offset=($tokens[$i+1]['text']??'')==='('?2:1;
@@ -134,6 +135,7 @@ final class AutomatedSourcePolicyCheck
             }
             return;
         }
+        if ($kind==='shell_execution') foreach ($finder->findInstanceOf($nodes,Node\Expr\ShellExec::class) as $shell) $violate($shell->getStartLine(),'shell_backtick',$shell->getStartFilePos());
         $declared = [];
         foreach ($finder->findInstanceOf($nodes, Node\Stmt\Function_::class) as $function) {
             if (isset($function->namespacedName)) $declared[strtolower($function->namespacedName->toString())] = true;
@@ -146,7 +148,7 @@ final class AutomatedSourcePolicyCheck
             if (!in_array(strtolower(ltrim($original->toString(), '\\')), self::BANS[$kind], true)) continue;
             if (isset($declared[$name])) continue;
             if ($call->name instanceof Node\Name\FullyQualified) {
-                if (in_array($name, self::BANS[$kind], true)) $violate($call->getStartLine(), $name);
+                if (in_array($name, self::BANS[$kind], true)) $violate($call->getStartLine(), $name, $call->getStartFilePos());
                 continue;
             }
             $candidate = $call->name->getAttribute('namespacedName');

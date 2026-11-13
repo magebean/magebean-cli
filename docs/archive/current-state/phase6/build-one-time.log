@@ -1,0 +1,59 @@
+Building a production-only candidate...
+
+    ____
+   / __ )____  _  __
+  / __  / __ \| |/_/
+ / /_/ / /_/ />  <
+/_____/\____/_/|_|
+
+
+Box version 4.6.5@0964604 2025-03-02 18:34:04 UTC
+
+ // Loading the configuration file                                              
+ // "/var/www/magebean-cli/build/box-release-b586fe52169f.json".                
+
+🔨  Building the PHAR "/var/www/magebean-cli/build/magebean-candidate-b9b9ff684096.phar"
+
+? Checking Composer compatibility
+    > Supported version detected
+? No compactor to register
+? Adding main file: /var/www/magebean-cli/bin/magebean
+? Skip requirements checker
+? Adding binary files
+    > No file found
+? Auto-discover files? No
+? Exclude dev files? Yes
+? Adding files
+    > 712 file(s)
+? Generating new stub
+  - Using shebang line: #!/usr/bin/env php
+  - Using banner:
+    > Magebean CLI
+? Dumping the Composer autoloader
+? Removing the Composer dump artefacts
+? Compressing with the algorithm "GZ"
+    > Warning: the extension "zlib" will now be required to execute the PHAR
+? Setting file permissions to 0755
+* Done.
+
+💡  5 recommendations found:
+    - The "dump-autoload" setting can be omitted since is set to its default value
+    - The "main" setting can be omitted since is set to its default value
+    - The "stub" setting can be omitted since is set to its default value
+    - The "exclude-dev-files" setting can be omitted since is set to its default value
+    - The "chmod" setting can be omitted since is set to its default value
+No warning found.
+
+ // PHAR: 710 files (1.79MB)                                                    
+ // You can inspect the generated PHAR with the "info" command.                 
+
+ // Memory usage: 37.54MB (peak: 38.05MB), time: 1sec                           
+
+Takeover profile passed
+Retirement reassessment canonical CLI: 323 assertions passed
+Current-state Phase 1 correctness: 58 assertions passed
+Current-state Phase 2 provenance: 42 assertions passed
+Current-state Phase 3 semantics: 263 assertions passed
+Current-state Phase 4 correlation: 46 assertions passed
+Current-state Phase 5 profiles: 62 assertions passed
+Published magebean-one-time.phar: 1.88 MB; 710 files; 11 runtime packages; no forbidden files.

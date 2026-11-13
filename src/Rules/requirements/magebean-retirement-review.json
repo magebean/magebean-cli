@@ -1,0 +1,806 @@
+{
+  "schema_version": "1.0",
+  "scope": "Evidence-based reassessment of all60 archived Magebean criteria; no universal automation-impossibility classification.",
+  "original_archive_preserved": true,
+  "classifications": {
+    "partial_active_coverage": 29,
+    "detector_rework_required": 12,
+    "restored_scoped_automated": 10,
+    "insufficient_evidence": 6,
+    "external_context_required": 3
+  },
+  "requirements": [
+    {
+      "id": "MB-0004",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0799"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0010",
+      "archived_revision": 4,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0015",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0787"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0016",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0788"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0019",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0791"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0020",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0792"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0021",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0793",
+        "MB-0800"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0023",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0794"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0025",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0796"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0043",
+      "archived_revision": 4,
+      "classification": "restored_scoped_automated",
+      "active": true,
+      "reason": "Executed supported cases justify this explicit revised automatic predicate. Original full/runtime implications are not inferred.",
+      "related_active_rules": [],
+      "relationship": "restored_revised_predicate",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0051",
+      "archived_revision": 2,
+      "classification": "insufficient_evidence",
+      "active": false,
+      "reason": "Missing-input behavior alone did not qualify the original maintenance/provider/KEV assertion. No manual-only conclusion is drawn.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0052",
+      "archived_revision": 2,
+      "classification": "insufficient_evidence",
+      "active": false,
+      "reason": "Missing-input behavior alone did not qualify the original maintenance/provider/KEV assertion. No manual-only conclusion is drawn.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0053",
+      "archived_revision": 2,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0806"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0054",
+      "archived_revision": 2,
+      "classification": "insufficient_evidence",
+      "active": false,
+      "reason": "Missing-input behavior alone did not qualify the original maintenance/provider/KEV assertion. No manual-only conclusion is drawn.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0058",
+      "archived_revision": 2,
+      "classification": "insufficient_evidence",
+      "active": false,
+      "reason": "Missing-input behavior alone did not qualify the original maintenance/provider/KEV assertion. No manual-only conclusion is drawn.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0060",
+      "archived_revision": 2,
+      "classification": "insufficient_evidence",
+      "active": false,
+      "reason": "Missing-input behavior alone did not qualify the original maintenance/provider/KEV assertion. No manual-only conclusion is drawn.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0064",
+      "archived_revision": 2,
+      "classification": "insufficient_evidence",
+      "active": false,
+      "reason": "Missing-input behavior alone did not qualify the original maintenance/provider/KEV assertion. No manual-only conclusion is drawn.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0073",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0798"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0075",
+      "archived_revision": 2,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0076",
+      "archived_revision": 2,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part1.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part1-results.json"
+    },
+    {
+      "id": "MB-0077",
+      "archived_revision": 2,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0078",
+      "archived_revision": 4,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0079",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0730"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0081",
+      "archived_revision": 2,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0812",
+        "MB-0813"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0082",
+      "archived_revision": 3,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0083",
+      "archived_revision": 3,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0085",
+      "archived_revision": 2,
+      "classification": "external_context_required",
+      "active": false,
+      "reason": "Current implementation lacks the external inventory, operational or component evidence needed for a full assessment. Such inputs may be machine-provided.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0086",
+      "archived_revision": 3,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0087",
+      "archived_revision": 2,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0088",
+      "archived_revision": 2,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0089",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0802"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0090",
+      "archived_revision": 2,
+      "classification": "external_context_required",
+      "active": false,
+      "reason": "Current implementation lacks the external inventory, operational or component evidence needed for a full assessment. Such inputs may be machine-provided.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0092",
+      "archived_revision": 2,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0093",
+      "archived_revision": 2,
+      "classification": "restored_scoped_automated",
+      "active": true,
+      "reason": "Executed supported cases justify this explicit revised automatic predicate. Original full/runtime implications are not inferred.",
+      "related_active_rules": [],
+      "relationship": "restored_revised_predicate",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0094",
+      "archived_revision": 2,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0811",
+        "MB-0812",
+        "MB-0813"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0095",
+      "archived_revision": 2,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0812",
+        "MB-0813"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0096",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0027",
+        "MB-0779",
+        "MB-0802",
+        "MB-0803"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0097",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0730"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0098",
+      "archived_revision": 4,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0797"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0099",
+      "archived_revision": 2,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0813"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part2.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part2-probes.json"
+    },
+    {
+      "id": "MB-0101",
+      "archived_revision": 2,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0801"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0102",
+      "archived_revision": 2,
+      "classification": "external_context_required",
+      "active": false,
+      "reason": "Current implementation lacks the external inventory, operational or component evidence needed for a full assessment. Such inputs may be machine-provided.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0731",
+      "archived_revision": 1,
+      "classification": "restored_scoped_automated",
+      "active": true,
+      "reason": "Executed supported cases justify this explicit revised automatic predicate. Original full/runtime implications are not inferred.",
+      "related_active_rules": [],
+      "relationship": "restored_revised_predicate",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0732",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0786",
+        "MB-0822"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0733",
+      "archived_revision": 1,
+      "classification": "restored_scoped_automated",
+      "active": true,
+      "reason": "Executed supported cases justify this explicit revised automatic predicate. Original full/runtime implications are not inferred.",
+      "related_active_rules": [],
+      "relationship": "restored_revised_predicate",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0734",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0789"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0735",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0790",
+        "MB-0822"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0736",
+      "archived_revision": 1,
+      "classification": "restored_scoped_automated",
+      "active": true,
+      "reason": "Executed supported cases justify this explicit revised automatic predicate. Original full/runtime implications are not inferred.",
+      "related_active_rules": [],
+      "relationship": "restored_revised_predicate",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0737",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0795",
+        "MB-0814"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0738",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0729",
+        "MB-0807"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0739",
+      "archived_revision": 1,
+      "classification": "restored_scoped_automated",
+      "active": true,
+      "reason": "Executed supported cases justify this explicit revised automatic predicate. Original full/runtime implications are not inferred.",
+      "related_active_rules": [],
+      "relationship": "restored_revised_predicate",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0740",
+      "archived_revision": 1,
+      "classification": "restored_scoped_automated",
+      "active": true,
+      "reason": "Executed supported cases justify this explicit revised automatic predicate. Original full/runtime implications are not inferred.",
+      "related_active_rules": [],
+      "relationship": "restored_revised_predicate",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0741",
+      "archived_revision": 1,
+      "classification": "restored_scoped_automated",
+      "active": true,
+      "reason": "Executed supported cases justify this explicit revised automatic predicate. Original full/runtime implications are not inferred.",
+      "related_active_rules": [],
+      "relationship": "restored_revised_predicate",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0742",
+      "archived_revision": 1,
+      "classification": "restored_scoped_automated",
+      "active": true,
+      "reason": "Executed supported cases justify this explicit revised automatic predicate. Original full/runtime implications are not inferred.",
+      "related_active_rules": [],
+      "relationship": "restored_revised_predicate",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0743",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0795"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0744",
+      "archived_revision": 1,
+      "classification": "restored_scoped_automated",
+      "active": true,
+      "reason": "Executed supported cases justify this explicit revised automatic predicate. Original full/runtime implications are not inferred.",
+      "related_active_rules": [],
+      "relationship": "restored_revised_predicate",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0745",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0804"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0746",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0795",
+        "MB-0814"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0747",
+      "archived_revision": 1,
+      "classification": "detector_rework_required",
+      "active": false,
+      "reason": "Current source/config observation does not establish the broad criterion; repair diagnostics without unrestricted PASS.",
+      "related_active_rules": [],
+      "relationship": "not_established",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    },
+    {
+      "id": "MB-0748",
+      "archived_revision": 1,
+      "classification": "partial_active_coverage",
+      "active": false,
+      "reason": "Verified active rules provide related bounded observations; they are not full criterion equivalence.",
+      "related_active_rules": [
+        "MB-0780",
+        "MB-0800"
+      ],
+      "relationship": "partial",
+      "evidence_report": "docs/archive/retirement/retirement-evidence-part3.md",
+      "direct_baseline": "docs/archive/retirement/retirement-binding-probes.json",
+      "fixture_results": "docs/archive/retirement/retirement-evidence-part3-probes.json"
+    }
+  ]
+}

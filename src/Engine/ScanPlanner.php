@@ -63,10 +63,12 @@ final class ScanPlanner
         if(is_file($profile)){$custom=json_decode((string)file_get_contents($profile),true,512,JSON_THROW_ON_ERROR);if(!isset($custom['requirement_ids'])){if($modules!==[])throw new \RuntimeException('--modules requires module audit criteria.');if($internal!==[])throw new \RuntimeException('Internal selections require a primary requirement_ids profile.');$diagnostic(new ScanDiagnostic('comment','Using the deprecated custom-profile compatibility adapter.'));return (new LegacyScanPlanner())->planCli($request,$registry,$diagnostic);}}
         if ($launchProfile && $requested !== []) {
             $members = RequirementProfileCatalog::load($profile)['requirement_ids'];
+            if (in_array('MB-0728',$members,true)) $members[]='MB-0731'; // Historical selector for the identical password component.
             if ($outside = array_diff($requested, $members)) {
                 throw new \RuntimeException('Rules outside the selected development/prelaunch profile: '.implode(', ', $outside).'. Select those rules without this profile.');
             }
         }
+        $caps=RequirementProfileCatalog::capabilities(RequirementProfileCatalog::load($profile),$caps);
         $pack = RequirementCatalog::forProfile($profile, $caps, $mode);
         $activeProfile = $pack['profile'];
         if($requestedFamilies!==[]&&!isset($requestedFamilies[$activeProfile['family']]))throw new \RuntimeException('Selected requirements do not belong to the profile family; choose a profile from the same source.');
