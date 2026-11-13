@@ -45,7 +45,7 @@ php magebean.phar rules:list --profile=owasp --severity=critical
 php magebean.phar rules:list --profile=asvs-l1 --include-manual-review
 ```
 
-Supported filters are --profile, --include-manual-review, --capabilities, --control and --severity. Control and severity filters intersect. Listing reports selected rules, profile inventory and contextual omissions; counts are not proof of completed assessment. The [baseline](../magebean-baseline-v1.md) lists all 110 active Magebean criteria.
+Supported filters are --profile, --include-manual-review, --capabilities, --control and --severity. Control and severity filters intersect. Listing shows selected rules and totals, without an omitted-capability diagnostic footer; counts are not proof of completed assessment. The [baseline](../magebean-baseline-v1.md) lists all 110 active Magebean criteria.
 
 ## Project configuration
 

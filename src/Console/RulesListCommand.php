@@ -115,13 +115,6 @@ HELP;
         }
         $out->writeln("<info>Total Rules Listed: {$count}</info>");
         $automationOnly=($pack['profile']['automation_only']??false)===true;
-        $out->writeln($automationOnly?sprintf('<info>Total Profile Rules: %d</info> (automated only)',$profileRulesTotal):sprintf('<info>Total Profile Rules: %d</info> (including %d human verification %s)', $profileRulesTotal, $profileManualRulesTotal, $profileManualRulesTotal === 1 ? 'rule' : 'rules'));
-        if ($automationOnly && !empty($pack['omitted_requirements'])) {
-            $out->writeln(sprintf('<comment>Profile inventory: %d; checks omitted for missing technical context: %d.</comment>', $pack['inventory_count'], count($pack['omitted_requirements'])));
-            foreach ($pack['omitted_requirements'] as $omitted) {
-                $out->writeln(sprintf('%s: %s%s', $omitted['id'], $omitted['reason_code'], isset($omitted['capability']) ? ' (capability: '.$omitted['capability'].')' : ''));
-            }
-        }
         if (!$includeManualReview && $profileManualRulesTotal > 0) {
             $out->writeln(sprintf('<comment>Human verification rules hidden: %d. Use --include-manual-review to show them.</comment>', $profileManualRulesTotal));
         } elseif ($includeManualReview && $profileManualRulesTotal > 0) {

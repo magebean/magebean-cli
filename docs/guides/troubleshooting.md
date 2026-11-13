@@ -4,7 +4,7 @@ A rule can be selected without having enough evidence to conclude. Missing permi
 
 ## Selection versus execution
 
-`Rules 80 selected · 6 require additional context` describes a default hardening selection. It does not mean 80 complete assessments. Context omissions and explicit selection/filter omissions are distinguished. `rules:list --profile=hardening` shows contextual gates; [production context](production-context.md) explains required inputs.
+`Rules 80 selected · 6 require additional context` describes a default hardening selection. It does not mean 80 complete assessments. Context omissions and explicit selection/filter omissions are distinguished. `rules:list --profile=hardening` lists selected rules; [production context](production-context.md) explains optional gates and required inputs.
 
 Inspect a specific rule when an incomplete scan needs investigation:
 
